@@ -24,7 +24,7 @@ import {
 @Controller('leave-requests')
 @UseGuards(JwtAuthGuard, PermissionsGuard)
 export class LeaveRequestsController {
-  constructor(private readonly leaveService: LeaveService) {}
+  constructor(private readonly leaveService: LeaveService) { }
 
   @Post()
   @Permissions('leave:create')
@@ -48,13 +48,17 @@ export class LeaveRequestsController {
     @Query('take', new DefaultValuePipe(10), ParseIntPipe) take: number,
     @Query('employeeId') employeeId?: string,
     @Query('status') status?: string,
+    @CurrentUser() user?: CurrentUserPayload,
   ) {
-    return this.leaveService.findAllLeaveRequests({
-      skip,
-      take,
-      employeeId,
-      status,
-    });
+    return this.leaveService.findAllLeaveRequests(
+      {
+        skip,
+        take,
+        employeeId,
+        status,
+      },
+      user,
+    );
   }
 
   @Get('my-requests')

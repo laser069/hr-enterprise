@@ -5,7 +5,7 @@ import { PrismaService } from '../database/prisma.service';
 export class AnalyticsService {
   private readonly logger = new Logger(AnalyticsService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   // ============ Executive Summary ============
 
@@ -327,9 +327,9 @@ export class AnalyticsService {
       activeEmployees: dept.employees.length,
       averageTenure: dept.employees.length > 0
         ? dept.employees.reduce((sum, e) => {
-            const tenure = (Date.now() - e.dateOfJoining.getTime()) / (1000 * 60 * 60 * 24 * 365);
-            return sum + tenure;
-          }, 0) / dept.employees.length
+          const tenure = (Date.now() - e.dateOfJoining.getTime()) / (1000 * 60 * 60 * 24 * 365);
+          return sum + tenure;
+        }, 0) / dept.employees.length
         : 0,
     }));
   }

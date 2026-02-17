@@ -1,6 +1,6 @@
 generator client {
   provider = "prisma-client-js"
-  output   = "../generated/prisma"
+  output   = "../node_modules/.prisma/client"
 }
 
 datasource db {
@@ -29,6 +29,10 @@ model User {
   auditLogs     AuditLog[]
   approvedPayrolls PayrollRun[]  @relation("PayrollApprover")
   filedCompliances FilingRecord[]
+  passwordResetTokens PasswordResetToken[]
+  emailVerificationTokens EmailVerificationToken[]
+  notifications Notification[]
+  uploadedDocuments Document[]
 
   @@map("users")
 }
@@ -141,6 +145,7 @@ model Employee {
   approvalRequests        Approval[]           @relation("ApprovalRequester")
   approvalDecisions       Approval[]           @relation("ApprovalApprover")
   approvalSteps           ApprovalStep[]
+  documents               Document[]
 
   @@map("employees")
 }
@@ -516,4 +521,124 @@ model ApprovalStep {
   @@unique([approvalId, stepNumber])
   @@index([approverId])
   @@map("approval_steps")
+}
+
+// ============================================
+// AUTHENTICATION & SECURITY MODELS
+// ============================================
+
+model PasswordResetToken {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  token     String   @unique
+  expiresAt DateTime @map("expires_at")
+  usedAt    DateTime? @map("used_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+  @@map("password_reset_tokens")
+}
+
+model EmailVerificationToken {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  token     String   @unique
+  expiresAt DateTime @map("expires_at")
+  usedAt    DateTime? @map("used_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+  @@map("email_verification_tokens")
+}
+
+model FailedLoginAttempt {
+  id          String   @id @default(uuid())
+  email       String
+  ipAddress   String?  @map("ip_address")
+  userAgent   String?  @map("user_agent")
+  attemptedAt DateTime @default(now()) @map("attempted_at")
+
+  @@index([email])
+  @@index([attemptedAt])
+  @@map("failed_login_attempts")
+}
+
+// ============================================
+// NOTIFICATION MODELS
+// ============================================
+
+model Notification {
+  id          String           @id @default(uuid())
+  userId      String           @map("user_id")
+  type        NotificationType
+  title       String
+  message     String
+  data        Json?
+  read        Boolean          @default(false)
+  readAt      DateTime?        @map("read_at")
+  createdAt   DateTime         @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([read])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+enum NotificationType {
+  LEAVE_APPROVED
+  LEAVE_REJECTED
+  PAYROLL_PROCESSED
+  PERFORMANCE_REVIEW
+  DOCUMENT_UPLOADED
+  SYSTEM
+  ANNOUNCEMENT
+}
+
+// ============================================
+// FILE & DOCUMENT MODELS
+// ============================================
+
+model Document {
+  id           String         @id @default(uuid())
+  employeeId   String?        @map("employee_id")
+  uploadedBy   String         @map("uploaded_by")
+  name         String
+  originalName String         @map("original_name")
+  mimeType     String         @map("mime_type")
+  size         Int
+  url          String
+  key          String         // S3 key or file path
+  category     DocumentCategory @default(OTHER)
+  description  String?
+  tags         String[]
+  isPublic     Boolean        @default(false) @map("is_public")
+  createdAt    DateTime       @default(now()) @map("created_at")
+  updatedAt    DateTime       @updatedAt @map("updated_at")
+
+  employee Employee? @relation(fields: [employeeId], references: [id], onDelete: SetNull)
+  uploader User      @relation(fields: [uploadedBy], references: [id])
+
+  @@index([employeeId])
+  @@index([category])
+  @@index([uploadedBy])
+  @@map("documents")
+}
+
+enum DocumentCategory {
+  CONTRACT
+  ID_PROOF
+  RESUME
+  PAYSLIP
+  POLICY
+  CERTIFICATE
+  COMPLIANCE
+  OTHER
 }

@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import { PrismaClient } from '../generated/prisma';
+import { PrismaClient } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 
 // For Prisma 7.x, we need to use the driver adapter
@@ -7,7 +7,7 @@ import { PrismaPg } from '@prisma/adapter-pg';
 import { Pool } from 'pg';
 
 // Configure pool
-const pool = new Pool({ 
+const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
 
@@ -21,7 +21,7 @@ async function main() {
   // 1. Create Departments
   // ============================================
   console.log('🏢 Creating departments...');
-  
+
   const departments = await Promise.all([
     prisma.department.upsert({
       where: { name: 'Engineering' },
@@ -71,7 +71,7 @@ async function main() {
   // 2. Create Leave Types
   // ============================================
   console.log('🏖️ Creating leave types...');
-  
+
   const leaveTypes = await Promise.all([
     prisma.leaveType.upsert({
       where: { name: 'Annual Leave' },
@@ -165,6 +165,8 @@ async function main() {
     { name: 'Create Leave', resource: 'leave', action: 'create' },
     { name: 'Approve Leave', resource: 'leave', action: 'approve' },
     { name: 'Manage Leave Types', resource: 'leave', action: 'manage' },
+    // Analytics permissions
+    { name: 'View Analytics', resource: 'analytics', action: 'read' },
   ];
 
   // Create all permissions
@@ -235,14 +237,15 @@ async function main() {
     })),
   });
 
-  // HR Manager gets HR-related permissions
+  // HR Manager gets HR-related permissions + analytics
   const hrPermissions = allPermissions.filter(
     (p) =>
       p.resource === 'employees' ||
       p.resource === 'attendance' ||
       p.resource === 'leave' ||
       p.resource === 'departments' ||
-      p.resource === 'users'
+      p.resource === 'users' ||
+      p.resource === 'analytics'
   );
   await prisma.rolePermission.deleteMany({ where: { roleId: hrRole.id } });
   await prisma.rolePermission.createMany({
@@ -252,13 +255,14 @@ async function main() {
     })),
   });
 
-  // Manager gets read access to employees, attendance, leave
+  // Manager gets read access to employees, attendance, leave, analytics
   const managerPermissions = allPermissions.filter(
     (p) =>
       (p.resource === 'employees' && p.action === 'read') ||
       (p.resource === 'attendance' && ['read', 'create', 'update'].includes(p.action)) ||
       (p.resource === 'leave' && ['read', 'create', 'approve'].includes(p.action)) ||
-      (p.resource === 'departments' && p.action === 'read')
+      (p.resource === 'departments' && p.action === 'read') ||
+      (p.resource === 'analytics' && p.action === 'read')
   );
   await prisma.rolePermission.deleteMany({ where: { roleId: managerRole.id } });
   await prisma.rolePermission.createMany({
@@ -374,8 +378,10 @@ async function main() {
   // ============================================
   console.log('👥 Creating engineering team...');
 
-  const engManager = await prisma.employee.create({
-    data: {
+  const engManager = await prisma.employee.upsert({
+    where: { employeeCode: 'EMP003' },
+    update: {},
+    create: {
       employeeCode: 'EMP003',
       firstName: 'Michael',
       lastName: 'Chen',
@@ -394,8 +400,10 @@ async function main() {
     data: { headId: engManager.id },
   });
 
-  const engManagerUser = await prisma.user.create({
-    data: {
+  const engManagerUser = await prisma.user.upsert({
+    where: { email: 'michael.chen@hrenterprise.com' },
+    update: {},
+    create: {
       email: 'michael.chen@hrenterprise.com',
       passwordHash: await bcrypt.hash('Manager@123', 12),
       isActive: true,
@@ -407,8 +415,10 @@ async function main() {
 
   // Create engineering team members
   const engineers = await Promise.all([
-    prisma.employee.create({
-      data: {
+    prisma.employee.upsert({
+      where: { employeeCode: 'EMP004' },
+      update: {},
+      create: {
         employeeCode: 'EMP004',
         firstName: 'Emily',
         lastName: 'Davis',
@@ -421,8 +431,10 @@ async function main() {
         employmentStatus: 'active',
       },
     }),
-    prisma.employee.create({
-      data: {
+    prisma.employee.upsert({
+      where: { employeeCode: 'EMP005' },
+      update: {},
+      create: {
         employeeCode: 'EMP005',
         firstName: 'James',
         lastName: 'Wilson',
@@ -435,8 +447,10 @@ async function main() {
         employmentStatus: 'active',
       },
     }),
-    prisma.employee.create({
-      data: {
+    prisma.employee.upsert({
+      where: { employeeCode: 'EMP006' },
+      update: {},
+      create: {
         employeeCode: 'EMP006',
         firstName: 'Lisa',
         lastName: 'Anderson',
@@ -453,8 +467,10 @@ async function main() {
 
   // Create users for engineers
   for (const engineer of engineers) {
-    await prisma.user.create({
-      data: {
+    await prisma.user.upsert({
+      where: { email: engineer.email },
+      update: {},
+      create: {
         email: engineer.email,
         passwordHash: await bcrypt.hash('Employee@123', 12),
         isActive: true,
@@ -472,8 +488,10 @@ async function main() {
   // ============================================
   console.log('👥 Creating sales team...');
 
-  const salesManager = await prisma.employee.create({
-    data: {
+  const salesManager = await prisma.employee.upsert({
+    where: { employeeCode: 'EMP007' },
+    update: {},
+    create: {
       employeeCode: 'EMP007',
       firstName: 'Robert',
       lastName: 'Taylor',
@@ -491,8 +509,10 @@ async function main() {
     data: { headId: salesManager.id },
   });
 
-  await prisma.user.create({
-    data: {
+  await prisma.user.upsert({
+    where: { email: 'robert.taylor@hrenterprise.com' },
+    update: {},
+    create: {
       email: 'robert.taylor@hrenterprise.com',
       passwordHash: await bcrypt.hash('Manager@123', 12),
       isActive: true,
@@ -503,8 +523,10 @@ async function main() {
   });
 
   const salesReps = await Promise.all([
-    prisma.employee.create({
-      data: {
+    prisma.employee.upsert({
+      where: { employeeCode: 'EMP008' },
+      update: {},
+      create: {
         employeeCode: 'EMP008',
         firstName: 'Jennifer',
         lastName: 'Brown',
@@ -517,8 +539,10 @@ async function main() {
         employmentStatus: 'active',
       },
     }),
-    prisma.employee.create({
-      data: {
+    prisma.employee.upsert({
+      where: { employeeCode: 'EMP009' },
+      update: {},
+      create: {
         employeeCode: 'EMP009',
         firstName: 'David',
         lastName: 'Martinez',
@@ -534,8 +558,10 @@ async function main() {
   ]);
 
   for (const rep of salesReps) {
-    await prisma.user.create({
-      data: {
+    await prisma.user.upsert({
+      where: { email: rep.email },
+      update: {},
+      create: {
         email: rep.email,
         passwordHash: await bcrypt.hash('Employee@123', 12),
         isActive: true,
@@ -553,8 +579,10 @@ async function main() {
   // ============================================
   console.log('👥 Creating finance and marketing employees...');
 
-  const financeHead = await prisma.employee.create({
-    data: {
+  const financeHead = await prisma.employee.upsert({
+    where: { employeeCode: 'EMP010' },
+    update: {},
+    create: {
       employeeCode: 'EMP010',
       firstName: 'Amanda',
       lastName: 'White',
@@ -572,8 +600,10 @@ async function main() {
     data: { headId: financeHead.id },
   });
 
-  await prisma.user.create({
-    data: {
+  await prisma.user.upsert({
+    where: { email: 'amanda.white@hrenterprise.com' },
+    update: {},
+    create: {
       email: 'amanda.white@hrenterprise.com',
       passwordHash: await bcrypt.hash('Manager@123', 12),
       isActive: true,
@@ -583,8 +613,10 @@ async function main() {
     },
   });
 
-  const marketingHead = await prisma.employee.create({
-    data: {
+  const marketingHead = await prisma.employee.upsert({
+    where: { employeeCode: 'EMP011' },
+    update: {},
+    create: {
       employeeCode: 'EMP011',
       firstName: 'Kevin',
       lastName: 'Lee',
@@ -602,8 +634,10 @@ async function main() {
     data: { headId: marketingHead.id },
   });
 
-  await prisma.user.create({
-    data: {
+  await prisma.user.upsert({
+    where: { email: 'kevin.lee@hrenterprise.com' },
+    update: {},
+    create: {
       email: 'kevin.lee@hrenterprise.com',
       passwordHash: await bcrypt.hash('Manager@123', 12),
       isActive: true,
@@ -631,7 +665,7 @@ async function main() {
     for (let i = 1; i <= 7; i++) {
       const date = new Date(today);
       date.setDate(date.getDate() - i);
-      
+
       // Skip weekends
       if (date.getDay() === 0 || date.getDay() === 6) continue;
 
@@ -642,7 +676,7 @@ async function main() {
       checkOut.setHours(17, 30 + Math.floor(Math.random() * 30), 0, 0);
 
       const workMinutes = Math.floor((checkOut.getTime() - checkIn.getTime()) / (1000 * 60));
-      const lateMinutes = checkIn.getHours() >= 9 && checkIn.getMinutes() > 15 ? 
+      const lateMinutes = checkIn.getHours() >= 9 && checkIn.getMinutes() > 15 ?
         (checkIn.getHours() - 9) * 60 + checkIn.getMinutes() - 15 : 0;
 
       await prisma.attendance.upsert({

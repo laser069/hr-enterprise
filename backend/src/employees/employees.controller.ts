@@ -16,12 +16,12 @@ import { CreateEmployeeDto } from './dto/create-employee.dto';
 import { UpdateEmployeeDto } from './dto/update-employee.dto';
 import { AssignManagerDto } from './dto/assign-manager.dto';
 import { JwtAuthGuard, PermissionsGuard } from '../common/guards';
-import { Permissions } from '../common/decorators';
+import { Permissions, CurrentUser } from '../common/decorators';
 
 @Controller('employees')
 @UseGuards(JwtAuthGuard, PermissionsGuard)
 export class EmployeesController {
-  constructor(private readonly employeesService: EmployeesService) {}
+  constructor(private readonly employeesService: EmployeesService) { }
 
   @Post()
   @Permissions('employees:create')
@@ -38,15 +38,19 @@ export class EmployeesController {
     @Query('managerId') managerId?: string,
     @Query('employmentStatus') employmentStatus?: string,
     @Query('search') search?: string,
+    @CurrentUser() user?: any,
   ) {
-    return this.employeesService.findAll({
-      skip,
-      take,
-      departmentId,
-      managerId,
-      employmentStatus,
-      search,
-    });
+    return this.employeesService.findAll(
+      {
+        skip,
+        take,
+        departmentId,
+        managerId,
+        employmentStatus,
+        search,
+      },
+      user,
+    );
   }
 
   @Get('statistics')

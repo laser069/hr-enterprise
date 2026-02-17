@@ -17,12 +17,12 @@ import { CheckOutDto } from './dto/check-out.dto';
 import { CreateAttendanceDto } from './dto/create-attendance.dto';
 import { UpdateAttendanceDto } from './dto/update-attendance.dto';
 import { JwtAuthGuard, PermissionsGuard } from '../common/guards';
-import { Permissions, CurrentUser, CurrentUserPayload } from '../common/decorators';
+import { Permissions, CurrentUser, CurrentUserPayload, Public } from '../common/decorators';
 
 @Controller('attendance')
 @UseGuards(JwtAuthGuard, PermissionsGuard)
 export class AttendanceController {
-  constructor(private readonly attendanceService: AttendanceService) {}
+  constructor(private readonly attendanceService: AttendanceService) { }
 
   @Post('check-in')
   @Permissions('attendance:create')
@@ -51,15 +51,37 @@ export class AttendanceController {
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
     @Query('status') status?: string,
+    @CurrentUser() user?: CurrentUserPayload,
   ) {
-    return this.attendanceService.findAll({
-      skip,
-      take,
-      employeeId,
-      startDate,
-      endDate,
-      status,
-    });
+    return this.attendanceService.findAll(
+      {
+        skip,
+        take,
+        employeeId,
+        startDate,
+        endDate,
+        status,
+      },
+      user,
+    );
+  }
+
+  @Get('today-stats')
+  @Permissions('attendance:read')
+  @UseGuards(JwtAuthGuard, PermissionsGuard)
+  async getTodayStats(@CurrentUser() user: CurrentUserPayload) {
+    console.log(`User ${user?.userId} requesting today stats`);
+    return this.attendanceService.getTodayStats();
+  }
+
+  @Get('my')
+  @Permissions('attendance:read')
+  getMyAttendance(
+    @CurrentUser() user: CurrentUserPayload,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+  ) {
+    return this.attendanceService.getMyAttendance(user.userId, startDate, endDate);
   }
 
   @Get('summary/:employeeId')

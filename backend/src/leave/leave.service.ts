@@ -15,7 +15,7 @@ import { CreateLeaveRequestDto } from './dto/create-leave-request.dto';
 export class LeaveService {
   private readonly logger = new Logger(LeaveService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   // ============ Leave Type Methods ============
 
@@ -245,18 +245,52 @@ export class LeaveService {
     return leaveRequest;
   }
 
-  async findAllLeaveRequests(params: {
-    skip?: number;
-    take?: number;
-    employeeId?: string;
-    status?: string;
-    startDate?: Date;
-    endDate?: Date;
-  }) {
+  async findAllLeaveRequests(
+    params: {
+      skip?: number;
+      take?: number;
+      employeeId?: string;
+      status?: string;
+      startDate?: Date;
+      endDate?: Date;
+    },
+    user?: any,
+  ) {
     const { skip = 0, take = 10, employeeId, status, startDate, endDate } = params;
 
     const where: any = {};
-    if (employeeId) where.employeeId = employeeId;
+
+    // Role-based visibility enforcement
+    if (user) {
+      if (user.roleName === 'employee') {
+        // Employees can only see their own leave requests
+        where.employeeId = user.employeeId;
+      } else if (user.roleName === 'manager') {
+        // Managers can see their own requests AND their team's requests
+        where.OR = [
+          { employeeId: user.employeeId },
+          { employee: { managerId: user.employeeId } },
+        ];
+      }
+      // Admin / HR Manager -> No extra filters
+    }
+
+    // Merge role-based `where` with query params `where`
+    if (user?.roleName === 'employee') {
+      where.employeeId = user.employeeId;
+    } else if (user?.roleName === 'manager') {
+      if (employeeId) {
+        where.employeeId = employeeId;
+        where.OR = [
+          { employeeId: user.employeeId },
+          { employee: { managerId: user.employeeId } },
+        ];
+      }
+    } else {
+      // Admin/HR
+      if (employeeId) where.employeeId = employeeId;
+    }
+
     if (status) where.status = status;
     if (startDate || endDate) {
       where.startDate = {};

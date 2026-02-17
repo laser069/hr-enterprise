@@ -25,7 +25,7 @@ export class AttendanceService {
   // Half-day threshold: 4 hours
   private readonly HALF_DAY_MINUTES = 4 * 60;
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   private toIST(date: Date): Date {
     return new Date(date.getTime() + this.IST_OFFSET);
@@ -313,23 +313,79 @@ export class AttendanceService {
     return attendance;
   }
 
-  async findAll(params: {
-    skip?: number;
-    take?: number;
-    employeeId?: string;
-    startDate?: string;
-    endDate?: string;
-    status?: string;
-  }) {
+  async findAll(
+    params: {
+      skip?: number;
+      take?: number;
+      employeeId?: string;
+      startDate?: string;
+      endDate?: string;
+      status?: string;
+    },
+    user?: any,
+  ) {
     const { skip = 0, take = 10, employeeId, startDate, endDate, status } = params;
 
     const where: any = {};
+
+    // Role-based visibility enforcement
+    if (user) {
+      if (user.roleName === 'employee') {
+        // Employees can only see their own attendance
+        where.employeeId = user.employeeId;
+      } else if (user.roleName === 'manager') {
+        // Managers can see their own attendance AND their team's attendance
+        // Logic: (employeeId = user.employeeId) OR (employee.managerId = user.employeeId)
+        where.OR = [
+          { employeeId: user.employeeId },
+          { employee: { managerId: user.employeeId } },
+        ];
+      }
+      // Admin / HR Manager -> No extra filters (can see all)
+    }
+
     if (employeeId) where.employeeId = employeeId;
     if (status) where.status = status;
     if (startDate || endDate) {
       where.date = {};
       if (startDate) where.date.gte = new Date(startDate);
       if (endDate) where.date.lte = new Date(endDate);
+    }
+
+    // Merge role-based `where` with query params `where`
+    // If role enforced `where.employeeId`, ensure query param `employeeId` doesn't override it permissively
+    // Actually, simply adding properties to `where` object merges them with AND logic implicitly for separate keys.
+    // BUT: `where.employeeId` set by role logic will be overwritten by `if (employeeId) where.employeeId = employeeId;`
+    // We must ensure user cannot request someone else's data if restricted.
+
+    // Correct logic:
+    if (user?.roleName === 'employee') {
+      // Force employeeId to be current user's, ignoring query param
+      where.employeeId = user.employeeId;
+    } else if (user?.roleName === 'manager') {
+      // If manager requests specific employee, ensure it's in their scope
+      if (employeeId) {
+        // We need to ensure this employeeId is either self OR in team. 
+        // Ideally we'd add this check. 
+        // Simple way: Add explicit AND condition.
+        where.employeeId = employeeId;
+        where.OR = [
+          { employeeId: user.employeeId },
+          { employee: { managerId: user.employeeId } },
+        ];
+        // Note: Prisma 7 might struggle with complex AND/OR overrides on same field.
+        // But here we are setting `employeeId` property AND an `OR` condition.
+        // Wait, if we set `where.employeeId`, the OR condition might conflict if not careful.
+        // Actually, `where` object structure:
+        // { employeeId: 'X', OR: [...] } -> implies EmployeeId must be X AND (condition in OR).
+        // This works perfectly check: Is X (Self) OR Is X (Team member)? 
+      } else {
+        // No specific employee requested, just show all allowed
+        // where.OR is already set above
+      }
+    } else {
+      // Admin/HR
+      if (employeeId) where.employeeId = employeeId;
     }
 
     const [attendance, total] = await Promise.all([
@@ -592,6 +648,7 @@ export class AttendanceService {
           date: dateObj,
           status: 'absent',
         })),
+        skipDuplicates: true,
       });
 
       this.logger.log(
@@ -600,5 +657,91 @@ export class AttendanceService {
     }
 
     return absentEmployees.length;
+  }
+
+  async getTodayStats() {
+    const today = this.getDateString(new Date());
+    const todayDate = new Date(today);
+
+    // First mark absentees for today
+    await this.markAbsentees();
+
+    const stats = await this.prisma.attendance.groupBy({
+      by: ['status'],
+      where: {
+        date: todayDate,
+      },
+      _count: {
+        status: true,
+      },
+    });
+
+    const presentToday = stats.find((s) => s.status === 'present')?._count.status || 0;
+    const absentToday = stats.find((s) => s.status === 'absent')?._count.status || 0;
+    const lateToday = stats.find((s) => s.status === 'late')?._count.status || 0;
+    const halfDayToday = stats.find((s) => s.status === 'half-day')?._count.status || 0;
+
+    // Calculate on leave (employees with approved leave for today)
+    const onLeaveToday = await this.prisma.leaveRequest.count({
+      where: {
+        status: 'approved',
+        startDate: {
+          lte: todayDate,
+        },
+        endDate: {
+          gte: todayDate,
+        },
+      },
+    });
+
+    const result = {
+      presentToday,
+      absentToday,
+      lateToday,
+      halfDayToday,
+      onLeaveToday,
+      date: today,
+    };
+
+    this.logger.log(`Today stats: ${JSON.stringify(result)}`);
+    return result;
+  }
+
+  async getMyAttendance(userId: string, startDate?: string, endDate?: string) {
+    // Get employee ID from user
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: { employee: true },
+    });
+
+    if (!user?.employee) {
+      throw new NotFoundException('Employee not found for this user');
+    }
+
+    const where: any = {
+      employeeId: user.employee.id,
+    };
+
+    if (startDate || endDate) {
+      where.date = {};
+      if (startDate) where.date.gte = new Date(startDate);
+      if (endDate) where.date.lte = new Date(endDate);
+    }
+
+    const attendance = await this.prisma.attendance.findMany({
+      where,
+      orderBy: { date: 'desc' },
+      include: {
+        employee: {
+          select: {
+            firstName: true,
+            lastName: true,
+            employeeCode: true,
+          },
+        },
+      },
+    });
+
+    return attendance;
   }
 }

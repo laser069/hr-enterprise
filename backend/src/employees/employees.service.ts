@@ -13,7 +13,7 @@ import { UpdateEmployeeDto } from './dto/update-employee.dto';
 export class EmployeesService {
   private readonly logger = new Logger(EmployeesService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async create(createEmployeeDto: CreateEmployeeDto) {
     const {
@@ -90,26 +90,87 @@ export class EmployeesService {
     return employee;
   }
 
-  async findAll(params: {
-    skip?: number;
-    take?: number;
-    departmentId?: string;
-    managerId?: string;
-    employmentStatus?: string;
-    search?: string;
-  }) {
+  async findAll(
+    params: {
+      skip?: number;
+      take?: number;
+      departmentId?: string;
+      managerId?: string;
+      employmentStatus?: string;
+      search?: string;
+    },
+    user?: any,
+  ) {
     const { skip = 0, take = 10, departmentId, managerId, employmentStatus, search } = params;
 
     const where: any = {};
+
+    // Role-based visibility enforcement
+    if (user) {
+      if (user.roleName === 'employee') {
+        // Employees can only see themselves
+        // Note: For a directory view, this might be too restrictive. 
+        // If the requirement is "Data Visibility" in terms of "Management", this is correct.
+        // If it's a "Company Directory", then employees should see basic info of everyone.
+        // Based on "RBAC data visibility", usually implies restricted access to sensitive data or operations.
+        // However, standard employees usually need to see their colleagues. 
+        // Let's assume strict visibility for now as per "respective roles" request.
+        // Actually, usually employees *can* see the directory. 
+        // But the prompt said "implement data visibility to the respective roles" and specifically mentioned limitations.
+        // Let's stick to the plan: Employee -> Self only.
+        where.id = user.employeeId;
+      } else if (user.roleName === 'manager') {
+        // Managers can see their department/team
+        // Assuming user.employeeId is linked to a department via Employee record
+        // We need to fetch the manager's department if not in user object, but let's assume standard flow.
+        // The user object from token might not have departmentId directly unless added.
+        // Let's rely on finding the employee record if needed, but for efficiency, 
+        // let's assume we can filter by the manager's team or department.
+
+        // If manager, they should see employees where they are the manager OR in their department.
+        // Let's restrict to their department for simplicity and broader visibility within their scope.
+        // We need to know the manager's department.
+        // Since `user` payload in `auth.service.ts` (checked in architecture doc) has `employeeId`, 
+        // but maybe not department. We might need to fetch it or rely on `managerId` filter.
+
+        // Better approach: If manager, show employees where `managerId` is their ID OR `departmentId` is their department.
+        // Since we don't have departmentId in token readily (unless I check auth service), 
+        // let's fetch the current employee's details to get department.
+
+        // WAIT: Doing a DB call inside findAll for every request is expensive. 
+        // But necessary if token doesn't have it.
+        // Let's assume for now we filter by managerId = user.employeeId for direct reports.
+        // AND potentially their department.
+
+        // Let's try to see if we can get department from the user record if possible, 
+        // or just restrict to direct reports for "Manager" role if top-level department access isn't guaranteed.
+        // The seed says "Department manager with team oversight".
+
+        // Plan: Restrict to Department if possible, else Direct Reports.
+        // Let's start with Direct Reports (where managerId = user.employeeId) 
+        // OR allow them to see their own record.
+        where.OR = [
+          { managerId: user.employeeId },
+          { id: user.employeeId }
+        ];
+      }
+      // Admin / HR Manager -> No extra filters (can see all)
+    }
+
     if (departmentId) where.departmentId = departmentId;
     if (managerId) where.managerId = managerId;
     if (employmentStatus) where.employmentStatus = employmentStatus;
     if (search) {
-      where.OR = [
-        { firstName: { contains: search, mode: 'insensitive' } },
-        { lastName: { contains: search, mode: 'insensitive' } },
-        { email: { contains: search, mode: 'insensitive' } },
-        { employeeCode: { contains: search, mode: 'insensitive' } },
+      where.AND = [
+        ...(where.AND || []),
+        {
+          OR: [
+            { firstName: { contains: search, mode: 'insensitive' } },
+            { lastName: { contains: search, mode: 'insensitive' } },
+            { email: { contains: search, mode: 'insensitive' } },
+            { employeeCode: { contains: search, mode: 'insensitive' } },
+          ],
+        },
       ];
     }
 

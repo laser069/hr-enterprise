@@ -4,16 +4,19 @@ import {
   ConflictException,
   Logger,
   BadRequestException,
+  NotFoundException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../database/prisma.service';
+import { EmailService } from '../shared/email/email.service';
 import {
   hashPassword,
   comparePassword,
 } from '../common/utils/encryption.utils';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import * as crypto from 'crypto';
 
 export interface TokenPayload {
   accessToken: string;
@@ -39,6 +42,7 @@ export class AuthService {
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
+    private readonly emailService: EmailService,
   ) {}
 
   async register(registerDto: RegisterDto): Promise<AuthResponse> {
@@ -378,5 +382,198 @@ export class AuthService {
     };
 
     return value * (multipliers[unit] || 60);
+  }
+
+  // ============================
+  // PASSWORD RESET METHODS
+  // ============================
+
+  async forgotPassword(email: string): Promise<{ message: string }> {
+    const user = await this.prisma.user.findUnique({
+      where: { email },
+      include: { employee: true },
+    });
+
+    // Always return success even if user not found (security)
+    if (!user) {
+      return { message: 'If an account exists, a reset email has been sent' };
+    }
+
+    // Generate secure token
+    const token = crypto.randomBytes(32).toString('hex');
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+    // Save token
+    await (this.prisma as any).passwordResetToken.create({
+      data: {
+        userId: user.id,
+        token,
+        expiresAt,
+      },
+    });
+
+    // Send email
+    const firstName = user.employee?.firstName || email.split('@')[0];
+    await this.emailService.sendPasswordResetEmail(email, token, firstName);
+
+    this.logger.log(`Password reset requested for: ${email}`);
+    return { message: 'If an account exists, a reset email has been sent' };
+  }
+
+  async resetPassword(token: string, newPassword: string): Promise<void> {
+    // Find valid token
+    const resetToken = await (this.prisma as any).passwordResetToken.findFirst({
+      where: {
+        token,
+        usedAt: null,
+        expiresAt: {
+          gt: new Date(),
+        },
+      },
+      include: { user: true },
+    });
+
+    if (!resetToken) {
+      throw new BadRequestException('Invalid or expired reset token');
+    }
+
+    // Hash new password
+    const bcryptRounds = this.configService.get<number>('security.bcryptRounds') ?? 12;
+    const passwordHash = await hashPassword(newPassword, bcryptRounds);
+
+    // Update password
+    await this.prisma.user.update({
+      where: { id: resetToken.userId },
+      data: { passwordHash },
+    });
+
+    // Mark token as used
+    await (this.prisma as any).passwordResetToken.update({
+      where: { id: resetToken.id },
+      data: { usedAt: new Date() },
+    });
+
+    // Revoke all refresh tokens
+    await this.logoutAll(resetToken.userId);
+
+    this.logger.log(`Password reset completed for user: ${resetToken.userId}`);
+  }
+
+  // ============================
+  // EMAIL VERIFICATION METHODS
+  // ============================
+
+  async sendVerificationEmail(userId: string): Promise<void> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: { employee: true },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    if (user.emailVerified) {
+      throw new BadRequestException('Email already verified');
+    }
+
+    // Generate token
+    const token = crypto.randomBytes(32).toString('hex');
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
+    // Save token
+    await (this.prisma as any).emailVerificationToken.create({
+      data: {
+        userId: user.id,
+        token,
+        expiresAt,
+      },
+    });
+
+    // Send email
+    const firstName = user.employee?.firstName || user.email.split('@')[0];
+    await this.emailService.sendEmailVerification(user.email, token, firstName);
+
+    this.logger.log(`Verification email sent to: ${user.email}`);
+  }
+
+  async verifyEmail(token: string): Promise<void> {
+    const verificationToken = await (this.prisma as any).emailVerificationToken.findFirst({
+      where: {
+        token,
+        usedAt: null,
+        expiresAt: {
+          gt: new Date(),
+        },
+      },
+    });
+
+    if (!verificationToken) {
+      throw new BadRequestException('Invalid or expired verification token');
+    }
+
+    // Update user
+    await this.prisma.user.update({
+      where: { id: verificationToken.userId },
+      data: { emailVerified: true },
+    });
+
+    // Mark token as used
+    await (this.prisma as any).emailVerificationToken.update({
+      where: { id: verificationToken.id },
+      data: { usedAt: new Date() },
+    });
+
+    this.logger.log(`Email verified for user: ${verificationToken.userId}`);
+  }
+
+  // ============================
+  // ACCOUNT LOCKOUT METHODS
+  // ============================
+
+  async recordFailedLogin(email: string, ipAddress?: string, userAgent?: string): Promise<void> {
+    await (this.prisma as any).failedLoginAttempt.create({
+      data: {
+        email,
+        ipAddress,
+        userAgent,
+      },
+    });
+  }
+
+  async checkAccountLockout(email: string): Promise<{ locked: boolean; unlockTime?: Date }> {
+    const LOCKOUT_THRESHOLD = 5; // 5 failed attempts
+    const LOCKOUT_DURATION = 30 * 60 * 1000; // 30 minutes
+
+    const thirtyMinutesAgo = new Date(Date.now() - LOCKOUT_DURATION);
+
+    const recentAttempts = await (this.prisma as any).failedLoginAttempt.count({
+      where: {
+        email,
+        attemptedAt: {
+          gte: thirtyMinutesAgo,
+        },
+      },
+    });
+
+    if (recentAttempts >= LOCKOUT_THRESHOLD) {
+      const lastAttempt = await (this.prisma as any).failedLoginAttempt.findFirst({
+        where: { email },
+        orderBy: { attemptedAt: 'desc' },
+      });
+
+      if (lastAttempt) {
+        const unlockTime = new Date(lastAttempt.attemptedAt.getTime() + LOCKOUT_DURATION);
+        return { locked: true, unlockTime };
+      }
+    }
+
+    return { locked: false };
+  }
+
+  async clearFailedLogins(email: string): Promise<void> {
+    await (this.prisma as any).failedLoginAttempt.deleteMany({
+      where: { email },
+    });
   }
 }

@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HR Enterprise - API Test</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+        }
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .card h2 {
+            color: #2196F3;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: 500;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        button {
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        button:hover {
+            background-color: #1976D2;
+        }
+        button.secondary {
+            background-color: #757575;
+        }
+        button.secondary:hover {
+            background-color: #616161;
+        }
+        button.success {
+            background-color: #4CAF50;
+        }
+        button.success:hover {
+            background-color: #45a049;
+        }
+        button.danger {
+            background-color: #f44336;
+        }
+        button.danger:hover {
+            background-color: #da190b;
+        }
+        .response {
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 15px;
+            margin-top: 15px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 13px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .response.error {
+            background-color: #ffebee;
+            border-color: #ef5350;
+        }
+        .response.success {
+            background-color: #e8f5e9;
+            border-color: #66bb6a;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .status.online {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .status.offline {
+            background-color: #f44336;
+            color: white;
+        }
+        .token-display {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 4px;
+            padding: 10px;
+            margin-bottom: 15px;
+            font-family: monospace;
+            font-size: 12px;
+            word-break: break-all;
+        }
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid #e0e0e0;
+            margin-bottom: 20px;
+        }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+        }
+        .tab.active {
+            border-bottom-color: #2196F3;
+            color: #2196F3;
+            font-weight: 500;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .info-box {
+            background-color: #e3f2fd;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .info-box p {
+            margin: 0;
+            color: #1565C0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>HR Enterprise API Test Interface</h1>
+        <p class="subtitle">Minimal frontend to test backend functionality</p>
+
+        <div class="info-box">
+            <p><strong>API URL:</strong> <span id="api-url">http://localhost:3002</span></p>
+            <p><strong>Swagger Docs:</strong> <a href="http://localhost:3002/api/docs" target="_blank">http://localhost:3002/api/docs</a></p>
+        </div>
+
+        <!-- Status Card -->
+        <div class="card">
+            <h2>System Status</h2>
+            <button onclick="checkHealth()">Check Health</button>
+            <button class="secondary" onclick="checkLiveness()">Liveness Probe</button>
+            <button class="secondary" onclick="checkReadiness()">Readiness Probe</button>
+            <div id="status-response" class="response">Click a button to check status...</div>
+        </div>
+
+        <!-- Authentication Card -->
+        <div class="card">
+            <h2>Authentication</h2>
+            <div id="auth-token" class="token-display" style="display: none;">
+                <strong>Access Token:</strong> <span id="token-value"></span>
+            </div>
+            
+            <div class="grid">
+                <div>
+                    <h3>Login</h3>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="login-email" value="admin@hrenterprise.com">
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" id="login-password" value="Admin@123">
+                    </div>
+                    <button class="success" onclick="login()">Login</button>
+                </div>
+                
+                <div>
+                    <h3>Register</h3>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="register-email" placeholder="user@example.com">
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" id="register-password" placeholder="Min 8 characters">
+                    </div>
+                    <button onclick="register()">Register</button>
+                </div>
+            </div>
+
+            <div style="margin-top: 20px;">
+                <button class="secondary" onclick="getProfile()">Get Profile</button>
+                <button class="secondary" onclick="logout()">Logout</button>
+                <button class="secondary" onclick="clearResponse('auth')">Clear</button>
+            </div>
+            <div id="auth-response" class="response">Authentication responses will appear here...</div>
+        </div>
+
+        <!-- Password Reset Card -->
+        <div class="card">
+            <h2>Password Reset</h2>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="forgot-email" placeholder="user@example.com">
+            </div>
+            <button onclick="forgotPassword()">Send Reset Email</button>
+            <div id="password-response" class="response">Password reset responses will appear here...</div>
+        </div>
+
+        <!-- File Upload Card -->
+        <div class="card">
+            <h2>File Upload</h2>
+            <div class="form-group">
+                <label>Select File</label>
+                <input type="file" id="upload-file">
+            </div>
+            <div class="form-group">
+                <label>Category</label>
+                <select id="upload-category">
+                    <option value="resume">Resume</option>
+                    <option value="contract">Contract</option>
+                    <option value="id_proof">ID Proof</option>
+                    <option value="certificate">Certificate</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Description</label>
+                <input type="text" id="upload-description" placeholder="Optional description">
+            </div>
+            <button onclick="uploadFile()">Upload File</button>
+            <div id="upload-response" class="response">Upload responses will appear here...</div>
+        </div>
+
+        <!-- Notifications Card -->
+        <div class="card">
+            <h2>Notifications</h2>
+            <button onclick="getNotifications()">Get Notifications</button>
+            <button onclick="getUnreadCount()">Get Unread Count</button>
+            <button onclick="markAllAsRead()">Mark All as Read</button>
+            <div id="notifications-response" class="response">Notification responses will appear here...</div>
+        </div>
+
+        <!-- Employees Card -->
+        <div class="card">
+            <h2>Employees</h2>
+            <button onclick="getEmployees()">Get All Employees</button>
+            <button onclick="getDepartments()">Get Departments</button>
+            <div id="employees-response" class="response">Employee responses will appear here...</div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:3002';
+        let accessToken = localStorage.getItem('accessToken') || '';
+
+        // Display stored token on load
+        if (accessToken) {
+            document.getElementById('auth-token').style.display = 'block';
+            document.getElementById('token-value').textContent = accessToken.substring(0, 50) + '...';
+        }
+
+        function showResponse(elementId, data, isError = false) {
+            const element = document.getElementById(elementId);
+            element.textContent = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+            element.className = 'response ' + (isError ? 'error' : 'success');
+        }
+
+        function clearResponse(type) {
+            const responseId = type + '-response';
+            document.getElementById(responseId).textContent = '';
+            document.getElementById(responseId).className = 'response';
+        }
+
+        async function makeRequest(url, options = {}) {
+            const defaultOptions = {
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(accessToken && { 'Authorization': `Bearer ${accessToken}` }),
+                },
+            };
+
+            const response = await fetch(url, { ...defaultOptions, ...options });
+            const data = await response.json().catch(() => null);
+            
+            if (!response.ok) {
+                throw new Error(data?.message || `HTTP ${response.status}: ${response.statusText}`);
+            }
+            
+            return data;
+        }
+
+        // Health Checks
+        async function checkHealth() {
+            try {
+                const data = await makeRequest(`${API_URL}/health`);
+                showResponse('status-response', data);
+            } catch (error) {
+                showResponse('status-response', error.message, true);
+            }
+        }
+
+        async function checkLiveness() {
+            try {
+                const data = await makeRequest(`${API_URL}/health/liveness`);
+                showResponse('status-response', data);
+            } catch (error) {
+                showResponse('status-response', error.message, true);
+            }
+        }
+
+        async function checkReadiness() {
+            try {
+                const data = await makeRequest(`${API_URL}/health/readiness`);
+                showResponse('status-response', data);
+            } catch (error) {
+                showResponse('status-response', error.message, true);
+            }
+        }
+
+        // Authentication
+        async function login() {
+            try {
+                const email = document.getElementById('login-email').value;
+                const password = document.getElementById('login-password').value;
+                
+                const data = await makeRequest(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    body: JSON.stringify({ email, password }),
+                });
+                
+                accessToken = data.tokens.accessToken;
+                localStorage.setItem('accessToken', accessToken);
+                
+                document.getElementById('auth-token').style.display = 'block';
+                document.getElementById('token-value').textContent = accessToken.substring(0, 50) + '...';
+                
+                showResponse('auth-response', { message: 'Login successful', user: data.user });
+            } catch (error) {
+                showResponse('auth-response', error.message, true);
+            }
+        }
+
+        async function register() {
+            try {
+                const email = document.getElementById('register-email').value;
+                const password = document.getElementById('register-password').value;
+                
+                const data = await makeRequest(`${API_URL}/auth/register`, {
+                    method: 'POST',
+                    body: JSON.stringify({ email, password }),
+                });
+                
+                showResponse('auth-response', { message: 'Registration successful', user: data.user });
+            } catch (error) {
+                showResponse('auth-response', error.message, true);
+            }
+        }
+
+        async function getProfile() {
+            try {
+                if (!accessToken) {
+                    throw new Error('Please login first');
+                }
+                
+                const data = await makeRequest(`${API_URL}/auth/me`);
+                showResponse('auth-response', data);
+            } catch (error) {
+                showResponse('auth-response', error.message, true);
+            }
+        }
+
+        async function logout() {
+            accessToken = '';
+            localStorage.removeItem('accessToken');
+            document.getElementById('auth-token').style.display = 'none';
+            showResponse('auth-response', { message: 'Logged out successfully' });
+        }
+
+        // Password Reset
+        async function forgotPassword() {
+            try {
+                const email = document.getElementById('forgot-email').value;
+                
+                const data = await makeRequest(`${API_URL}/auth/forgot-password`, {
+                    method: 'POST',
+                    body: JSON.stringify({ email }),
+                });
+                
+                showResponse('password-response', data);
+            } catch (error) {
+                showResponse('password-response', error.message, true);
+            }
+        }
+
+        // File Upload
+        async function uploadFile() {
+            try {
+                if (!accessToken) {
+                    throw new Error('Please login first');
+                }
+                
+                const fileInput = document.getElementById('upload-file');
+                const category = document.getElementById('upload-category').value;
+                const description = document.getElementById('upload-description').value;
+                
+                if (!fileInput.files || fileInput.files.length === 0) {
+                    throw new Error('Please select a file');
+                }
+                
+                const formData = new FormData();
+                formData.append('file', fileInput.files[0]);
+                formData.append('category', category);
+                if (description) formData.append('description', description);
+                
+                const response = await fetch(`${API_URL}/upload`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`,
+                    },
+                    body: formData,
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.message || `HTTP ${response.status}`);
+                }
+                
+                showResponse('upload-response', data);
+            } catch (error) {
+                showResponse('upload-response', error.message, true);
+            }
+        }
+
+        // Notifications
+        async function getNotifications() {
+            try {
+                if (!accessToken) {
+                    throw new Error('Please login first');
+                }
+                
+                const data = await makeRequest(`${API_URL}/notifications`);
+                showResponse('notifications-response', data);
+            } catch (error) {
+                showResponse('notifications-response', error.message, true);
+            }
+        }
+
+        async function getUnreadCount() {
+            try {
+                if (!accessToken) {
+                    throw new Error('Please login first');
+                }
+                
+                const data = await makeRequest(`${API_URL}/notifications/unread-count`);
+                showResponse('notifications-response', data);
+            } catch (error) {
+                showResponse('notifications-response', error.message, true);
+            }
+        }
+
+        async function markAllAsRead() {
+            try {
+                if (!accessToken) {
+                    throw new Error('Please login first');
+                }
+                
+                const data = await makeRequest(`${API_URL}/notifications/read-all`, {
+                    method: 'POST',
+                });
+                showResponse('notifications-response', data);
+            } catch (error) {
+                showResponse('notifications-response', error.message, true);
+            }
+        }
+
+        // Employees
+        async function getEmployees() {
+            try {
+                if (!accessToken) {
+                    throw new Error('Please login first');
+                }
+                
+                const data = await makeRequest(`${API_URL}/employees`);
+                showResponse('employees-response', data);
+            } catch (error) {
+                showResponse('employees-response', error.message, true);
+            }
+        }
+
+        async function getDepartments() {
+            try {
+                if (!accessToken) {
+                    throw new Error('Please login first');
+                }
+                
+                const data = await makeRequest(`${API_URL}/departments`);
+                showResponse('employees-response', data);
+            } catch (error) {
+                showResponse('employees-response', error.message, true);
+            }
+        }
+    </script>
+</body>
+</html>
