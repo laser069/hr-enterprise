@@ -1,81 +1,64 @@
 import { useQuery } from '@tanstack/react-query';
 import { analyticsApi } from '../services/analytics.api';
+import type { AttritionAnalysis } from '../types';
 
-// Query keys
 export const analyticsKeys = {
   all: ['analytics'] as const,
-  executive: () => [...analyticsKeys.all, 'executive'] as const,
   attendance: () => [...analyticsKeys.all, 'attendance'] as const,
-  attendanceMetrics: (params: { startDate: string; endDate: string; departmentId?: string }) =>
-    [...analyticsKeys.attendance(), 'metrics', params] as const,
   leave: () => [...analyticsKeys.all, 'leave'] as const,
-  leaveMetrics: (params: { year: number; departmentId?: string }) =>
-    [...analyticsKeys.leave(), 'metrics', params] as const,
   payroll: () => [...analyticsKeys.all, 'payroll'] as const,
-  payrollMetrics: (year: number) => [...analyticsKeys.payroll(), 'metrics', year] as const,
-  attrition: (year: number) => [...analyticsKeys.all, 'attrition', year] as const,
+  attrition: () => [...analyticsKeys.all, 'attrition'] as const,
   departments: () => [...analyticsKeys.all, 'departments'] as const,
 };
 
-// Executive Summary hook
-export function useExecutiveSummary() {
+export function useAttendanceMetrics() {
   return useQuery({
-    queryKey: analyticsKeys.executive(),
-    queryFn: () => analyticsApi.getExecutiveSummary(),
+    queryKey: analyticsKeys.attendance(),
+    queryFn: () => analyticsApi.getAttendanceMetrics(),
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 }
 
-// Attendance hooks
-export function useTodayAttendance() {
+export function useLeaveMetrics() {
   return useQuery({
-    queryKey: [...analyticsKeys.attendance(), 'today'],
-    queryFn: () => analyticsApi.getTodayAttendance(),
+    queryKey: analyticsKeys.leave(),
+    queryFn: () => analyticsApi.getLeaveMetrics(),
+    staleTime: 5 * 60 * 1000,
   });
 }
 
-export function useAttendanceMetrics(params: {
-  startDate: string;
-  endDate: string;
-  departmentId?: string;
-}) {
+export function usePayrollMetrics() {
   return useQuery({
-    queryKey: analyticsKeys.attendanceMetrics(params),
-    queryFn: () => analyticsApi.getAttendanceMetrics(params),
-    enabled: !!params.startDate && !!params.endDate,
+    queryKey: analyticsKeys.payroll(),
+    queryFn: () => analyticsApi.getPayrollMetrics(),
+    staleTime: 5 * 60 * 1000,
   });
 }
 
-// Leave hooks
-export function useLeaveMetrics(params: { year: number; departmentId?: string }) {
-  return useQuery({
-    queryKey: analyticsKeys.leaveMetrics(params),
-    queryFn: () => analyticsApi.getLeaveMetrics(params),
-    enabled: !!params.year,
+export function useAttritionAnalysis(year?: number) {
+  return useQuery<AttritionAnalysis>({
+    queryKey: [...analyticsKeys.attrition(), year],
+    queryFn: () => analyticsApi.getAttritionAnalysis(), // Backend might need year param
+    staleTime: 5 * 60 * 1000,
   });
 }
 
-// Payroll hooks
-export function usePayrollMetrics(year: number) {
-  return useQuery({
-    queryKey: analyticsKeys.payrollMetrics(year),
-    queryFn: () => analyticsApi.getPayrollMetrics({ year }),
-    enabled: !!year,
-  });
-}
-
-// Attrition hooks
-export function useAttritionData(year: number) {
-  return useQuery({
-    queryKey: analyticsKeys.attrition(year),
-    queryFn: () => analyticsApi.getAttritionRate({ year }),
-    enabled: !!year,
-  });
-}
-
-// Department hooks
-export function useDepartmentMetrics() {
+export function useDepartmentAnalytics() {
   return useQuery({
     queryKey: analyticsKeys.departments(),
-    queryFn: () => analyticsApi.getDepartmentMetrics(),
+    queryFn: () => analyticsApi.getDepartmentAnalytics(),
+    staleTime: 5 * 60 * 1000,
   });
 }
+
+// Aliases for backward compatibility with existing page components
+export const useDepartmentMetrics = useDepartmentAnalytics;
+export const useAttritionData = useAttritionAnalysis;
+
+export const useTodayAttendance = () => {
+  return useQuery({
+    queryKey: ['analytics', 'today-attendance'],
+    queryFn: () => analyticsApi.getTodayAttendance(),
+    staleTime: 60 * 1000, // 1 minute
+  });
+};

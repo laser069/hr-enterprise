@@ -1,73 +1,26 @@
-import { useAuthContext } from '../auth/use-auth-context';
-import { useNavigate } from 'react-router-dom';
+import * as LucideIcons from 'lucide-react';
 
 export function Header() {
-  const { user, logout } = useAuthContext();
-  const navigate = useNavigate();
-
-  const handleLogout = async () => {
-    await logout();
-    navigate('/login');
-  };
-
   return (
-    <header className="h-16 bg-white border-b border-gray-200 px-6 flex items-center justify-between">
+    <header className="h-20 bg-white/40 backdrop-blur-xl mt-6 mx-4 md:mx-10 px-10 flex items-center justify-between sticky top-6 z-30 transition-all duration-500 border border-white/60 shadow-[0_20px_50px_-10px_rgba(0,0,0,0.05)] ring-1 ring-black/[0.02] rounded-[2.5rem]">
       <div className="flex items-center gap-4">
-        <h1 className="text-lg font-semibold text-gray-800">
-          Welcome back, {user?.firstName || 'User'}
+        <h1 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] hidden md:block opacity-60">
+          {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
         </h1>
       </div>
 
-      <div className="flex items-center gap-4">
-        {/* Notifications */}
-        <button className="relative p-2 rounded-lg hover:bg-gray-100">
-          <svg
-            className="w-5 h-5 text-gray-600"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-            />
-          </svg>
-          <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+      <div className="flex items-center gap-4 md:gap-8">
+        {/* Approvals */}
+        <button className="p-3 rounded-2xl text-slate-400 hover:bg-white hover:text-indigo-600 transition-all relative group border border-transparent hover:border-white hover:shadow-xl active:scale-95" title="Pending Approvals">
+          <LucideIcons.ClipboardCheck className="w-5 h-5" />
+          <span className="absolute top-3 right-3 w-2 h-2 bg-amber-500 rounded-full ring-2 ring-white shadow-sm animate-pulse"></span>
         </button>
 
-        {/* User Menu */}
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-white font-medium">
-            {user?.firstName?.[0] || 'U'}
-          </div>
-          <div className="hidden md:block">
-            <p className="text-sm font-medium text-gray-700">
-              {user?.fullName || 'User'}
-            </p>
-            <p className="text-xs text-gray-500">{user?.roleName || 'Role'}</p>
-          </div>
-          <button
-            onClick={handleLogout}
-            className="p-2 rounded-lg hover:bg-gray-100 text-gray-600"
-            title="Logout"
-          >
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-              />
-            </svg>
-          </button>
-        </div>
+        {/* Notifications */}
+        <button className="p-3 rounded-2xl text-slate-400 hover:bg-white hover:text-indigo-600 transition-all relative group border border-transparent hover:border-white hover:shadow-xl active:scale-95" title="Notifications">
+          <LucideIcons.Bell className="w-5 h-5" />
+          <span className="absolute top-3 right-3 w-2 h-2 bg-rose-500 rounded-full ring-2 ring-white shadow-sm"></span>
+        </button>
       </div>
     </header>
   );

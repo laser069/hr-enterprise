@@ -6,7 +6,7 @@ export interface Employee {
   lastName: string;
   departmentId?: string;
   designationId?: string;
-  joinDate: string;
+  dateOfJoining: string;
   status: 'active' | 'inactive';
   createdAt: string;
   updatedAt: string;
@@ -20,7 +20,7 @@ export interface CreateEmployeeInput {
   lastName: string;
   departmentId?: string;
   designationId?: string;
-  joinDate: string;
+  dateOfJoining: string;
 }
 
 export interface UpdateEmployeeInput {

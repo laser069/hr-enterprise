@@ -1,76 +1,44 @@
 // Workflow Types
 
-export type ApprovalStatus = 'pending' | 'approved' | 'rejected';
-export type ApprovalStepStatus = 'pending' | 'approved' | 'rejected';
+export type ApprovalStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
+export type ApprovalEntityType = 'LEAVE_REQUEST' | 'PAYROLL_RUN' | 'EXPENSE_CLAIM';
 
 export interface Approval {
   id: string;
   entityType: string;
   entityId: string;
+  status: string;
+  currentStep: number;
+  totalSteps: number;
+  comments?: string;
   requesterId: string;
+  createdAt: string;
+  updatedAt: string;
+  approvedAt?: string;
   requester?: {
     id: string;
     firstName: string;
     lastName: string;
-    employeeCode: string;
   };
-  approverId?: string;
-  approver?: {
+  steps?: ApprovalStep[];
+  approvedByUser?: {
     id: string;
     firstName: string;
     lastName: string;
   };
-  status: ApprovalStatus;
-  currentStep: number;
-  totalSteps: number;
-  comments?: string;
-  approvedAt?: string;
-  createdAt: string;
-  updatedAt: string;
-  steps?: ApprovalStep[];
 }
 
 export interface ApprovalStep {
   id: string;
   approvalId: string;
-  stepNumber: number;
   approverId: string;
+  order: number;
+  status: string;
+  comments?: string;
+  approvedAt?: string;
   approver?: {
     id: string;
     firstName: string;
     lastName: string;
   };
-  status: ApprovalStepStatus;
-  comments?: string;
-  approvedAt?: string;
-  createdAt: string;
-}
-
-export interface CreateApprovalDto {
-  entityType: string;
-  entityId: string;
-  approverIds: string[];
-  comments?: string;
-}
-
-export interface ApproveStepDto {
-  comments?: string;
-}
-
-export interface RejectApprovalDto {
-  comments: string;
-}
-
-export interface ApprovalHistory {
-  entityType: string;
-  entityId: string;
-  approvals: Approval[];
-}
-
-export interface ApprovalStats {
-  totalPending: number;
-  totalApproved: number;
-  totalRejected: number;
-  pendingForMe: number;
-  myRequestsPending: number;
 }

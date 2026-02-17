@@ -1,103 +1,72 @@
-// Performance Types
+// Performance Management Types
 
-export type GoalStatus = 'pending' | 'in-progress' | 'completed' | 'cancelled';
-export type ReviewStatus = 'draft' | 'submitted' | 'acknowledged';
+export type GoalStatus = 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
+export type ReviewStatus = 'DRAFT' | 'SUBMITTED' | 'ACKNOWLEDGED';
 
 export interface Goal {
   id: string;
   employeeId: string;
+  title: string;
+  description: string;
+  startDate: string;
+  endDate: string;
+  targetValue: number;
+  achievedValue: number;
+  weightage?: number;
+  status: GoalStatus;
+  createdAt: string;
+  updatedAt: string;
   employee?: {
     id: string;
     firstName: string;
     lastName: string;
-    employeeCode: string;
-    profilePicture?: string;
-    department?: {
-      name: string;
-    };
   };
-  title: string;
-  description?: string;
-  targetValue: number;
-  achievedValue: number;
-  weightage: number;
-  status: GoalStatus;
-  startDate: string;
-  endDate: string;
-  createdAt: string;
-  updatedAt: string;
-  progress?: number; // Calculated percentage
 }
 
 export interface PerformanceReview {
   id: string;
   employeeId: string;
+  reviewerId: string;
+  period: string;
+  rating: number; // 1-5
+  strengths: string;
+  improvements: string;
+  comments: string;
+  status: ReviewStatus;
+  createdAt: string;
+  updatedAt: string;
   employee?: {
     id: string;
     firstName: string;
     lastName: string;
-    employeeCode: string;
-    profilePicture?: string;
-    department?: {
-      name: string;
-    };
   };
-  reviewerId: string;
   reviewer?: {
     id: string;
     firstName: string;
     lastName: string;
   };
-  reviewPeriod: string;
-  rating: number;
-  comments?: string;
-  strengths?: string;
-  improvements?: string;
-  status: ReviewStatus;
-  reviewDate?: string;
-  createdAt: string;
-  updatedAt: string;
 }
 
 export interface CreateGoalDto {
   employeeId: string;
   title: string;
-  description?: string;
-  targetValue: number;
-  weightage?: number;
+  description: string;
   startDate: string;
   endDate: string;
+  targetValue: number;
+  achievedValue?: number;
 }
 
-export interface CreatePerformanceReviewDto {
+export interface UpdateGoalProgressDto {
+  achievedValue: number;
+  status?: GoalStatus;
+}
+
+export interface CreateReviewDto {
   employeeId: string;
-  reviewerId: string;
-  reviewPeriod: string;
+  period: string;
   rating: number;
-  comments?: string;
-  strengths?: string;
-  improvements?: string;
-}
-
-export interface PerformanceSummary {
-  employeeId: string;
-  employeeName: string;
-  totalGoals: number;
-  completedGoals: number;
-  inProgressGoals: number;
-  pendingGoals: number;
-  averageGoalProgress: number;
-  totalReviews: number;
-  averageRating: number;
-  lastReviewDate?: string;
-}
-
-export interface PerformanceStats {
-  totalGoals: number;
-  completedGoals: number;
-  inProgressGoals: number;
-  pendingGoals: number;
-  totalReviews: number;
-  averageRating: number;
-  pendingReviews: number;
+  strengths: string;
+  improvements: string;
+  comments: string;
 }

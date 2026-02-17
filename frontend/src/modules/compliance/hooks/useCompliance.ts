@@ -1,30 +1,42 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { complianceApi } from '../services/compliance.api';
-import type {
-  CreateFilingRecordDto,
-  CreatePolicyAcknowledgementDto,
-  FilingType,
-  FilingStatus,
-} from '../types';
+import type { CreateFilingDto, FilingRecord, ComplianceDashboard } from '../types';
 
-// Query keys
 export const complianceKeys = {
   all: ['compliance'] as const,
   filings: () => [...complianceKeys.all, 'filings'] as const,
-  filing: (id: string) => [...complianceKeys.filings(), id] as const,
   upcoming: () => [...complianceKeys.all, 'upcoming'] as const,
-  acknowledgements: () => [...complianceKeys.all, 'acknowledgements'] as const,
   dashboard: () => [...complianceKeys.all, 'dashboard'] as const,
-  stats: () => [...complianceKeys.all, 'stats'] as const,
-  policyReport: (policyName: string) => [...complianceKeys.all, 'policy', policyName] as const,
+  acknowledgements: () => [...complianceKeys.all, 'acknowledgements'] as const,
 };
 
-// Filing hooks
-export function useFilings(params?: { type?: FilingType; status?: FilingStatus }) {
+export function useFilings() {
   return useQuery({
-    queryKey: [...complianceKeys.filings(), params],
-    queryFn: () => complianceApi.getFilings(params),
+    queryKey: complianceKeys.filings(),
+    queryFn: () => complianceApi.getFilings(),
   });
+}
+
+export function useComplianceDashboard() {
+  return useQuery<ComplianceDashboard>({
+    queryKey: complianceKeys.dashboard(),
+    queryFn: () => complianceApi.getDashboard(),
+  });
+}
+
+export function useComplianceStats() {
+  const { data: dashboard, ...rest } = useComplianceDashboard();
+  
+  // Map dashboard data to what useComplianceStats expects
+  // The backend returns { filings: { pending, filedThisMonth, upcoming }, policies: [...] }
+  const stats = dashboard ? {
+    totalFilings: (dashboard.filings?.filedThisMonth || 0) + (dashboard.filings?.pending || 0),
+    pendingFilings: dashboard.filings?.pending || 0,
+    filedFilings: dashboard.filings?.filedThisMonth || 0,
+    overdueCount: dashboard.filings?.upcoming?.filter((f: FilingRecord) => f.dueDate && new Date(f.dueDate) < new Date()).length || 0,
+  } : undefined;
+
+  return { data: stats, ...rest };
 }
 
 export function useUpcomingFilings() {
@@ -34,94 +46,32 @@ export function useUpcomingFilings() {
   });
 }
 
-export function useFiling(id: string) {
+export function useAcknowledgements() {
   return useQuery({
-    queryKey: complianceKeys.filing(id),
-    queryFn: () => complianceApi.getFiling(id),
-    enabled: !!id,
+    queryKey: complianceKeys.acknowledgements(),
+    queryFn: () => complianceApi.getAcknowledgements(),
   });
 }
 
 export function useCreateFiling() {
   const queryClient = useQueryClient();
-
   return useMutation({
-    mutationFn: (data: CreateFilingRecordDto) => complianceApi.createFiling(data),
+    mutationFn: (data: CreateFilingDto) => complianceApi.createFiling(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: complianceKeys.filings() });
-      queryClient.invalidateQueries({ queryKey: complianceKeys.upcoming() });
       queryClient.invalidateQueries({ queryKey: complianceKeys.dashboard() });
-      queryClient.invalidateQueries({ queryKey: complianceKeys.stats() });
     },
   });
 }
 
 export function useFileFiling() {
   const queryClient = useQueryClient();
-
   return useMutation({
-    mutationFn: ({ id, receiptNo }: { id: string; receiptNo?: string }) =>
-      complianceApi.fileFiling(id, receiptNo),
+    mutationFn: ({ id, data }: { id: string; data: { filedDate: string; referenceNumber: string } }) =>
+      complianceApi.fileFiling(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: complianceKeys.filings() });
-      queryClient.invalidateQueries({ queryKey: complianceKeys.upcoming() });
-      queryClient.invalidateQueries({ queryKey: complianceKeys.dashboard() });
-      queryClient.invalidateQueries({ queryKey: complianceKeys.stats() });
-    },
-  });
-}
-
-export function useAcknowledgeFiling() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (id: string) => complianceApi.acknowledgeFiling(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: complianceKeys.filings() });
-      queryClient.invalidateQueries({ queryKey: complianceKeys.stats() });
-    },
-  });
-}
-
-// Policy hooks
-export function usePolicyAcknowledgements(params?: { employeeId?: string; policyName?: string }) {
-  return useQuery({
-    queryKey: [...complianceKeys.acknowledgements(), params],
-    queryFn: () => complianceApi.getPolicyAcknowledgements(params),
-  });
-}
-
-export function useCreatePolicyAcknowledgement() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (data: CreatePolicyAcknowledgementDto) => complianceApi.createPolicyAcknowledgement(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: complianceKeys.acknowledgements() });
       queryClient.invalidateQueries({ queryKey: complianceKeys.dashboard() });
     },
-  });
-}
-
-export function usePolicyComplianceReport(policyName: string) {
-  return useQuery({
-    queryKey: complianceKeys.policyReport(policyName),
-    queryFn: () => complianceApi.getPolicyComplianceReport(policyName),
-    enabled: !!policyName,
-  });
-}
-
-// Dashboard & Stats hooks
-export function useComplianceDashboard() {
-  return useQuery({
-    queryKey: complianceKeys.dashboard(),
-    queryFn: () => complianceApi.getComplianceDashboard(),
-  });
-}
-
-export function useComplianceStats() {
-  return useQuery({
-    queryKey: complianceKeys.stats(),
-    queryFn: () => complianceApi.getComplianceStats(),
   });
 }

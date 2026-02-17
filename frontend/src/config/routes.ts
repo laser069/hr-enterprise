@@ -40,6 +40,7 @@ export const ROUTES = {
   FILINGS: '/compliance/filings',
   
   // Analytics
+  ANALYTICS: '/analytics',
   ANALYTICS_ATTRITION: '/analytics/attrition',
   ANALYTICS_DEPARTMENTS: '/analytics/departments',
   
@@ -50,6 +51,7 @@ export const ROUTES = {
   SETTINGS_ROLES: '/settings/roles',
   SETTINGS_PERMISSIONS: '/settings/permissions',
   SETTINGS_SYSTEM: '/settings/system',
+  SETTINGS_PROFILE: '/settings/profile',
 } as const;
 
 export type AppRoutes = typeof ROUTES;

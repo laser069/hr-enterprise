@@ -1,0 +1,20 @@
+src/modules/departments/pages/DepartmentListPage.tsx(4,27): error TS2305: Module '"../types"' has no exported member 'DepartmentListParams'.
+src/modules/departments/pages/DepartmentListPage.tsx(9,18): error TS6133: 'setParams' is declared but its value is never read.
+src/modules/departments/pages/DepartmentListPage.tsx(15,46): error TS2554: Expected 0 arguments, but got 1.
+src/modules/leave/pages/LeaveRequests.tsx(141,45): error TS2367: This comparison appears to be unintentional because the types '"APPROVED" | "REJECTED" | "CANCELLED"' and '"pending"' have no overlap.
+src/modules/leave/pages/LeaveRequests.tsx(165,45): error TS2367: This comparison appears to be unintentional because the types '"APPROVED" | "REJECTED" | "CANCELLED"' and '"pending"' have no overlap.
+src/modules/payroll/pages/PayrollRunDetails.tsx(123,21): error TS2367: This comparison appears to be unintentional because the types 'PayrollRunStatus' and '"processed"' have no overlap.
+src/modules/payroll/pages/PayrollRunDetails.tsx(125,12): error TS2367: This comparison appears to be unintentional because the types 'PayrollRunStatus' and '"draft"' have no overlap.
+src/modules/payroll/pages/PayrollRunDetails.tsx(143,12): error TS2367: This comparison appears to be unintentional because the types 'PayrollRunStatus' and '"approved"' have no overlap.
+src/modules/payroll/pages/PayrollRunDetails.tsx(215,44): error TS2339: Property 'profilePicture' does not exist on type '{ id: string; firstName: string; lastName: string; email: string; employeeCode: string; }'.
+src/modules/payroll/pages/PayrollRunDetails.tsx(218,51): error TS2339: Property 'profilePicture' does not exist on type '{ id: string; firstName: string; lastName: string; email: string; employeeCode: string; }'.
+src/modules/payroll/pages/PayrollRunDetails.tsx(239,40): error TS2339: Property 'department' does not exist on type '{ id: string; firstName: string; lastName: string; email: string; employeeCode: string; }'.
+src/modules/payroll/pages/PayrollRunDetails.tsx(252,32): error TS2551: Property 'totalDeductions' does not exist on type 'PayrollEntry'. Did you mean 'deductions'?
+src/modules/payroll/pages/PayrollRuns.tsx(3,47): error TS2724: '"../hooks/usePayroll"' has no exported member named 'useDeletePayrollRun'. Did you mean 'usePayrollRun'?
+src/modules/payroll/pages/PayrollRuns.tsx(131,25): error TS2367: This comparison appears to be unintentional because the types 'PayrollRunStatus' and '"draft"' have no overlap.
+src/modules/payroll/pages/PayrollRuns.tsx(174,21): error TS2339: Property 'data' does not exist on type 'PayrollRun[]'.
+src/modules/performance/hooks/usePerformance.ts(3,30): error TS6196: 'UpdateGoalProgressDto' is declared but never used.
+src/modules/performance/hooks/usePerformance.ts(57,48): error TS2339: Property 'deleteGoal' does not exist on type '{ getGoals: () => Promise<Goal[]>; createGoal: (data: CreateGoalDto) => Promise<Goal>; updateGoalProgress: (id: string, achievedValue: number) => Promise<...>; ... 5 more ...; getSummary: (employeeId: string) => Promise<...>; }'.
+src/modules/performance/services/performance.api.ts(2,55): error TS6196: 'UpdateGoalProgressDto' is declared but never used.
+src/modules/recruitment/hooks/useRecruitment.ts(3,54): error TS6196: 'Candidate' is declared but never used.
+src/modules/recruitment/pages/RecruitmentDashboard.tsx(16,58): error TS2554: Expected 0 arguments, but got 1.

@@ -91,6 +91,7 @@ export const navigation: NavItem[] = [
     path: '/analytics',
     icon: 'BarChart3',
     children: [
+      { name: 'Dashboard', path: '/analytics', icon: '' },
       { name: 'Attrition', path: '/analytics/attrition', icon: '' },
       { name: 'Departments', path: '/analytics/departments', icon: '' },
     ],
@@ -107,6 +108,8 @@ export const navigation: NavItem[] = [
     path: '/settings',
     icon: 'Settings',
     children: [
+      { name: 'Profile', path: '/settings/profile', icon: '' },
+      { name: 'Users', path: '/settings/users', icon: '' },
       { name: 'Roles', path: '/settings/roles', icon: '' },
       { name: 'Permissions', path: '/settings/permissions', icon: '' },
       { name: 'System', path: '/settings/system', icon: '' },

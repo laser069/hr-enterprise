@@ -4,8 +4,6 @@ import type {
   AttendanceListParams,
   CheckInDto,
   CheckOutDto,
-  CreateAttendanceDto,
-  UpdateAttendanceDto,
 } from '../types';
 
 // Query keys
@@ -13,14 +11,13 @@ export const attendanceKeys = {
   all: ['attendance'] as const,
   lists: () => [...attendanceKeys.all, 'list'] as const,
   list: (params: AttendanceListParams) => [...attendanceKeys.lists(), params] as const,
-  details: () => [...attendanceKeys.all, 'detail'] as const,
-  detail: (id: string) => [...attendanceKeys.details(), id] as const,
-  summary: (employeeId: string) => [...attendanceKeys.all, 'summary', employeeId] as const,
-  todayStats: () => [...attendanceKeys.all, 'todayStats'] as const,
-  myAttendance: () => [...attendanceKeys.all, 'my'] as const,
+  stats: () => [...attendanceKeys.all, 'stats'] as const,
+  todayStats: () => [...attendanceKeys.all, 'today-stats'] as const,
+  employeeAttendance: (employeeId: string) => [...attendanceKeys.all, 'employee', employeeId] as const,
+  employeeSummary: (employeeId: string) => [...attendanceKeys.all, 'summary', employeeId] as const,
 };
 
-// List attendance records hook
+// List attendance hook
 export function useAttendance(params: AttendanceListParams = {}) {
   return useQuery({
     queryKey: attendanceKeys.list(params),
@@ -28,39 +25,27 @@ export function useAttendance(params: AttendanceListParams = {}) {
   });
 }
 
-// Get single attendance record hook
-export function useAttendanceRecord(id: string) {
+// Get attendance stats hook
+export function useAttendanceStats() {
   return useQuery({
-    queryKey: attendanceKeys.detail(id),
-    queryFn: () => attendanceApi.get(id),
-    enabled: !!id,
-  });
-}
-
-// Get attendance summary hook
-export function useAttendanceSummary(employeeId: string, startDate?: string, endDate?: string) {
-  return useQuery({
-    queryKey: [...attendanceKeys.summary(employeeId), { startDate, endDate }],
-    queryFn: () => attendanceApi.getSummary(employeeId, { startDate, endDate }),
-    enabled: !!employeeId,
+    queryKey: attendanceKeys.stats(),
+    queryFn: () => attendanceApi.getStats(),
+    staleTime: 1 * 60 * 1000, // 1 minute
   });
 }
 
 // Get today's stats hook
-export function useTodayAttendanceStats() {
+export function useTodayStats() {
   return useQuery({
     queryKey: attendanceKeys.todayStats(),
     queryFn: () => attendanceApi.getTodayStats(),
+    refetchInterval: 5 * 60 * 1000, // Refetch every 5 minutes
   });
 }
 
-// Get my attendance hook
-export function useMyAttendance(startDate?: string, endDate?: string) {
-  return useQuery({
-    queryKey: [...attendanceKeys.myAttendance(), { startDate, endDate }],
-    queryFn: () => attendanceApi.getMyAttendance({ startDate, endDate }),
-  });
-}
+// Alias for backward compatibility
+export const useTodayAttendanceStats = useTodayStats;
+
 
 // Check in hook
 export function useCheckIn() {
@@ -71,7 +56,7 @@ export function useCheckIn() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: attendanceKeys.lists() });
       queryClient.invalidateQueries({ queryKey: attendanceKeys.todayStats() });
-      queryClient.invalidateQueries({ queryKey: attendanceKeys.myAttendance() });
+      queryClient.invalidateQueries({ queryKey: attendanceKeys.stats() });
     },
   });
 }
@@ -85,39 +70,30 @@ export function useCheckOut() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: attendanceKeys.lists() });
       queryClient.invalidateQueries({ queryKey: attendanceKeys.todayStats() });
-      queryClient.invalidateQueries({ queryKey: attendanceKeys.myAttendance() });
+      queryClient.invalidateQueries({ queryKey: attendanceKeys.stats() });
     },
   });
 }
 
-// Create attendance record hook
-export function useCreateAttendance() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (data: CreateAttendanceDto) => attendanceApi.create(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: attendanceKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: attendanceKeys.todayStats() });
-    },
+// Get employee attendance hook
+export function useEmployeeAttendance(employeeId: string, params?: AttendanceListParams) {
+  return useQuery({
+    queryKey: attendanceKeys.employeeAttendance(employeeId),
+    queryFn: () => attendanceApi.getEmployeeAttendance(employeeId, params),
+    enabled: !!employeeId,
   });
 }
 
-// Update attendance record hook
-export function useUpdateAttendance() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: UpdateAttendanceDto }) =>
-      attendanceApi.update(id, data),
-    onSuccess: (_, { id }) => {
-      queryClient.invalidateQueries({ queryKey: attendanceKeys.detail(id) });
-      queryClient.invalidateQueries({ queryKey: attendanceKeys.lists() });
-    },
+// Get employee summary hook
+export function useEmployeeSummary(employeeId: string) {
+  return useQuery({
+    queryKey: attendanceKeys.employeeSummary(employeeId),
+    queryFn: () => attendanceApi.getEmployeeSummary(employeeId),
+    enabled: !!employeeId,
   });
 }
 
-// Delete attendance record hook
+// Delete attendance hook
 export function useDeleteAttendance() {
   const queryClient = useQueryClient();
 
@@ -125,7 +101,7 @@ export function useDeleteAttendance() {
     mutationFn: (id: string) => attendanceApi.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: attendanceKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: attendanceKeys.todayStats() });
+      queryClient.invalidateQueries({ queryKey: attendanceKeys.stats() });
     },
   });
 }

@@ -1,94 +1,75 @@
 // Recruitment Types
 
-export type JobStatus = 'draft' | 'open' | 'closed' | 'archived';
-export type CandidateStage = 'applied' | 'screening' | 'interview' | 'offer' | 'hired' | 'rejected';
-export type EmploymentType = 'full-time' | 'part-time' | 'contract' | 'internship';
+export type JobStatus = 'OPEN' | 'CLOSED' | 'ON_HOLD';
+export type CandidateStage = 'APPLIED' | 'SCREENING' | 'INTERVIEW' | 'OFFERED' | 'HIRED' | 'REJECTED';
 
 export interface Job {
   id: string;
   title: string;
-  description?: string;
-  departmentId?: string;
+  description: string;
+  departmentId: string;
+  positions: number;
+  status: JobStatus;
+  postedDate: string;
+  closedDate?: string;
+  createdAt: string;
+  updatedAt: string;
+  postedAt?: string; // Add alias for postedDate
+  location?: string;
+  candidateCount?: number;
+  openings?: number;
   department?: {
     id: string;
     name: string;
   };
-  requirements?: string;
-  location?: string;
-  employmentType?: EmploymentType;
-  minSalary?: number;
-  maxSalary?: number;
-  status: JobStatus;
-  openings: number;
-  postedAt?: string;
-  closedAt?: string;
-  createdAt: string;
-  updatedAt: string;
-  candidates?: Candidate[];
-  candidateCount?: number;
 }
 
 export interface Candidate {
   id: string;
   jobId: string;
-  job?: {
-    id: string;
-    title: string;
-    department?: {
-      name: string;
-    };
-  };
   firstName: string;
   lastName: string;
   email: string;
-  phone?: string;
+  phone: string;
   resumeUrl?: string;
-  coverLetter?: string;
-  source?: string;
   stage: CandidateStage;
   appliedAt: string;
-  notes?: string;
+  source?: string;
   createdAt: string;
   updatedAt: string;
+  job?: Job;
+}
+
+export interface CandidateListResponse {
+  data: Candidate[];
+  meta: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
 }
 
 export interface CreateJobDto {
   title: string;
-  description?: string;
-  departmentId?: string;
-  requirements?: string;
-  location?: string;
-  employmentType?: EmploymentType;
-  minSalary?: number;
-  maxSalary?: number;
-  openings?: number;
+  description: string;
+  departmentId: string;
+  positions: number;
 }
 
 export interface CreateCandidateDto {
   jobId: string;
-  firstName: string;
-  lastName: string;
+  name: string;
   email: string;
-  phone?: string;
-  resumeUrl?: string;
-  coverLetter?: string;
-  source?: string;
-  notes?: string;
+  phone: string;
+  resume?: string;
 }
 
 export interface RecruitmentSummary {
-  totalJobs: number;
   openJobs: number;
   totalCandidates: number;
-  hiredCandidates: number;
-  candidatesByStage: Record<CandidateStage, number>;
-}
-
-export interface RecruitmentStats {
-  totalJobs: number;
-  openJobs: number;
-  totalCandidates: number;
-  newCandidatesThisMonth: number;
   hiredThisMonth: number;
-  averageTimeToHire: number; // in days
+  avgTimeToHire: number;
+  interviewsScheduled: number;
+  candidatesByStage: Record<CandidateStage, number>;
 }

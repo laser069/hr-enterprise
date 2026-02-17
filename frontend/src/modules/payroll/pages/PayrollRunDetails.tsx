@@ -9,12 +9,20 @@ const months = [
   'July', 'August', 'September', 'October', 'November', 'December'
 ];
 
+interface PayrollSummary {
+  totalEmployees: number;
+  totalGrossSalary: number;
+  totalDeductions: number;
+  totalNetSalary: number;
+}
+
 export default function PayrollRunDetails() {
   const { id } = useParams<{ id: string }>();
   const { hasPermission } = useAuthContext();
   
   const { data: run, isLoading: runLoading } = usePayrollRun(id || '');
-  const { data: summary, isLoading: summaryLoading } = usePayrollSummary(id || '');
+  const { data: rawSummary, isLoading: summaryLoading } = usePayrollSummary(id || '');
+  const summary = rawSummary as unknown as PayrollSummary | undefined;
   
   const calculateMutation = useCalculatePayroll();
   const approveMutation = useApprovePayroll();
@@ -120,9 +128,9 @@ export default function PayrollRunDetails() {
       </div>
 
       {/* Action Buttons */}
-      {canManage && run.status !== 'processed' && (
+      {canManage && run.status !== 'PROCESSED' && (
         <div className="flex gap-3">
-          {run.status === 'draft' && (
+          {run.status === 'DRAFT' && (
             <>
               <Button
                 variant="primary"
@@ -140,7 +148,7 @@ export default function PayrollRunDetails() {
               </Button>
             </>
           )}
-          {run.status === 'approved' && (
+          {run.status === 'APPROVED' && (
             <Button
               variant="success"
               onClick={handleProcess}
@@ -249,7 +257,7 @@ export default function PayrollRunDetails() {
                       )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-red-600">
-                      -${entry.totalDeductions.toLocaleString()}
+                      -${entry.deductions.toLocaleString()}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600">
                       ${entry.netSalary.toLocaleString()}

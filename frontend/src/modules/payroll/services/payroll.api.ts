@@ -1,93 +1,64 @@
-import api from '../../../core/api/axios';
+import { apiClient } from '../../../core/api/api-client';
 import type {
-  SalaryStructure,
   PayrollRun,
   PayrollEntry,
-  PayrollRunSummary,
-  CreateSalaryStructureDto,
-  UpdateSalaryStructureDto,
+  SalaryStructure,
   CreatePayrollRunDto,
-  PayrollStats,
+  CreateSalaryStructureDto,
 } from '../types';
 
 export const payrollApi = {
-  // Salary Structures
-  getSalaryStructures: async (): Promise<SalaryStructure[]> => {
-    const response = await api.get<SalaryStructure[]>('/payroll/structures');
-    return response.data;
-  },
-
-  getSalaryStructure: async (id: string): Promise<SalaryStructure> => {
-    const response = await api.get<SalaryStructure>(`/payroll/structures/${id}`);
-    return response.data;
-  },
-
-  createSalaryStructure: async (data: CreateSalaryStructureDto): Promise<SalaryStructure> => {
-    const response = await api.post<SalaryStructure>('/payroll/structures', data);
-    return response.data;
-  },
-
-  updateSalaryStructure: async (id: string, data: UpdateSalaryStructureDto): Promise<SalaryStructure> => {
-    const response = await api.patch<SalaryStructure>(`/payroll/structures/${id}`, data);
-    return response.data;
-  },
-
-  deleteSalaryStructure: async (id: string): Promise<void> => {
-    await api.delete(`/payroll/structures/${id}`);
-  },
-
   // Payroll Runs
-  getPayrollRuns: async (): Promise<PayrollRun[]> => {
-    const response = await api.get<PayrollRun[]>('/payroll/runs');
-    return response.data;
+  getPayrollRuns: (): Promise<PayrollRun[]> => {
+    return apiClient.get<PayrollRun[]>('/payroll/runs');
   },
 
-  getPayrollRun: async (id: string): Promise<PayrollRun> => {
-    const response = await api.get<PayrollRun>(`/payroll/runs/${id}`);
-    return response.data;
+  getPayrollRun: (id: string): Promise<PayrollRun> => {
+    return apiClient.get<PayrollRun>(`/payroll/runs/${id}`);
   },
 
-  createPayrollRun: async (data: CreatePayrollRunDto): Promise<PayrollRun> => {
-    const response = await api.post<PayrollRun>('/payroll/runs', data);
-    return response.data;
+  createPayrollRun: (data: CreatePayrollRunDto): Promise<PayrollRun> => {
+    return apiClient.post<PayrollRun>('/payroll/runs', data);
   },
 
-  deletePayrollRun: async (id: string): Promise<void> => {
-    await api.delete(`/payroll/runs/${id}`);
+  calculatePayroll: (id: string): Promise<PayrollRun> => {
+    return apiClient.post<PayrollRun>(`/payroll/runs/${id}/calculate`);
   },
 
-  // Payroll Actions
-  calculatePayroll: async (id: string): Promise<void> => {
-    await api.post(`/payroll/runs/${id}/calculate`);
+  approvePayroll: (id: string): Promise<PayrollRun> => {
+    return apiClient.post<PayrollRun>(`/payroll/runs/${id}/approve`);
   },
 
-  approvePayroll: async (id: string): Promise<void> => {
-    await api.post(`/payroll/runs/${id}/approve`);
+  processPayroll: (id: string): Promise<PayrollRun> => {
+    return apiClient.post<PayrollRun>(`/payroll/runs/${id}/process`);
   },
 
-  processPayroll: async (id: string): Promise<void> => {
-    await api.post(`/payroll/runs/${id}/process`);
+  getPayrollEntries: (runId: string): Promise<PayrollEntry[]> => {
+    return apiClient.get<PayrollEntry[]>(`/payroll/runs/${runId}/entries`);
   },
 
-  // Payroll Entries
-  getPayrollEntry: async (id: string): Promise<PayrollEntry> => {
-    const response = await api.get<PayrollEntry>(`/payroll/entries/${id}`);
-    return response.data;
+  // Salary Structures
+  getSalaryStructures: (): Promise<SalaryStructure[]> => {
+    return apiClient.get<SalaryStructure[]>('/payroll/structures');
   },
 
-  updatePayrollEntry: async (id: string, data: { lopDays?: number; notes?: string }): Promise<PayrollEntry> => {
-    const response = await api.patch<PayrollEntry>(`/payroll/entries/${id}`, data);
-    return response.data;
+  getSalaryStructure: (id: string): Promise<SalaryStructure> => {
+    return apiClient.get<SalaryStructure>(`/payroll/structures/${id}`);
   },
 
-  // Summary & Stats
-  getPayrollSummary: async (id: string): Promise<PayrollRunSummary> => {
-    const response = await api.get<PayrollRunSummary>(`/payroll/runs/${id}/summary`);
-    return response.data;
+  createSalaryStructure: (data: CreateSalaryStructureDto): Promise<SalaryStructure> => {
+    return apiClient.post<SalaryStructure>('/payroll/structures', data);
   },
 
-  getPayrollStats: async (): Promise<PayrollStats> => {
-    const response = await api.get<PayrollStats>('/payroll/stats');
-    return response.data;
+  updateSalaryStructure: (id: string, data: Partial<CreateSalaryStructureDto>): Promise<SalaryStructure> => {
+    return apiClient.patch<SalaryStructure>(`/payroll/structures/${id}`, data);
+  },
+
+  deletePayrollRun: (id: string): Promise<void> => {
+    return apiClient.delete(`/payroll/runs/${id}`);
+  },
+
+  getPayrollSummary: (id: string): Promise<Record<string, unknown>> => {
+    return apiClient.get(`/payroll/runs/${id}/summary`);
   },
 };

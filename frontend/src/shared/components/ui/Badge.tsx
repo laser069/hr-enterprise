@@ -1,8 +1,8 @@
 import { cn } from '../../utils/cn';
 
-interface BadgeProps {
+export interface BadgeProps {
   children: React.ReactNode;
-  variant?: 'default' | 'success' | 'warning' | 'danger' | 'info';
+  variant?: 'default' | 'primary' | 'success' | 'warning' | 'danger' | 'info';
   size?: 'sm' | 'md';
   className?: string;
 }
@@ -16,17 +16,18 @@ export function Badge({
   return (
     <span
       className={cn(
-        'inline-flex items-center font-medium rounded-full',
+        'inline-flex items-center font-black uppercase tracking-[0.2em] rounded-2xl backdrop-blur-xl border shadow-[0_10px_20px_-5px_rgba(0,0,0,0.05)] ring-1 ring-white/20',
         {
-          'bg-gray-100 text-gray-800': variant === 'default',
-          'bg-green-100 text-green-800': variant === 'success',
-          'bg-yellow-100 text-yellow-800': variant === 'warning',
-          'bg-red-100 text-red-800': variant === 'danger',
-          'bg-blue-100 text-blue-800': variant === 'info',
+          'bg-slate-100/80 text-slate-700 border-slate-200/60 shadow-inner': variant === 'default',
+          'bg-indigo-600 text-white border-indigo-500 shadow-[0_10px_20px_-5px_rgba(79,70,229,0.3)]': variant === 'primary',
+          'bg-emerald-500 text-white border-emerald-400 shadow-[0_10px_20px_-5px_rgba(16,185,129,0.3)]': variant === 'success',
+          'bg-amber-500 text-white border-amber-400 shadow-[0_10px_20px_-5px_rgba(245,158,11,0.3)]': variant === 'warning',
+          'bg-rose-500 text-white border-rose-400 shadow-[0_10px_20px_-5px_rgba(244,63,94,0.3)]': variant === 'danger',
+          'bg-indigo-500 text-white border-indigo-400 shadow-[0_10px_20px_-5px_rgba(99,102,241,0.3)]': variant === 'info',
         },
         {
-          'px-2 py-0.5 text-xs': size === 'sm',
-          'px-3 py-1 text-sm': size === 'md',
+          'px-3 py-1 text-[8px]': size === 'sm',
+          'px-4 py-1.5 text-[9px]': size === 'md',
         },
         className
       )}

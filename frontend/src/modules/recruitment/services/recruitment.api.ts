@@ -1,95 +1,43 @@
-import api from '../../../core/api/axios';
-import type {
-  Job,
-  Candidate,
-  RecruitmentSummary,
-  RecruitmentStats,
-  CreateJobDto,
-  CreateCandidateDto,
-} from '../types';
-
-interface ListParams {
-  status?: string;
-  departmentId?: string;
-  jobId?: string;
-  stage?: string;
-  skip?: number;
-  take?: number;
-}
-
-interface ListResponse<T> {
-  data: T[];
-  total: number;
-}
+import { apiClient } from '../../../core/api/api-client';
+import type { CreateEmployeeDto } from '../../employees/types';
+import type { Job, Candidate, CreateJobDto, CreateCandidateDto, RecruitmentSummary, CandidateListResponse } from '../types';
 
 export const recruitmentApi = {
   // Jobs
-  getJobs: async (params?: ListParams): Promise<Job[]> => {
-    const response = await api.get<Job[]>('/recruitment/jobs', { params });
-    return response.data;
+  getJobs: (params?: Record<string, unknown>): Promise<Job[]> => {
+    return apiClient.get<Job[]>('/recruitment/jobs', { params });
   },
 
-  getJob: async (id: string): Promise<Job> => {
-    const response = await api.get<Job>(`/recruitment/jobs/${id}`);
-    return response.data;
+  createJob: (data: CreateJobDto): Promise<Job> => {
+    return apiClient.post<Job>('/recruitment/jobs', data);
   },
 
-  createJob: async (data: CreateJobDto): Promise<Job> => {
-    const response = await api.post<Job>('/recruitment/jobs', data);
-    return response.data;
-  },
-
-  publishJob: async (id: string): Promise<Job> => {
-    const response = await api.post<Job>(`/recruitment/jobs/${id}/publish`);
-    return response.data;
-  },
-
-  closeJob: async (id: string): Promise<Job> => {
-    const response = await api.post<Job>(`/recruitment/jobs/${id}/close`);
-    return response.data;
-  },
-
-  deleteJob: async (id: string): Promise<void> => {
-    await api.delete(`/recruitment/jobs/${id}`);
+  closeJob: (id: string): Promise<Job> => {
+    return apiClient.post<Job>(`/recruitment/jobs/${id}/close`);
   },
 
   // Candidates
-  getCandidates: async (params?: ListParams): Promise<ListResponse<Candidate>> => {
-    const response = await api.get<ListResponse<Candidate>>('/recruitment/candidates', { params });
-    return response.data;
+  getCandidates: (params?: Record<string, unknown>): Promise<CandidateListResponse> => {
+    return apiClient.get<CandidateListResponse>('/recruitment/candidates', { params });
   },
 
-  getCandidate: async (id: string): Promise<Candidate> => {
-    const response = await api.get<Candidate>(`/recruitment/candidates/${id}`);
-    return response.data;
+  createCandidate: (data: CreateCandidateDto): Promise<Candidate> => {
+    return apiClient.post<Candidate>('/recruitment/candidates', data);
   },
 
-  createCandidate: async (data: CreateCandidateDto): Promise<Candidate> => {
-    const response = await api.post<Candidate>('/recruitment/candidates', data);
-    return response.data;
+  updateCandidateStage: (id: string, stage: string): Promise<Candidate> => {
+    return apiClient.post<Candidate>(`/recruitment/candidates/${id}/stage`, { stage });
   },
 
-  moveCandidateStage: async (id: string, stage: string): Promise<Candidate> => {
-    const response = await api.patch<Candidate>(`/recruitment/candidates/${id}/stage`, { stage });
-    return response.data;
+  convertToEmployee: (id: string, employeeData: CreateEmployeeDto): Promise<void> => {
+    return apiClient.post(`/recruitment/candidates/${id}/convert`, employeeData);
   },
 
-  convertToEmployee: async (id: string): Promise<void> => {
-    await api.post(`/recruitment/candidates/${id}/convert`);
+  deleteCandidate: (id: string): Promise<void> => {
+    return apiClient.delete(`/recruitment/candidates/${id}`);
   },
 
-  deleteCandidate: async (id: string): Promise<void> => {
-    await api.delete(`/recruitment/candidates/${id}`);
-  },
-
-  // Summary & Stats
-  getRecruitmentSummary: async (): Promise<RecruitmentSummary> => {
-    const response = await api.get<RecruitmentSummary>('/recruitment/summary');
-    return response.data;
-  },
-
-  getStats: async (): Promise<RecruitmentStats> => {
-    const response = await api.get<RecruitmentStats>('/recruitment/stats');
-    return response.data;
+  getSummary: (): Promise<RecruitmentSummary> => {
+    return apiClient.get<RecruitmentSummary>('/recruitment/summary');
   },
 };

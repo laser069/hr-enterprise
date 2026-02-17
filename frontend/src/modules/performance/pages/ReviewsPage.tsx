@@ -4,12 +4,20 @@ import { useEmployees } from '../../employees/hooks/useEmployee';
 import type { ReviewStatus } from '../types';
 import { Badge } from '../../../shared/components/ui/Badge';
 import { Button } from '../../../shared/components/ui/Button';
+import { Card } from '../../../shared/components/ui/Card';
+import { Modal } from '../../../shared/components/ui/Modal';
 
-const reviewStatuses: ReviewStatus[] = ['draft', 'submitted', 'acknowledged'];
+const reviewStatuses: ReviewStatus[] = ['DRAFT', 'SUBMITTED', 'ACKNOWLEDGED'];
+
+const statusColors: Record<ReviewStatus, 'success' | 'warning' | 'default'> = {
+  ACKNOWLEDGED: 'success',
+  SUBMITTED: 'success',
+  DRAFT: 'warning',
+};
 
 export default function ReviewsPage() {
-  const [status, setStatus] = useState<ReviewStatus | ''>('');
-  const { data: reviews, isLoading } = useReviews(status ? { status } : {});
+  const [statusFilter, setStatusFilter] = useState<ReviewStatus | ''>('');
+  const { data: reviews, isLoading } = useReviews();
   const { data: employees } = useEmployees({ limit: 100 });
   
   const createMutation = useCreateReview();
@@ -19,8 +27,7 @@ export default function ReviewsPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newReview, setNewReview] = useState({
     employeeId: '',
-    reviewerId: '',
-    reviewPeriod: '',
+    period: '',
     rating: 3,
     comments: '',
     strengths: '',
@@ -28,12 +35,14 @@ export default function ReviewsPage() {
   });
 
   const handleCreate = async () => {
-    await createMutation.mutateAsync(newReview);
+    await createMutation.mutateAsync({
+      ...newReview,
+      rating: Number(newReview.rating)
+    });
     setShowCreateModal(false);
     setNewReview({
       employeeId: '',
-      reviewerId: '',
-      reviewPeriod: '',
+      period: '',
       rating: 3,
       comments: '',
       strengths: '',
@@ -49,170 +58,118 @@ export default function ReviewsPage() {
     await acknowledgeMutation.mutateAsync(id);
   };
 
-  const getStatusColor = (status: string) => {
-    const colors: Record<string, 'success' | 'warning' | 'default'> = {
-      acknowledged: 'success',
-      submitted: 'success',
-      draft: 'warning',
-    };
-    return colors[status] || 'default';
-  };
-
-  const renderStars = (rating: number) => {
-    return (
-      <span className="text-yellow-500">
-        {'★'.repeat(Math.round(rating))}
-        {'☆'.repeat(5 - Math.round(rating))}
-      </span>
-    );
-  };
+  const filteredReviews = reviews?.filter(r => 
+    (!statusFilter || r.status === statusFilter)
+  ) || [];
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div className="space-y-12 pb-12">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-10">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Performance Reviews</h1>
-          <p className="text-gray-600 mt-1">
-            Manage performance review cycles and evaluations
-          </p>
+           <h1 className="text-5xl font-black text-slate-900 tracking-tighter leading-none drop-shadow-sm">Appraisal Ledger</h1>
+           <p className="text-xs text-slate-400 font-black uppercase tracking-[0.3em] mt-6 opacity-70">
+             Lifecycle management for employee evaluations and 360° feedback
+           </p>
         </div>
-        <div className="flex gap-2">
-          <select
-            value={status}
-            onChange={(e) => setStatus(e.target.value as ReviewStatus | '')}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="">All Status</option>
-            {reviewStatuses.map((s) => (
-              <option key={s} value={s}>
-                {s.charAt(0).toUpperCase() + s.slice(1)}
-              </option>
-            ))}
-          </select>
-          <Button variant="primary" onClick={() => setShowCreateModal(true)}>
-            New Review
+        
+        <div className="flex items-center gap-4">
+          <div className="flex items-center p-2 bg-white/40 backdrop-blur-xl border border-white/60 rounded-[2.5rem] shadow-xl ring-1 ring-white/10">
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value as ReviewStatus | '')}
+              className="bg-transparent px-8 py-3 text-[10px] font-black text-slate-900 uppercase tracking-widest outline-none cursor-pointer hover:text-indigo-600 transition-colors appearance-none"
+            >
+              <option value="" className="bg-white">Global Status</option>
+              {reviewStatuses.map((s) => (
+                <option key={s} value={s} className="bg-white">{s} Protocol</option>
+              ))}
+            </select>
+          </div>
+          <Button variant="primary" size="md" onClick={() => setShowCreateModal(true)}>
+             Initiate Review
           </Button>
         </div>
       </div>
 
-      {/* Reviews List */}
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+      <Card title="Review Registry" subtitle="Sequential performance telemetry" noPadding>
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="min-w-full divide-y divide-slate-200/60">
+            <thead className="bg-slate-50/50 backdrop-blur-md">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Employee
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Review Period
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Rating
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Reviewer
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Date
-                </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
+                <th className="px-10 py-6 text-left text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Employee</th>
+                <th className="px-10 py-6 text-left text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Period</th>
+                <th className="px-10 py-6 text-left text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Rating</th>
+                <th className="px-10 py-6 text-left text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Status</th>
+                <th className="px-10 py-6 text-right text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Protocols</th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="divide-y divide-slate-100/50 bg-white/40">
               {isLoading ? (
-                <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
-                    Loading...
-                  </td>
-                </tr>
-              ) : !reviews?.data || reviews.data.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
-                    No reviews found
-                  </td>
-                </tr>
+                <tr><td colSpan={5} className="px-10 py-20 text-center animate-pulse text-slate-300 font-black uppercase tracking-widest text-xs">Accessing Records...</td></tr>
+              ) : filteredReviews.length === 0 ? (
+                <tr><td colSpan={5} className="px-10 py-20 text-center text-slate-300 font-black uppercase tracking-widest text-[10px]">No appraisal records found</td></tr>
               ) : (
-                reviews.data.map((review) => (
-                  <tr key={review.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <div className="h-10 w-10 flex-shrink-0">
-                          {review.employee?.profilePicture ? (
-                            <img
-                              className="h-10 w-10 rounded-full object-cover"
-                              src={review.employee.profilePicture}
-                              alt=""
-                            />
-                          ) : (
-                            <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
-                              <span className="text-blue-600 font-medium">
-                                {review.employee?.firstName?.[0]}
-                                {review.employee?.lastName?.[0]}
-                              </span>
-                            </div>
-                          )}
+                filteredReviews.map((review) => (
+                  <tr key={review.id} className="group hover:bg-white/80 transition-all duration-500">
+                    <td className="px-10 py-8">
+                       <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-2xl bg-slate-900 text-white flex items-center justify-center text-[10px] font-black uppercase tracking-tighter">
+                           {review.employee?.firstName?.[0]}{review.employee?.lastName?.[0]}
                         </div>
-                        <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900">
-                            {review.employee?.firstName} {review.employee?.lastName}
-                          </div>
-                          <div className="text-sm text-gray-500">{review.employee?.employeeCode}</div>
+                        <div>
+                          <p className="text-sm font-black text-slate-900 tracking-tighter leading-none mb-1">{review.employee?.firstName} {review.employee?.lastName}</p>
+                          <p className="text-[9px] text-slate-400 font-black uppercase tracking-widest opacity-60">ID: {review.id.slice(0, 8)}</p>
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {review.reviewPeriod}
+                    <td className="px-10 py-8 text-xs font-black text-slate-900 tracking-widest uppercase">
+                      {review.period}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className="px-10 py-8">
                       <div className="flex items-center gap-2">
-                        {renderStars(review.rating)}
-                        <span className="text-gray-600">({review.rating}/5)</span>
+                        <span className="text-sm font-black text-slate-900">{review.rating}</span>
+                        <div className="flex text-amber-500 text-[10px]">
+                          {'★'.repeat(Math.round(review.rating))}
+                        </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {review.reviewer?.firstName} {review.reviewer?.lastName}
+                    <td className="px-10 py-8">
+                      <Badge variant={statusColors[review.status]} className="shadow-lg">{review.status}</Badge>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <Badge variant={getStatusColor(review.status)}>
-                        {review.status}
-                      </Badge>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {review.reviewDate
-                        ? new Date(review.reviewDate).toLocaleDateString()
-                        : new Date(review.createdAt).toLocaleDateString()}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      {review.status === 'draft' && (
-                        <button
-                          onClick={() => handleSubmit(review.id)}
-                          className="text-green-600 hover:text-green-900 mr-3"
-                          disabled={submitMutation.isPending}
+                    <td className="px-10 py-8 text-right">
+                      <div className="flex items-center justify-end gap-3 opacity-0 group-hover:opacity-100 transition-all">
+                        {review.status === 'DRAFT' && (
+                          <Button 
+                            variant="primary" 
+                            size="sm" 
+                            className="h-9 px-4 rounded-xl text-[9px] font-black uppercase tracking-widest"
+                            onClick={() => handleSubmit(review.id)}
+                            disabled={submitMutation.isPending}
+                          >
+                            Submit
+                          </Button>
+                        )}
+                        {review.status === 'SUBMITTED' && (
+                          <Button 
+                            variant="primary" 
+                            size="sm" 
+                            className="h-9 px-4 rounded-xl text-[9px] font-black uppercase tracking-widest bg-emerald-500 hover:bg-emerald-600 border-none"
+                            onClick={() => handleAcknowledge(review.id)}
+                            disabled={acknowledgeMutation.isPending}
+                          >
+                            Acknowledge
+                          </Button>
+                        )}
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="h-9 px-4 rounded-xl text-[9px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900"
+                          onClick={() => alert('Detail stream access coming soon')}
                         >
-                          Submit
-                        </button>
-                      )}
-                      {review.status === 'submitted' && (
-                        <button
-                          onClick={() => handleAcknowledge(review.id)}
-                          className="text-blue-600 hover:text-blue-900 mr-3"
-                          disabled={acknowledgeMutation.isPending}
-                        >
-                          Acknowledge
-                        </button>
-                      )}
-                      <button
-                        onClick={() => alert('View details coming soon')}
-                        className="text-gray-600 hover:text-gray-900"
-                      >
-                        View
-                      </button>
+                          View
+                        </Button>
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -220,115 +177,106 @@ export default function ReviewsPage() {
             </tbody>
           </table>
         </div>
-      </div>
+      </Card>
 
       {/* Create Modal */}
-      {showCreateModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Create Performance Review</h3>
+      <Modal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        title="Initiate Appraisal"
+        size="lg"
+      >
+        <div className="space-y-10">
+          <div className="grid grid-cols-1 gap-10">
             <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Employee</label>
-                <select
-                  value={newReview.employeeId}
-                  onChange={(e) => setNewReview({ ...newReview, employeeId: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">Select Employee</option>
-                  {employees?.data?.map((emp) => (
-                    <option key={emp.id} value={emp.id}>
-                      {emp.firstName} {emp.lastName}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Reviewer</label>
-                <select
-                  value={newReview.reviewerId}
-                  onChange={(e) => setNewReview({ ...newReview, reviewerId: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">Select Reviewer</option>
-                  {employees?.data?.map((emp) => (
-                    <option key={emp.id} value={emp.id}>
-                      {emp.firstName} {emp.lastName}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Review Period</label>
-                <input
-                  type="text"
-                  value={newReview.reviewPeriod}
-                  onChange={(e) => setNewReview({ ...newReview, reviewPeriod: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  placeholder="e.g., Q1-2024 or 2024-Annual"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Rating: {newReview.rating}/5
-                </label>
-                <input
-                  type="range"
-                  min="1"
-                  max="5"
-                  step="0.5"
-                  value={newReview.rating}
-                  onChange={(e) => setNewReview({ ...newReview, rating: Number(e.target.value) })}
-                  className="w-full"
-                />
-                <div className="text-2xl mt-1">{renderStars(newReview.rating)}</div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Comments</label>
-                <textarea
-                  value={newReview.comments}
-                  onChange={(e) => setNewReview({ ...newReview, comments: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  rows={3}
-                  placeholder="Overall comments..."
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Strengths</label>
-                <textarea
-                  value={newReview.strengths}
-                  onChange={(e) => setNewReview({ ...newReview, strengths: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  rows={2}
-                  placeholder="Employee strengths..."
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Areas for Improvement</label>
-                <textarea
-                  value={newReview.improvements}
-                  onChange={(e) => setNewReview({ ...newReview, improvements: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  rows={2}
-                  placeholder="Areas to improve..."
-                />
-              </div>
+               <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Subject Associate</label>
+               <select
+                 value={newReview.employeeId}
+                 onChange={(e) => setNewReview({ ...newReview, employeeId: e.target.value })}
+                 className="w-full px-8 py-5 border border-white/60 rounded-3xl text-sm font-black text-slate-900 bg-white/40 focus:outline-none focus:ring-4 focus:ring-slate-100 transition-all cursor-pointer uppercase tracking-widest shadow-inner appearance-none"
+               >
+                 <option value="" className="bg-white">Select Associate</option>
+                 {employees?.data?.map((emp) => (
+                   <option key={emp.id} value={emp.id} className="bg-white">{emp.firstName} {emp.lastName}</option>
+                 ))}
+               </select>
             </div>
-            <div className="flex justify-end gap-2 mt-6">
-              <Button variant="outline" onClick={() => setShowCreateModal(false)}>
-                Cancel
-              </Button>
-              <Button
-                variant="primary"
-                onClick={handleCreate}
-                disabled={!newReview.employeeId || !newReview.reviewerId || !newReview.reviewPeriod || createMutation.isPending}
-              >
-                Create Review
-              </Button>
+            
+            <div className="space-y-4">
+               <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Appraisal Period</label>
+               <input
+                 type="text"
+                 value={newReview.period}
+                 onChange={(e) => setNewReview({ ...newReview, period: e.target.value })}
+                 className="w-full px-8 py-5 border border-white/60 rounded-3xl text-sm font-black text-slate-900 bg-white/40 focus:outline-none focus:ring-4 focus:ring-slate-100 transition-all uppercase tracking-widest placeholder:text-slate-300 shadow-inner"
+                 placeholder="e.g., ANNUAL REVIEW 2024"
+               />
             </div>
           </div>
+
+          <div className="space-y-6">
+            <div className="flex justify-between items-center px-1">
+               <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Merit Rating</label>
+               <span className="text-2xl font-black text-slate-900">{newReview.rating} <span className="text-xs text-slate-400 font-black uppercase tracking-widest ml-1">/ 5.0</span></span>
+            </div>
+            <input
+              type="range"
+              min="1"
+              max="5"
+              step="0.5"
+              value={newReview.rating}
+              onChange={(e) => setNewReview({ ...newReview, rating: Number(e.target.value) })}
+              className="w-full accent-slate-900 h-2 bg-slate-100 rounded-full appearance-none cursor-pointer"
+            />
+          </div>
+
+          <div className="space-y-4">
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Qualitative Commentary</label>
+            <textarea
+              value={newReview.comments}
+              onChange={(e) => setNewReview({ ...newReview, comments: e.target.value })}
+              className="w-full px-8 py-5 border border-white/60 rounded-3xl text-sm font-black text-slate-900 bg-white/40 focus:outline-none focus:ring-4 focus:ring-slate-100 transition-all uppercase tracking-widest h-32 placeholder:text-slate-300 shadow-inner"
+              placeholder="Narrative summary..."
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-10">
+            <div className="space-y-4">
+               <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Core Strengths</label>
+               <textarea
+                 value={newReview.strengths}
+                 onChange={(e) => setNewReview({ ...newReview, strengths: e.target.value })}
+                 className="w-full px-8 py-5 border border-white/60 rounded-3xl text-sm font-black text-slate-900 bg-white/40 focus:outline-none focus:ring-4 focus:ring-slate-100 transition-all uppercase tracking-widest h-24 placeholder:text-slate-300 shadow-inner"
+                 placeholder="Competencies..."
+               />
+            </div>
+            <div className="space-y-4">
+               <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Evolution Vectors</label>
+               <textarea
+                 value={newReview.improvements}
+                 onChange={(e) => setNewReview({ ...newReview, improvements: e.target.value })}
+                 className="w-full px-8 py-5 border border-white/60 rounded-3xl text-sm font-black text-slate-900 bg-white/40 focus:outline-none focus:ring-4 focus:ring-slate-100 transition-all uppercase tracking-widest h-24 placeholder:text-slate-300 shadow-inner"
+                 placeholder="Growth areas..."
+               />
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-6 mt-16 pt-10 border-t border-slate-100/50">
+            <Button variant="ghost" size="lg" onClick={() => setShowCreateModal(false)}>
+              Abort Protocol
+            </Button>
+            <Button
+              variant="primary"
+              size="lg"
+              className="px-12 shadow-2xl shadow-indigo-500/20"
+              onClick={handleCreate}
+              disabled={!newReview.employeeId || !newReview.period || createMutation.isPending}
+            >
+              {createMutation.isPending ? 'Processing...' : 'Provision Appraisal'}
+            </Button>
+          </div>
         </div>
-      )}
+      </Modal>
     </div>
   );
 }

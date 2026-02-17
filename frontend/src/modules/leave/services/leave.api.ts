@@ -1,91 +1,67 @@
-import api from '../../../core/api/axios';
+import { apiClient } from '../../../core/api/api-client';
 import type {
-  LeaveRequest,
   LeaveType,
+  LeaveRequest,
   LeaveBalance,
-  LeaveListParams,
-  LeaveListResponse,
   CreateLeaveRequestDto,
-  ApproveLeaveDto,
-  LeaveSummary,
-  CreateLeaveTypeDto,
-  UpdateLeaveTypeDto,
+  LeaveListParams,
 } from '../types';
 
 export const leaveApi = {
   // Leave Types
-  getLeaveTypes: async (): Promise<LeaveType[]> => {
-    const response = await api.get<LeaveType[]>('/leave-types');
-    return response.data;
+  getLeaveTypes: (): Promise<LeaveType[]> => {
+    return apiClient.get<LeaveType[]>('/leave-types');
   },
 
-  getLeaveType: async (id: string): Promise<LeaveType> => {
-    const response = await api.get<LeaveType>(`/leave-types/${id}`);
-    return response.data;
+  createLeaveType: (data: Partial<LeaveType>): Promise<LeaveType> => {
+    return apiClient.post<LeaveType>('/leave-types', data);
   },
 
-  createLeaveType: async (data: CreateLeaveTypeDto): Promise<LeaveType> => {
-    const response = await api.post<LeaveType>('/leave-types', data);
-    return response.data;
-  },
-
-  updateLeaveType: async (id: string, data: UpdateLeaveTypeDto): Promise<LeaveType> => {
-    const response = await api.patch<LeaveType>(`/leave-types/${id}`, data);
-    return response.data;
-  },
-
-  deleteLeaveType: async (id: string): Promise<void> => {
-    await api.delete(`/leave-types/${id}`);
+  updateLeaveType: (id: string, data: Partial<LeaveType>): Promise<LeaveType> => {
+    return apiClient.patch<LeaveType>(`/leave-types/${id}`, data);
   },
 
   // Leave Requests
-  getLeaveRequests: async (params: LeaveListParams): Promise<LeaveListResponse> => {
-    const response = await api.get<LeaveListResponse>('/leave-requests', { params });
-    return response.data;
+  getLeaveRequests: (params?: LeaveListParams): Promise<LeaveRequest[]> => {
+    return apiClient.get<LeaveRequest[]>('/leave-requests', { params });
   },
 
-  getMyLeaveRequests: async (params?: LeaveListParams): Promise<LeaveListResponse> => {
-    const response = await api.get<LeaveListResponse>('/leave-requests/my-requests', { params });
-    return response.data;
+  getLeaveRequest: (id: string): Promise<LeaveRequest> => {
+    return apiClient.get<LeaveRequest>(`/leave-requests/${id}`);
   },
 
-  getLeaveRequest: async (id: string): Promise<LeaveRequest> => {
-    const response = await api.get<LeaveRequest>(`/leave-requests/${id}`);
-    return response.data;
+  createLeaveRequest: (data: CreateLeaveRequestDto): Promise<LeaveRequest> => {
+    return apiClient.post<LeaveRequest>('/leave-requests', data);
   },
 
-  createLeaveRequest: async (data: CreateLeaveRequestDto): Promise<LeaveRequest> => {
-    const response = await api.post<LeaveRequest>('/leave-requests', data);
-    return response.data;
+  approveLeaveRequest: (id: string, comments?: string): Promise<LeaveRequest> => {
+    return apiClient.patch<LeaveRequest>(`/leave-requests/${id}/approve`, { comments });
   },
 
-  approveLeaveRequest: async (id: string): Promise<LeaveRequest> => {
-    const response = await api.patch<LeaveRequest>(`/leave-requests/${id}/approve`);
-    return response.data;
+  rejectLeaveRequest: (id: string, rejectionReason: string): Promise<LeaveRequest> => {
+    return apiClient.patch<LeaveRequest>(`/leave-requests/${id}/reject`, { rejectionReason });
   },
 
-  rejectLeaveRequest: async (id: string, data: ApproveLeaveDto): Promise<LeaveRequest> => {
-    const response = await api.patch<LeaveRequest>(`/leave-requests/${id}/reject`, data);
-    return response.data;
+  cancelLeaveRequest: (id: string): Promise<LeaveRequest> => {
+    return apiClient.patch<LeaveRequest>(`/leave-requests/${id}/cancel`);
   },
 
-  cancelLeaveRequest: async (id: string): Promise<LeaveRequest> => {
-    const response = await api.patch<LeaveRequest>(`/leave-requests/${id}/cancel`);
-    return response.data;
+  getMyLeaveRequests: (): Promise<LeaveRequest[]> => {
+    return apiClient.get<LeaveRequest[]>('/leave-requests/my-requests');
   },
 
-  // Leave Balance & Summary
-  getLeaveBalance: async (year?: number): Promise<LeaveBalance[]> => {
-    const response = await api.get<LeaveBalance[]>('/leave-requests/balance', {
-      params: { year },
-    });
-    return response.data;
+  getPendingApprovals: (): Promise<LeaveRequest[]> => {
+    // Backend uses findAll with status=pending for this generally, 
+    // or a specialized endpoint. For now, let's use the list with status pending.
+    return apiClient.get<LeaveRequest[]>('/leave-requests', { params: { status: 'pending' } });
   },
 
-  getLeaveSummary: async (year?: number): Promise<LeaveSummary> => {
-    const response = await api.get<LeaveSummary>('/leave-requests/summary', {
-      params: { year },
-    });
-    return response.data;
+  // Leave Balances & Summary
+  getLeaveBalance: (year: number): Promise<LeaveBalance[]> => {
+    return apiClient.get<LeaveBalance[]>('/leave-requests/balance', { params: { year } });
+  },
+
+  getLeaveSummary: (year: number): Promise<Record<string, unknown>> => {
+    return apiClient.get<Record<string, unknown>>('/leave-requests/summary', { params: { year } });
   },
 };

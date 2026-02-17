@@ -52,12 +52,21 @@ axiosInstance.interceptors.response.use(
         }
       } catch (refreshError) {
         // Refresh failed - clear tokens and redirect to login
+        console.error('[Axios] Token refresh failed:', refreshError);
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
         window.location.href = '/login';
         return Promise.reject(refreshError);
       }
     }
+    
+    console.error('[Axios] Request failed:', {
+      url: error.config?.url,
+      method: error.config?.method,
+      status: error.response?.status,
+      data: error.response?.data,
+      message: error.message
+    });
     
     return Promise.reject(error);
   }

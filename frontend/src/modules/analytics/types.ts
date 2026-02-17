@@ -1,95 +1,81 @@
 // Analytics Types
 
-export interface ExecutiveSummary {
-  totalEmployees: number;
-  activeEmployees: number;
-  newHiresThisMonth: number;
-  attritionRate: number;
-  averageTenure: number;
-  pendingApprovals: number;
-}
-
 export interface AttendanceMetrics {
-  totalDays: number;
-  presentDays: number;
-  absentDays: number;
-  lateDays: number;
-  onLeaveDays: number;
-  attendanceRate: number;
-  punctualityRate: number;
-  departmentBreakdown: {
-    departmentId: string;
-    departmentName: string;
-    attendanceRate: number;
-  }[];
+  presentPercentage: number;
+  latePercentage: number;
+  absentPercentage: number;
+  onLeavePercentage: number;
+  averageWorkHours: number;
+  trend: 'up' | 'down' | 'stable';
 }
 
 export interface LeaveMetrics {
-  year: number;
   totalRequests: number;
   approvedRequests: number;
+  pendingRequests: number;
   rejectedRequests: number;
-  totalDaysTaken: number;
-  averageDaysPerRequest: number;
-  departmentBreakdown: {
-    departmentId: string;
-    departmentName: string;
-    totalDays: number;
-  }[];
-  typeBreakdown: {
-    leaveType: string;
-    totalDays: number;
-  }[];
+  averageLeaveDays: number;
+  mostUsedLeaveType: string;
 }
 
 export interface PayrollMetrics {
-  year: number;
-  totalRuns: number;
-  totalGrossPayout: number;
-  totalNetPayout: number;
-  averageMonthlyPayout: number;
-  monthlyBreakdown: {
-    month: number;
-    grossAmount: number;
-    netAmount: number;
-    employeeCount: number;
-  }[];
+  totalPayroll: number;
+  averageSalary: number;
+  highestSalary: number;
+  lowestSalary: number;
+  totalDeductions: number;
+  trend: 'up' | 'down' | 'stable';
 }
 
-export interface AttritionData {
-  year: number;
+export interface AttritionAnalysis {
   startingHeadcount: number;
-  endingHeadcount: number;
   newHires: number;
   terminations: number;
+  attritionRate: number;
   voluntaryExits: number;
   involuntaryExits: number;
+  endingHeadcount: number;
+  monthlyData: MonthlyAttritionData[];
+  byDepartment: DepartmentAttrition[];
+  trend: 'up' | 'down' | 'stable';
+}
+
+export interface MonthlyAttritionData {
+  month: number;
+  hires: number;
+  exits: number;
+  netChange: number;
+}
+
+export interface DepartmentAttrition {
+  department: string;
+  attritionCount: number;
   attritionRate: number;
-  monthlyData: {
-    month: number;
-    hires: number;
-    exits: number;
-    netChange: number;
-  }[];
 }
 
-export interface DepartmentMetrics {
-  departments: {
-    id: string;
-    name: string;
-    employeeCount: number;
-    managerName?: string;
-    averageSalary: number;
-    totalPayroll: number;
-    attendanceRate: number;
-    openPositions: number;
-  }[];
+export interface DepartmentAnalytics {
+  id: string;
+  name: string;
+  totalEmployees: number;
+  employeeCount: number;
+  activeEmployees: number;
+  openPositions: number;
+  averageSalary: number;
+  averageTenure: number;
+  attendanceRate: number;
+  attritionRate: number;
+  managerName?: string;
+  totalPayroll: number;
 }
 
-export interface TodayAttendance {
+export interface TodayAttendanceSummary {
+  date: string;
+  totalEmployees: number;
+  total: number; // Alias for totalEmployees
   present: number;
   absent: number;
   late: number;
   onLeave: number;
-  total: number;
+  notMarked: number;
+  attendanceRate: number | string;
 }

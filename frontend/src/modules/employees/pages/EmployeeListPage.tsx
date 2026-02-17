@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { useEmployees, useDeleteEmployee } from '../hooks/useEmployee';
+import { Link } from 'react-router-dom';
+import { Button } from '../../../shared/components/ui/Button';
 import { EmployeeList } from '../components/EmployeeList';
 import type { EmployeeListParams } from '../types';
 
@@ -23,12 +25,25 @@ export default function EmployeeListPage() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Employees</h1>
-        <p className="text-gray-600 mt-1">
-          Manage your organization's employees
-        </p>
+    <div className="space-y-12 pb-12">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-10">
+        <div>
+          <h1 className="text-5xl font-black text-slate-900 tracking-tighter leading-none drop-shadow-sm">Resource Directory</h1>
+          <p className="text-xs text-slate-400 font-black uppercase tracking-[0.3em] mt-6 opacity-70">
+            Enterprise Talent Repository & Workforce Intelligence
+          </p>
+        </div>
+        
+        <div className="flex items-center gap-4">
+          <Button variant="outline" size="md">
+            Export Roster
+          </Button>
+          <Link to="/employees/new">
+            <Button variant="primary" size="md">
+              Initiate Onboarding
+            </Button>
+          </Link>
+        </div>
       </div>
 
       <EmployeeList
@@ -37,7 +52,7 @@ export default function EmployeeListPage() {
         onDelete={handleDelete}
         params={params}
         onParamsChange={handleParamsChange}
-        total={data?.total || 0}
+        meta={data?.meta}
       />
     </div>
   );

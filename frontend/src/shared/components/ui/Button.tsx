@@ -1,8 +1,9 @@
 import { type ButtonHTMLAttributes, forwardRef } from 'react';
 import { cn } from '../../utils/cn';
+import { GlassEffect } from './LiquidGlass';
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
+  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'success' | 'warning';
   size?: 'sm' | 'md' | 'lg';
   isLoading?: boolean;
 }
@@ -24,30 +25,38 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       <button
         ref={ref}
         className={cn(
-          'inline-flex items-center justify-center font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2',
+          'inline-flex items-center justify-center font-black uppercase tracking-widest rounded-2xl transition-all duration-500 focus:outline-none focus:ring-4 focus:ring-slate-900/5 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-[1.05] active:scale-95 group overflow-hidden',
           {
-            'bg-primary text-white hover:bg-primary/90 focus:ring-primary':
+            'bg-slate-900 text-white shadow-[0_20px_40px_-12px_rgba(15,23,42,0.3)] hover:bg-slate-800 ring-1 ring-slate-900/10':
               variant === 'primary',
-            'bg-gray-100 text-gray-900 hover:bg-gray-200 focus:ring-gray-500':
+            'glass-strong text-slate-900 hover:bg-white hover:shadow-2xl shadow-black/5':
               variant === 'secondary',
-            'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 focus:ring-primary':
+            'border-2 border-slate-200/60 bg-transparent text-slate-700 hover:bg-white hover:text-slate-900 hover:border-slate-900 shadow-sm hover:shadow-xl':
               variant === 'outline',
-            'text-gray-700 hover:bg-gray-100 focus:ring-gray-500':
+            'text-slate-500 hover:text-slate-900 hover:bg-white/60 backdrop-blur-sm':
               variant === 'ghost',
-            'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500':
+            'bg-rose-500 text-white shadow-[0_20px_40px_-12px_rgba(244,63,94,0.3)] hover:bg-rose-600 ring-1 ring-rose-500/20':
               variant === 'danger',
+            'bg-emerald-500 text-white shadow-[0_20px_40px_-12px_rgba(16,185,129,0.3)] hover:bg-emerald-600 ring-1 ring-emerald-500/20':
+              variant === 'success',
+            'bg-amber-500 text-white shadow-[0_20px_40px_-12px_rgba(245,158,11,0.3)] hover:bg-amber-600 ring-1 ring-amber-500/20':
+              variant === 'warning',
           },
           {
-            'px-3 py-1.5 text-sm': size === 'sm',
-            'px-4 py-2 text-sm': size === 'md',
-            'px-6 py-3 text-base': size === 'lg',
+            'px-6 py-3 text-[9px]': size === 'sm',
+            'px-10 py-5 text-[10px]': size === 'md',
+            'px-14 py-6 text-xs': size === 'lg',
           },
-          (disabled || isLoading) && 'opacity-50 cursor-not-allowed',
+          (disabled || isLoading) && 'opacity-50 cursor-not-allowed grayscale pointer-events-none',
           className
         )}
         disabled={disabled || isLoading}
         {...props}
       >
+        <GlassEffect className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none rounded-inherit">
+          <div />
+        </GlassEffect>
+        <div className="relative z-10 flex items-center justify-center">
         {isLoading && (
           <svg
             className="animate-spin -ml-1 mr-2 h-4 w-4"
@@ -70,6 +79,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           </svg>
         )}
         {children}
+        </div>
       </button>
     );
   }

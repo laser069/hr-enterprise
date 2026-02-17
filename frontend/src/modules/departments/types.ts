@@ -5,34 +5,16 @@ export interface Department {
   name: string;
   description?: string;
   headId?: string;
-  head?: DepartmentHead;
-  employeeCount?: number;
   createdAt: string;
   updatedAt: string;
-}
-
-export interface DepartmentHead {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  profilePicture?: string;
-}
-
-export interface DepartmentListParams {
-  page?: number;
-  limit?: number;
-  search?: string;
-  sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
-}
-
-export interface DepartmentListResponse {
-  data: Department[];
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
+  head?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
+  employees?: { id: string; firstName: string; lastName: string; email: string; employeeCode: string; profilePicture?: string; designation?: string; employmentStatus?: string; status?: string; }[];
+  employeeCount?: number;
 }
 
 export interface CreateDepartmentDto {
@@ -47,9 +29,8 @@ export interface UpdateDepartmentDto {
   headId?: string;
 }
 
-export interface DepartmentStats {
-  total: number;
-  withHead: number;
-  withoutHead: number;
-  avgEmployeesPerDept: number;
+export interface DepartmentListParams {
+  page?: number;
+  limit?: number;
+  search?: string;
 }

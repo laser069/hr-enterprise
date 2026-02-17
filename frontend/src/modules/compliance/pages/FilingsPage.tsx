@@ -1,36 +1,30 @@
 import { useState } from 'react';
-import { useFilings, useCreateFiling, useFileFiling, useAcknowledgeFiling } from '../hooks/useCompliance';
+import { useFilings, useCreateFiling, useFileFiling } from '../hooks/useCompliance';
 import { useAuthContext } from '../../../core/auth/use-auth-context';
 import type { FilingType, FilingStatus } from '../types';
 import { Badge } from '../../../shared/components/ui/Badge';
 import { Button } from '../../../shared/components/ui/Button';
+import { Card } from '../../../shared/components/ui/Card';
+import { Modal } from '../../../shared/components/ui/Modal';
 
-const filingTypes: FilingType[] = ['PF', 'ESI', 'TDS', 'GST', 'PT', 'ITR', 'OTHER'];
-const filingStatuses: FilingStatus[] = ['pending', 'filed', 'acknowledged'];
-
-const filingTypeColors: Record<string, string> = {
-  PF: 'bg-blue-100 text-blue-800',
-  ESI: 'bg-green-100 text-green-800',
-  TDS: 'bg-purple-100 text-purple-800',
-  GST: 'bg-orange-100 text-orange-800',
-  PT: 'bg-yellow-100 text-yellow-800',
-  ITR: 'bg-pink-100 text-pink-800',
-  OTHER: 'bg-gray-100 text-gray-800',
-};
+const filingTypes: FilingType[] = ['PF', 'ESI', 'TDS', 'GST', 'PT'];
+const filingStatuses: FilingStatus[] = ['PENDING', 'FILED', 'OVERDUE'];
 
 export default function FilingsPage() {
   const { hasPermission } = useAuthContext();
   const [selectedType, setSelectedType] = useState<FilingType | ''>('');
   const [selectedStatus, setSelectedStatus] = useState<FilingStatus | ''>('');
   
-  const { data: filings, isLoading } = useFilings({
-    type: selectedType || undefined,
-    status: selectedStatus || undefined,
-  });
+  const { data: filings, isLoading } = useFilings();
+  
+  // Filter filings locally since the hook doesn't support params yet
+  const filteredFilings = filings?.filter(f => 
+    (!selectedType || f.type === selectedType) && 
+    (!selectedStatus || f.status === selectedStatus)
+  );
   
   const createMutation = useCreateFiling();
   const fileMutation = useFileFiling();
-  const acknowledgeMutation = useAcknowledgeFiling();
 
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [fileModalOpen, setFileModalOpen] = useState(false);
@@ -61,16 +55,19 @@ export default function FilingsPage() {
 
   const handleFile = async () => {
     if (selectedFilingId) {
-      await fileMutation.mutateAsync({ id: selectedFilingId, receiptNo });
+      await fileMutation.mutateAsync({ 
+        id: selectedFilingId, 
+        data: { 
+          filedDate: new Date().toISOString(), 
+          referenceNumber: receiptNo 
+        } 
+      });
       setFileModalOpen(false);
       setReceiptNo('');
       setSelectedFilingId(null);
     }
   };
 
-  const handleAcknowledge = async (id: string) => {
-    await acknowledgeMutation.mutateAsync(id);
-  };
 
   const openFileModal = (id: string) => {
     setSelectedFilingId(id);
@@ -92,153 +89,101 @@ export default function FilingsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-10">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Statutory Filings</h1>
-          <p className="text-gray-600 mt-1">
-            Manage regulatory filings and compliance documentation
+          <h1 className="text-5xl font-black text-slate-900 tracking-tighter leading-none drop-shadow-sm">Statutory Pipeline</h1>
+          <p className="text-xs text-slate-400 font-black uppercase tracking-[0.3em] mt-6 opacity-70">
+            Enterprise Compliance Oversight & Regulatory Telemetry
           </p>
         </div>
-        <div className="flex gap-2">
-          <select
-            value={selectedType}
-            onChange={(e) => setSelectedType(e.target.value as FilingType | '')}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="">All Types</option>
-            {filingTypes.map((type) => (
-              <option key={type} value={type}>{type}</option>
-            ))}
-          </select>
-          <select
-            value={selectedStatus}
-            onChange={(e) => setSelectedStatus(e.target.value as FilingStatus | '')}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="">All Status</option>
-            {filingStatuses.map((status) => (
-              <option key={status} value={status}>
-                {status.charAt(0).toUpperCase() + status.slice(1)}
-              </option>
-            ))}
-          </select>
+        <div className="flex items-center gap-4">
+          <div className="flex gap-4 p-2 bg-white/40 backdrop-blur-xl border border-white/60 rounded-[2.5rem] shadow-xl ring-1 ring-white/10">
+            <select
+              value={selectedType}
+              onChange={(e) => setSelectedType(e.target.value as FilingType | '')}
+              className="bg-transparent px-6 py-3 text-[10px] font-black text-slate-900 uppercase tracking-widest outline-none cursor-pointer hover:text-indigo-600 transition-colors appearance-none"
+            >
+              <option value="">All Vectors</option>
+              {filingTypes.map((type) => (
+                <option key={type} value={type} className="bg-white">{type} Protocol</option>
+              ))}
+            </select>
+            <div className="w-px bg-slate-200/60 my-2" />
+            <select
+              value={selectedStatus}
+              onChange={(e) => setSelectedStatus(e.target.value as FilingStatus | '')}
+              className="bg-transparent px-6 py-3 text-[10px] font-black text-slate-900 uppercase tracking-widest outline-none cursor-pointer hover:text-indigo-600 transition-colors appearance-none"
+            >
+              <option value="">System Status</option>
+              {filingStatuses.map((status) => (
+                <option key={status} value={status} className="bg-white">
+                  {status.toUpperCase()}
+                </option>
+              ))}
+            </select>
+          </div>
           {canManage && (
-            <Button variant="primary" onClick={() => setShowCreateModal(true)}>
-              Add Filing
+            <Button variant="primary" size="md" onClick={() => setShowCreateModal(true)}>
+              Inject Filing
             </Button>
           )}
         </div>
       </div>
 
-      {/* Filings Table */}
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+      <Card title="Statutory Ledger" subtitle="Sequential compliance telemetry" noPadding>
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="min-w-full divide-y divide-slate-200/60">
+            <thead className="bg-slate-50/50 backdrop-blur-md">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Type
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Period
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Due Date
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Amount
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Filed By
-                </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
+                <th className="px-10 py-6 text-left text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Vector</th>
+                <th className="px-10 py-6 text-left text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Cycle</th>
+                <th className="px-10 py-6 text-left text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Status</th>
+                <th className="px-10 py-6 text-left text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Deadline</th>
+                <th className="px-10 py-6 text-left text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Quantum</th>
+                <th className="px-10 py-6 text-right text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Actions</th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="divide-y divide-slate-100/50 bg-white/40">
               {isLoading ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
-                    Loading...
-                  </td>
+                   <td colSpan={6} className="px-10 py-20 text-center">
+                      <div className="flex justify-center"><div className="animate-spin h-6 w-6 border-2 border-slate-900 border-t-transparent rounded-full"></div></div>
+                   </td>
                 </tr>
-              ) : !filings?.data || filings.data.length === 0 ? (
+              ) : !filteredFilings || filteredFilings.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
-                    No filings found
+                  <td colSpan={6} className="px-10 py-20 text-center">
+                    <p className="text-[11px] font-black text-slate-300 uppercase tracking-[0.3em]">No records found</p>
                   </td>
                 </tr>
               ) : (
-                filings.data.map((filing) => (
-                  <tr key={filing.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 py-1 rounded text-xs font-medium ${filingTypeColors[filing.type]}`}>
-                        {filing.type}
-                      </span>
+                filteredFilings.map((filing) => (
+                  <tr key={filing.id} className="group hover:bg-white/80 transition-all duration-500">
+                    <td className="px-10 py-8 whitespace-nowrap">
+                       <span className="inline-flex px-3 py-1 bg-slate-900 text-white rounded-lg text-[9px] font-black tracking-widest shadow-lg shadow-slate-900/10">
+                          {filing.type}
+                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {filing.period}
+                    <td className="px-10 py-8 whitespace-nowrap">
+                       <span className="text-[11px] font-black text-slate-900 tracking-tighter">{filing.period}</span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <Badge variant={getStatusColor(filing.status)}>
-                        {filing.status}
-                      </Badge>
+                    <td className="px-10 py-8 whitespace-nowrap">
+                       <Badge variant={getStatusColor(filing.status.toLowerCase())} className="shadow-lg">{filing.status}</Badge>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      {filing.dueDate ? (
-                        <span className={isOverdue(filing.dueDate) && filing.status === 'pending' ? 'text-red-600 font-medium' : 'text-gray-500'}>
-                          {new Date(filing.dueDate).toLocaleDateString()}
-                          {isOverdue(filing.dueDate) && filing.status === 'pending' && ' (Overdue)'}
-                        </span>
-                      ) : (
-                        '-'
-                      )}
+                    <td className="px-10 py-8 whitespace-nowrap">
+                       <span className={`text-[10px] font-black uppercase tracking-widest ${isOverdue(filing.dueDate) && filing.status === 'PENDING' ? 'text-rose-500' : 'text-slate-400'}`}>
+                          {new Date(filing.dueDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {filing.amount ? `$${filing.amount.toLocaleString()}` : '-'}
+                    <td className="px-10 py-8 whitespace-nowrap text-[11px] font-black text-slate-900 tracking-tighter">
+                       {filing.amount ? `₹${filing.amount.toLocaleString()}` : '—'}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {filing.filedByUser ? (
-                        <div>
-                          <p>{filing.filedByUser.firstName} {filing.filedByUser.lastName}</p>
-                          {filing.filedAt && (
-                            <p className="text-xs text-gray-400">
-                              {new Date(filing.filedAt).toLocaleDateString()}
-                            </p>
+                    <td className="px-10 py-8 whitespace-nowrap text-right">
+                       <div className="flex justify-end gap-3">
+                          {filing.status === 'PENDING' && canManage && (
+                            <Button variant="ghost" size="sm" onClick={() => openFileModal(filing.id)}>Execute</Button>
                           )}
-                        </div>
-                      ) : (
-                        '-'
-                      )}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      {filing.status === 'pending' && canManage && (
-                        <button
-                          onClick={() => openFileModal(filing.id)}
-                          className="text-green-600 hover:text-green-900 mr-3"
-                          disabled={fileMutation.isPending}
-                        >
-                          File
-                        </button>
-                      )}
-                      {filing.status === 'filed' && canManage && (
-                        <button
-                          onClick={() => handleAcknowledge(filing.id)}
-                          className="text-blue-600 hover:text-blue-900 mr-3"
-                          disabled={acknowledgeMutation.isPending}
-                        >
-                          Acknowledge
-                        </button>
-                      )}
-                      {filing.receiptNo && (
-                        <span className="text-xs text-gray-500">
-                          Receipt: {filing.receiptNo}
-                        </span>
-                      )}
+                       </div>
                     </td>
                   </tr>
                 ))
@@ -246,121 +191,118 @@ export default function FilingsPage() {
             </tbody>
           </table>
         </div>
-      </div>
+      </Card>
 
       {/* Create Modal */}
-      {showCreateModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Add New Filing</h3>
+      <Modal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        title="Initialize Filing"
+        size="md"
+      >
+        <div className="space-y-10">
+          <div className="grid grid-cols-2 gap-10">
             <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
-                <select
-                  value={newFiling.type}
-                  onChange={(e) => setNewFiling({ ...newFiling, type: e.target.value as FilingType })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                >
-                  {filingTypes.map((type) => (
-                    <option key={type} value={type}>{type}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Period</label>
-                <input
-                  type="text"
-                  value={newFiling.period}
-                  onChange={(e) => setNewFiling({ ...newFiling, period: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  placeholder="e.g., 2024-01 or Q1-2024"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Amount</label>
-                <input
-                  type="number"
-                  value={newFiling.amount || ''}
-                  onChange={(e) => setNewFiling({ ...newFiling, amount: Number(e.target.value) || undefined })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  placeholder="0.00"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Due Date</label>
-                <input
-                  type="date"
-                  value={newFiling.dueDate}
-                  onChange={(e) => setNewFiling({ ...newFiling, dueDate: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
-                <textarea
-                  value={newFiling.notes}
-                  onChange={(e) => setNewFiling({ ...newFiling, notes: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  rows={2}
-                  placeholder="Additional notes..."
-                />
-              </div>
-            </div>
-            <div className="flex justify-end gap-2 mt-6">
-              <Button variant="outline" onClick={() => setShowCreateModal(false)}>
-                Cancel
-              </Button>
-              <Button
-                variant="primary"
-                onClick={handleCreate}
-                disabled={!newFiling.period || createMutation.isPending}
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Vector Protocol</label>
+              <select
+                value={newFiling.type}
+                onChange={(e) => setNewFiling({ ...newFiling, type: e.target.value as FilingType })}
+                className="w-full px-8 py-5 border border-white/60 rounded-3xl text-sm font-black text-slate-900 bg-white/40 focus:outline-none focus:ring-4 focus:ring-slate-100 transition-all cursor-pointer uppercase tracking-widest shadow-inner appearance-none"
               >
-                Add Filing
-              </Button>
+                {filingTypes.map((type) => (
+                  <option key={type} value={type} className="bg-white">{type} Protocol</option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-4">
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Fiscal Cycle</label>
+              <input
+                type="text"
+                value={newFiling.period}
+                onChange={(e) => setNewFiling({ ...newFiling, period: e.target.value })}
+                className="w-full px-8 py-5 border border-white/60 rounded-3xl text-sm font-black text-slate-900 bg-white/40 focus:outline-none focus:ring-4 focus:ring-slate-100 transition-all uppercase tracking-widest placeholder:text-slate-300 shadow-inner"
+                placeholder="e.g., APR 2024"
+              />
             </div>
           </div>
+
+          <div className="grid grid-cols-2 gap-10">
+            <div className="space-y-4">
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Deadline Date</label>
+              <input
+                type="date"
+                value={newFiling.dueDate}
+                onChange={(e) => setNewFiling({ ...newFiling, dueDate: e.target.value })}
+                className="w-full px-8 py-5 border border-white/60 rounded-3xl text-sm font-black text-slate-900 bg-white/40 focus:outline-none focus:ring-4 focus:ring-slate-100 transition-all cursor-pointer uppercase tracking-widest shadow-inner"
+              />
+            </div>
+            <div className="space-y-4">
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Quantum (Optional)</label>
+              <input
+                type="number"
+                value={newFiling.amount || ''}
+                onChange={(e) => setNewFiling({ ...newFiling, amount: Number(e.target.value) || undefined })}
+                className="w-full px-8 py-5 border border-white/60 rounded-3xl text-sm font-black text-slate-900 bg-white/40 focus:outline-none focus:ring-4 focus:ring-slate-100 transition-all uppercase tracking-widest shadow-inner placeholder:text-slate-300"
+                placeholder="0.00"
+              />
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-6 mt-16 pt-10 border-t border-slate-100/50">
+            <Button variant="ghost" size="lg" onClick={() => setShowCreateModal(false)}>
+              Abort
+            </Button>
+            <Button
+              variant="primary"
+              size="lg"
+              className="px-12 shadow-2xl shadow-indigo-500/20"
+              onClick={handleCreate}
+              disabled={!newFiling.period || !newFiling.dueDate || createMutation.isPending}
+            >
+              {createMutation.isPending ? 'Propagating...' : 'Initialize Protocol'}
+            </Button>
+          </div>
         </div>
-      )}
+      </Modal>
 
       {/* File Modal */}
-      {fileModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">File Filing</h3>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Receipt Number</label>
-                <input
-                  type="text"
-                  value={receiptNo}
-                  onChange={(e) => setReceiptNo(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  placeholder="Enter receipt/acknowledgment number"
-                />
-              </div>
-            </div>
-            <div className="flex justify-end gap-2 mt-6">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setFileModalOpen(false);
-                  setReceiptNo('');
-                  setSelectedFilingId(null);
-                }}
-              >
-                Cancel
-              </Button>
-              <Button
-                variant="primary"
-                onClick={handleFile}
-                disabled={fileMutation.isPending}
-              >
-                Confirm Filing
-              </Button>
-            </div>
+      <Modal
+        isOpen={fileModalOpen}
+        onClose={() => setFileModalOpen(false)}
+        title="Execute Filing"
+        size="sm"
+      >
+        <div className="space-y-10">
+          <div className="space-y-4">
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Telemetry Reference Number</label>
+            <input
+              type="text"
+              value={receiptNo}
+              onChange={(e) => setReceiptNo(e.target.value)}
+              className="w-full px-8 py-5 border border-white/60 rounded-3xl text-sm font-black text-slate-900 bg-white/40 focus:outline-none focus:ring-4 focus:ring-slate-100 transition-all uppercase tracking-widest placeholder:text-slate-300 shadow-inner"
+              placeholder="e.g., REF-990-AX-2"
+            />
+            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-4 opacity-70 ml-1">
+              Finalize protocol via external gateway
+            </p>
+          </div>
+
+          <div className="flex justify-end gap-6 mt-16 pt-10 border-t border-slate-100/50">
+            <Button variant="ghost" size="lg" onClick={() => setFileModalOpen(false)}>
+              Abort
+            </Button>
+            <Button
+              variant="primary"
+              size="lg"
+              className="px-12 shadow-2xl shadow-indigo-500/20"
+              onClick={handleFile}
+              disabled={!receiptNo || fileMutation.isPending}
+            >
+              {fileMutation.isPending ? 'Executing...' : 'Execute Protocol'}
+            </Button>
           </div>
         </div>
-      )}
+      </Modal>
     </div>
   );
 }

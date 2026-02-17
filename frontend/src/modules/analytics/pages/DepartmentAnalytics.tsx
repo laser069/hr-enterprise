@@ -83,14 +83,14 @@ export default function DepartmentAnalytics() {
                     Loading...
                   </td>
                 </tr>
-              ) : !departments?.departments || departments.departments.length === 0 ? (
+              ) : !departments || (Array.isArray(departments) && departments.length === 0) ? (
                 <tr>
                   <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
                     No department data available
                   </td>
                 </tr>
               ) : (
-                departments.departments.map((dept) => (
+                (Array.isArray(departments) ? departments : []).map((dept) => (
                   <tr key={dept.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">{dept.name}</div>
@@ -115,13 +115,13 @@ export default function DepartmentAnalytics() {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-900">
-                      ${dept.averageSalary.toLocaleString()}
+                      ${(dept.averageSalary || 0).toLocaleString()}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium text-gray-900">
-                      ${dept.totalPayroll.toLocaleString()}
+                      ${(dept.totalPayroll || 0).toLocaleString()}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-center">
-                      {dept.openPositions > 0 ? (
+                      {(dept.openPositions || 0) > 0 ? (
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
                           {dept.openPositions} open
                         </span>
@@ -138,22 +138,22 @@ export default function DepartmentAnalytics() {
       </div>
 
       {/* Summary Stats */}
-      {departments?.departments && (
+      {departments && Array.isArray(departments) && (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
             <p className="text-sm text-gray-600 mb-1">Total Departments</p>
-            <p className="text-3xl font-bold text-gray-900">{departments.departments.length}</p>
+            <p className="text-3xl font-bold text-gray-900">{departments.length}</p>
           </div>
           <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
             <p className="text-sm text-gray-600 mb-1">Total Employees</p>
             <p className="text-3xl font-bold text-gray-900">
-              {departments.departments.reduce((sum, d) => sum + d.employeeCount, 0)}
+              {departments.reduce((sum, d) => sum + (d.employeeCount || d.totalEmployees || 0), 0)}
             </p>
           </div>
           <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
             <p className="text-sm text-gray-600 mb-1">Total Payroll</p>
             <p className="text-3xl font-bold text-gray-900">
-              ${departments.departments.reduce((sum, d) => sum + d.totalPayroll, 0).toLocaleString()}
+              ${departments.reduce((sum, d) => sum + (d.totalPayroll || 0), 0).toLocaleString()}
             </p>
           </div>
         </div>

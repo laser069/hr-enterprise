@@ -16,17 +16,17 @@ export interface Employee {
   profilePicture?: string;
   departmentId?: string;
   department?: Department;
-  designationId?: string;
-  designation?: Designation;
+  designation?: string; // Backend returns string, not object
   managerId?: string;
   manager?: Employee;
   employmentType: EmploymentType;
   status: EmployeeStatus;
-  joinDate: string;
+  employmentStatus?: string; // Matching backend field
+  dateOfJoining: string;
   endDate?: string;
-  address?: Address;
-  emergencyContact?: EmergencyContact;
-  bankDetails?: BankDetails;
+  address?: string; // Backend stores as string
+  emergencyContact?: string;
+  bankDetails?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -37,6 +37,7 @@ export interface Department {
   description?: string;
   headId?: string;
   head?: Employee;
+  employees?: Employee[];
   employeeCount?: number;
 }
 
@@ -81,10 +82,12 @@ export interface EmployeeListParams {
 
 export interface EmployeeListResponse {
   data: Employee[];
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
+  meta: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
 }
 
 export interface CreateEmployeeDto {
@@ -96,13 +99,13 @@ export interface CreateEmployeeDto {
   gender?: Gender;
   dateOfBirth?: string;
   departmentId?: string;
-  designationId?: string;
+  designation?: string;
   managerId?: string;
   employmentType: EmploymentType;
-  joinDate: string;
-  address?: Address;
-  emergencyContact?: EmergencyContact;
-  bankDetails?: BankDetails;
+  dateOfJoining: string;
+  address?: string;
+  emergencyContact?: string;
+  bankDetails?: string;
 }
 
 export interface UpdateEmployeeDto {
@@ -112,13 +115,13 @@ export interface UpdateEmployeeDto {
   gender?: Gender;
   dateOfBirth?: string;
   departmentId?: string;
-  designationId?: string;
+  designation?: string;
   managerId?: string;
   employmentType?: EmploymentType;
   status?: EmployeeStatus;
-  address?: Address;
-  emergencyContact?: EmergencyContact;
-  bankDetails?: BankDetails;
+  address?: string;
+  emergencyContact?: string;
+  bankDetails?: string;
 }
 
 export interface EmployeeStats {

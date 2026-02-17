@@ -10,8 +10,10 @@ const LoginPage = lazy(() => import('../modules/auth/pages/LoginPage'));
 const RegisterPage = lazy(() => import('../modules/auth/pages/RegisterPage'));
 const ExecutiveDashboard = lazy(() => import('../modules/executive/pages/ExecutiveDashboard'));
 const EmployeeListPage = lazy(() => import('../modules/employees/pages/EmployeeListPage'));
+const NewEmployeePage = lazy(() => import('../modules/employees/pages/NewEmployeePage'));
 const EmployeeDetailPage = lazy(() => import('../modules/employees/pages/EmployeeDetailPage'));
 const DepartmentListPage = lazy(() => import('../modules/departments/pages/DepartmentListPage'));
+const DepartmentDetailPage = lazy(() => import('../modules/departments/pages/DepartmentDetailPage'));
 const AttendanceDashboard = lazy(() => import('../modules/attendance/pages/AttendanceDashboard'));
 const AttendanceList = lazy(() => import('../modules/attendance/pages/AttendanceList'));
 const LeaveDashboard = lazy(() => import('../modules/leave/pages/LeaveDashboard'));
@@ -29,10 +31,13 @@ const ComplianceDashboard = lazy(() => import('../modules/compliance/pages/Compl
 const FilingsPage = lazy(() => import('../modules/compliance/pages/FilingsPage'));
 const AttritionAnalytics = lazy(() => import('../modules/analytics/pages/AttritionAnalytics'));
 const DepartmentAnalytics = lazy(() => import('../modules/analytics/pages/DepartmentAnalytics'));
+const AnalyticsDashboard = lazy(() => import('../modules/analytics/pages/AnalyticsDashboard'));
 const ApprovalsPage = lazy(() => import('../modules/workflow/pages/ApprovalsPage'));
 const RolesPage = lazy(() => import('../modules/settings/pages/RolesPage'));
 const PermissionsPage = lazy(() => import('../modules/settings/pages/PermissionsPage'));
 const SystemSettings = lazy(() => import('../modules/settings/pages/SystemSettings'));
+const ProfilePage = lazy(() => import('../modules/settings/pages/ProfilePage'));
+const UsersPage = lazy(() => import('../modules/users/pages/UsersPage'));
 
 export const router = createBrowserRouter([
   {
@@ -87,6 +92,14 @@ export const router = createBrowserRouter([
             ),
           },
           {
+            path: 'new',
+            element: (
+              <SuspenseWrapper>
+                <NewEmployeePage />
+              </SuspenseWrapper>
+            ),
+          },
+          {
             path: ':id',
             element: (
               <SuspenseWrapper>
@@ -98,11 +111,24 @@ export const router = createBrowserRouter([
       },
       {
         path: 'departments',
-        element: (
+        children: [
+          {
+            index: true,
+            element: (
               <SuspenseWrapper>
                 <DepartmentListPage />
               </SuspenseWrapper>
-        ),
+            ),
+          },
+          {
+            path: ':id',
+            element: (
+              <SuspenseWrapper>
+                <DepartmentDetailPage />
+              </SuspenseWrapper>
+            ),
+          },
+        ],
       },
       {
         path: 'attendance',
@@ -258,6 +284,14 @@ export const router = createBrowserRouter([
         path: 'analytics',
         children: [
           {
+            index: true,
+            element: (
+              <SuspenseWrapper>
+                <AnalyticsDashboard />
+              </SuspenseWrapper>
+            ),
+          },
+          {
             path: 'attrition',
             element: (
               <SuspenseWrapper>
@@ -307,6 +341,22 @@ export const router = createBrowserRouter([
             element: (
               <SuspenseWrapper>
                 <SystemSettings />
+              </SuspenseWrapper>
+            ),
+          },
+          {
+            path: 'profile',
+            element: (
+              <SuspenseWrapper>
+                <ProfilePage />
+              </SuspenseWrapper>
+            ),
+          },
+          {
+            path: 'users',
+            element: (
+              <SuspenseWrapper>
+                <UsersPage />
               </SuspenseWrapper>
             ),
           },

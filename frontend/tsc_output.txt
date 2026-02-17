@@ -1,0 +1,65 @@
+src/modules/attendance/pages/AttendanceList.tsx(109,21): error TS2339: Property 'overtimeHours' does not exist on type 'Attendance'.
+src/modules/attendance/pages/AttendanceList.tsx(110,112): error TS2339: Property 'overtimeHours' does not exist on type 'Attendance'.
+src/modules/compliance/pages/ComplianceDashboard.tsx(150,29): error TS2339: Property 'recentAcknowledgements' does not exist on type 'ComplianceDashboard'.
+src/modules/compliance/pages/ComplianceDashboard.tsx(150,65): error TS2339: Property 'recentAcknowledgements' does not exist on type 'ComplianceDashboard'.
+src/modules/compliance/pages/ComplianceDashboard.tsx(155,25): error TS2339: Property 'recentAcknowledgements' does not exist on type 'ComplianceDashboard'.
+src/modules/compliance/pages/ComplianceDashboard.tsx(155,65): error TS7006: Parameter 'ack' implicitly has an 'any' type.
+src/modules/departments/pages/DepartmentListPage.tsx(4,27): error TS2305: Module '"../types"' has no exported member 'DepartmentListParams'.
+src/modules/departments/pages/DepartmentListPage.tsx(15,46): error TS2554: Expected 0 arguments, but got 1.
+src/modules/departments/pages/DepartmentListPage.tsx(25,16): error TS7006: Parameter 'prev' implicitly has an 'any' type.
+src/modules/departments/pages/DepartmentListPage.tsx(143,21): error TS2339: Property 'data' does not exist on type 'Department[]'.
+src/modules/departments/pages/DepartmentListPage.tsx(147,17): error TS2339: Property 'meta' does not exist on type 'Department[]'.
+src/modules/departments/pages/DepartmentListPage.tsx(149,35): error TS2339: Property 'meta' does not exist on type 'Department[]'.
+src/modules/departments/pages/DepartmentListPage.tsx(150,34): error TS2339: Property 'meta' does not exist on type 'Department[]'.
+src/modules/departments/pages/DepartmentListPage.tsx(151,34): error TS2339: Property 'meta' does not exist on type 'Department[]'.
+src/modules/departments/pages/DepartmentListPage.tsx(152,36): error TS2339: Property 'meta' does not exist on type 'Department[]'.
+src/modules/leave/pages/LeaveRequests.tsx(4,46): error TS2305: Module '"../types"' has no exported member 'LeaveStatus'.
+src/modules/leave/pages/LeaveRequests.tsx(37,41): error TS2345: Argument of type 'string' is not assignable to parameter of type '{ id: string; comments?: string | undefined; }'.
+src/modules/leave/pages/LeaveRequests.tsx(45,9): error TS2353: Object literal may only specify known properties, and 'data' does not exist in type '{ id: string; comments: string; }'.
+src/modules/leave/pages/LeaveRequests.tsx(72,32): error TS2339: Property 'profilePicture' does not exist on type '{ id: string; firstName: string; lastName: string; email: string; employeeCode: string; }'.
+src/modules/leave/pages/LeaveRequests.tsx(75,39): error TS2339: Property 'profilePicture' does not exist on type '{ id: string; firstName: string; lastName: string; email: string; employeeCode: string; }'.
+src/modules/leave/pages/LeaveRequests.tsx(137,12): error TS2367: This comparison appears to be unintentional because the types 'LeaveRequestStatus' and '"pending"' have no overlap.
+src/modules/leave/pages/LeaveRequests.tsx(161,12): error TS2367: This comparison appears to be unintentional because the types 'LeaveRequestStatus' and '"pending"' have no overlap.
+src/modules/leave/pages/LeaveRequests.tsx(229,21): error TS2339: Property 'data' does not exist on type 'LeaveRequest[]'.
+src/modules/leave/pages/LeaveRequests.tsx(232,17): error TS2339: Property 'meta' does not exist on type 'LeaveRequest[]'.
+src/modules/leave/pages/LeaveRequests.tsx(234,35): error TS2339: Property 'meta' does not exist on type 'LeaveRequest[]'.
+src/modules/leave/pages/LeaveRequests.tsx(235,34): error TS2339: Property 'meta' does not exist on type 'LeaveRequest[]'.
+src/modules/leave/pages/LeaveRequests.tsx(236,34): error TS2339: Property 'meta' does not exist on type 'LeaveRequest[]'.
+src/modules/leave/pages/LeaveRequests.tsx(237,36): error TS2339: Property 'meta' does not exist on type 'LeaveRequest[]'.
+src/modules/payroll/pages/PayrollRunDetails.tsx(123,21): error TS2367: This comparison appears to be unintentional because the types 'PayrollRunStatus' and '"processed"' have no overlap.
+src/modules/payroll/pages/PayrollRunDetails.tsx(125,12): error TS2367: This comparison appears to be unintentional because the types 'PayrollRunStatus' and '"draft"' have no overlap.
+src/modules/payroll/pages/PayrollRunDetails.tsx(137,61): error TS2339: Property 'entries' does not exist on type 'PayrollRun'.
+src/modules/payroll/pages/PayrollRunDetails.tsx(143,12): error TS2367: This comparison appears to be unintentional because the types 'PayrollRunStatus' and '"approved"' have no overlap.
+src/modules/payroll/pages/PayrollRunDetails.tsx(156,13): error TS2339: Property 'approvedBy' does not exist on type 'PayrollRun'.
+src/modules/payroll/pages/PayrollRunDetails.tsx(156,31): error TS2339: Property 'approvedAt' does not exist on type 'PayrollRun'.
+src/modules/payroll/pages/PayrollRunDetails.tsx(163,32): error TS2339: Property 'approvedByUser' does not exist on type 'PayrollRun'.
+src/modules/payroll/pages/PayrollRunDetails.tsx(163,64): error TS2339: Property 'approvedByUser' does not exist on type 'PayrollRun'.
+src/modules/payroll/pages/PayrollRunDetails.tsx(164,20): error TS2339: Property 'approvedAt' does not exist on type 'PayrollRun'.
+src/modules/payroll/pages/PayrollRunDetails.tsx(164,54): error TS2339: Property 'approvedAt' does not exist on type 'PayrollRun'.
+src/modules/payroll/pages/PayrollRunDetails.tsx(174,44): error TS2339: Property 'entries' does not exist on type 'PayrollRun'.
+src/modules/payroll/pages/PayrollRunDetails.tsx(203,21): error TS2339: Property 'entries' does not exist on type 'PayrollRun'.
+src/modules/payroll/pages/PayrollRunDetails.tsx(203,36): error TS2339: Property 'entries' does not exist on type 'PayrollRun'.
+src/modules/payroll/pages/PayrollRunDetails.tsx(210,21): error TS2339: Property 'entries' does not exist on type 'PayrollRun'.
+src/modules/payroll/pages/PayrollRunDetails.tsx(210,34): error TS7006: Parameter 'entry' implicitly has an 'any' type.
+src/modules/payroll/pages/PayrollRuns.tsx(3,47): error TS2724: '"../hooks/usePayroll"' has no exported member named 'useDeletePayrollRun'. Did you mean 'usePayrollRun'?
+src/modules/payroll/pages/PayrollRuns.tsx(78,73): error TS2339: Property 'entries' does not exist on type 'PayrollRun'.
+src/modules/payroll/pages/PayrollRuns.tsx(94,19): error TS2339: Property 'approvedByUser' does not exist on type 'PayrollRun'.
+src/modules/payroll/pages/PayrollRuns.tsx(95,24): error TS2339: Property 'approvedByUser' does not exist on type 'PayrollRun'.
+src/modules/payroll/pages/PayrollRuns.tsx(95,56): error TS2339: Property 'approvedByUser' does not exist on type 'PayrollRun'.
+src/modules/payroll/pages/PayrollRuns.tsx(98,16): error TS2339: Property 'approvedAt' does not exist on type 'PayrollRun'.
+src/modules/payroll/pages/PayrollRuns.tsx(100,29): error TS2339: Property 'approvedAt' does not exist on type 'PayrollRun'.
+src/modules/payroll/pages/PayrollRuns.tsx(131,25): error TS2367: This comparison appears to be unintentional because the types 'PayrollRunStatus' and '"draft"' have no overlap.
+src/modules/payroll/pages/PayrollRuns.tsx(174,21): error TS2339: Property 'data' does not exist on type 'PayrollRun[]'.
+src/modules/performance/hooks/usePerformance.ts(3,30): error TS6196: 'UpdateGoalProgressDto' is declared but never used.
+src/modules/performance/hooks/usePerformance.ts(57,48): error TS2339: Property 'deleteGoal' does not exist on type '{ getGoals: () => Promise<Goal[]>; createGoal: (data: CreateGoalDto) => Promise<Goal>; updateGoalProgress: (id: string, achievedValue: number) => Promise<...>; ... 5 more ...; getSummary: (employeeId: string) => Promise<...>; }'.
+src/modules/performance/services/performance.api.ts(2,55): error TS6196: 'UpdateGoalProgressDto' is declared but never used.
+src/modules/recruitment/hooks/useRecruitment.ts(3,54): error TS6196: 'Candidate' is declared but never used.
+src/modules/recruitment/pages/RecruitmentDashboard.tsx(16,58): error TS2554: Expected 0 arguments, but got 1.
+src/modules/recruitment/pages/RecruitmentDashboard.tsx(97,17): error TS2339: Property 'candidatesByStage' does not exist on type 'RecruitmentSummary'.
+src/modules/recruitment/pages/RecruitmentDashboard.tsx(100,37): error TS2339: Property 'candidatesByStage' does not exist on type 'RecruitmentSummary'.
+src/modules/recruitment/pages/RecruitmentDashboard.tsx(103,85): error TS2322: Type 'unknown' is not assignable to type 'ReactNode'.
+src/modules/recruitment/pages/RecruitmentDashboard.tsx(127,73): error TS2339: Property 'location' does not exist on type 'Job'.
+src/modules/recruitment/pages/RecruitmentDashboard.tsx(135,170): error TS2339: Property 'candidateCount' does not exist on type 'Job'.
+src/modules/recruitment/pages/RecruitmentDashboard.tsx(136,170): error TS2339: Property 'openings' does not exist on type 'Job'.
+src/modules/recruitment/pages/RecruitmentDashboard.tsx(137,26): error TS2551: Property 'postedAt' does not exist on type 'Job'. Did you mean 'postedDate'?
+src/modules/recruitment/pages/RecruitmentDashboard.tsx(138,76): error TS2551: Property 'postedAt' does not exist on type 'Job'. Did you mean 'postedDate'?

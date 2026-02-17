@@ -39,46 +39,44 @@ export function Modal({
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div
-        className="fixed inset-0 bg-black/50 transition-opacity"
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
         onClick={onClose}
       />
-      <div className="flex min-h-full items-center justify-center p-4">
+      <div className="flex min-h-full items-center justify-center p-6 text-center">
         <div
           className={cn(
-            'relative bg-white rounded-xl shadow-xl w-full',
+            'glass-strong relative transform overflow-hidden rounded-[3rem] p-16 text-left shadow-[0_50px_100px_-20px_rgba(0,0,0,0.15)] transition-all border-white/80 ring-1 ring-white/20 backdrop-blur-2xl ring-inset w-full',
             {
-              'max-w-sm': size === 'sm',
-              'max-w-md': size === 'md',
-              'max-w-lg': size === 'lg',
-              'max-w-xl': size === 'xl',
+              'max-w-md': size === 'sm',
+              'max-w-2xl': size === 'md',
+              'max-w-4xl': size === 'lg',
+              'max-w-6xl': size === 'xl',
             },
             className
           )}
         >
-          {title && (
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
-              <button
-                onClick={onClose}
-                className="p-2 rounded-lg hover:bg-gray-100 text-gray-500"
-              >
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
+          {/* Top Accent Gradient */}
+          <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-emerald-500 via-indigo-500 to-rose-500 opacity-80" />
+
+          <div className="flex items-center justify-between mb-12">
+            <div>
+              {title && (
+                <h3 className="text-4xl font-black text-slate-900 tracking-tighter leading-none drop-shadow-sm">
+                  {title}
+                </h3>
+              )}
+              <div className="mt-4 h-1 w-20 bg-slate-900 rounded-full" />
             </div>
-          )}
-          <div className="p-6">{children}</div>
+            <button
+              onClick={onClose}
+              className="rounded-2xl p-3 text-slate-400 hover:text-slate-900 bg-white/40 hover:bg-white hover:shadow-xl transition-all duration-500 border border-white/60"
+            >
+              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          <div className="mt-2 text-slate-600">{children}</div>
         </div>
       </div>
     </div>

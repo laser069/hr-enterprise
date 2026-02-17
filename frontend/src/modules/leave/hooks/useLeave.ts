@@ -1,24 +1,17 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { leaveApi } from '../services/leave.api';
-import type {
-  LeaveListParams,
-  CreateLeaveRequestDto,
-  ApproveLeaveDto,
-  CreateLeaveTypeDto,
-  UpdateLeaveTypeDto,
-} from '../types';
+import type { CreateLeaveRequestDto, LeaveListParams } from '../types';
 
 // Query keys
 export const leaveKeys = {
   all: ['leave'] as const,
   types: () => [...leaveKeys.all, 'types'] as const,
-  type: (id: string) => [...leaveKeys.types(), id] as const,
   requests: () => [...leaveKeys.all, 'requests'] as const,
-  list: (params: LeaveListParams) => [...leaveKeys.requests(), 'list', params] as const,
-  myRequests: (params?: LeaveListParams) => [...leaveKeys.requests(), 'my', params] as const,
-  detail: (id: string) => [...leaveKeys.requests(), id] as const,
-  balance: (year?: number) => [...leaveKeys.all, 'balance', year] as const,
-  summary: (year?: number) => [...leaveKeys.all, 'summary', year] as const,
+  request: (id: string) => [...leaveKeys.requests(), id] as const,
+  myRequests: () => [...leaveKeys.all, 'my-requests'] as const,
+  pendingApprovals: () => [...leaveKeys.all, 'pending-approvals'] as const,
+  balances: (year: number) => [...leaveKeys.all, 'balances', year] as const,
+  summary: (year: number) => [...leaveKeys.all, 'summary', year] as const,
 };
 
 // Leave Types hooks
@@ -29,71 +22,53 @@ export function useLeaveTypes() {
   });
 }
 
-export function useLeaveType(id: string) {
-  return useQuery({
-    queryKey: leaveKeys.type(id),
-    queryFn: () => leaveApi.getLeaveType(id),
-    enabled: !!id,
-  });
-}
-
-export function useCreateLeaveType() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (data: CreateLeaveTypeDto) => leaveApi.createLeaveType(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: leaveKeys.types() });
-    },
-  });
-}
-
-export function useUpdateLeaveType() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: UpdateLeaveTypeDto }) =>
-      leaveApi.updateLeaveType(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: leaveKeys.types() });
-    },
-  });
-}
-
-export function useDeleteLeaveType() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (id: string) => leaveApi.deleteLeaveType(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: leaveKeys.types() });
-    },
-  });
-}
-
 // Leave Requests hooks
-export function useLeaveRequests(params: LeaveListParams = {}) {
+export function useLeaveRequests(params?: LeaveListParams) {
   return useQuery({
-    queryKey: leaveKeys.list(params),
+    queryKey: [...leaveKeys.requests(), params],
     queryFn: () => leaveApi.getLeaveRequests(params),
-  });
-}
-
-export function useMyLeaveRequests(params?: LeaveListParams) {
-  return useQuery({
-    queryKey: leaveKeys.myRequests(params),
-    queryFn: () => leaveApi.getMyLeaveRequests(params),
   });
 }
 
 export function useLeaveRequest(id: string) {
   return useQuery({
-    queryKey: leaveKeys.detail(id),
+    queryKey: leaveKeys.request(id),
     queryFn: () => leaveApi.getLeaveRequest(id),
     enabled: !!id,
   });
 }
 
+export function useMyLeaveRequests() {
+  return useQuery({
+    queryKey: leaveKeys.myRequests(),
+    queryFn: () => leaveApi.getMyLeaveRequests(),
+  });
+}
+
+export function usePendingApprovals() {
+  return useQuery({
+    queryKey: leaveKeys.pendingApprovals(),
+    queryFn: () => leaveApi.getPendingApprovals(),
+  });
+}
+
+// Leave Balances hook
+export function useLeaveBalance(year: number) {
+  return useQuery({
+    queryKey: leaveKeys.balances(year),
+    queryFn: () => leaveApi.getLeaveBalance(year),
+  });
+}
+
+// Leave Summary hook
+export function useLeaveSummary(year: number) {
+  return useQuery({
+    queryKey: leaveKeys.summary(year),
+    queryFn: () => leaveApi.getLeaveSummary(year),
+  });
+}
+
+// Mutations
 export function useCreateLeaveRequest() {
   const queryClient = useQueryClient();
 
@@ -101,8 +76,9 @@ export function useCreateLeaveRequest() {
     mutationFn: (data: CreateLeaveRequestDto) => leaveApi.createLeaveRequest(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: leaveKeys.requests() });
-      queryClient.invalidateQueries({ queryKey: leaveKeys.balance() });
-      queryClient.invalidateQueries({ queryKey: leaveKeys.summary() });
+      queryClient.invalidateQueries({ queryKey: leaveKeys.myRequests() });
+      queryClient.invalidateQueries({ queryKey: leaveKeys.balances(new Date().getFullYear()) });
+      queryClient.invalidateQueries({ queryKey: leaveKeys.summary(new Date().getFullYear()) });
     },
   });
 }
@@ -111,10 +87,11 @@ export function useApproveLeaveRequest() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: string) => leaveApi.approveLeaveRequest(id),
+    mutationFn: ({ id, comments }: { id: string; comments?: string }) =>
+      leaveApi.approveLeaveRequest(id, comments),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: leaveKeys.requests() });
-      queryClient.invalidateQueries({ queryKey: leaveKeys.balance() });
+      queryClient.invalidateQueries({ queryKey: leaveKeys.pendingApprovals() });
     },
   });
 }
@@ -123,10 +100,11 @@ export function useRejectLeaveRequest() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: ApproveLeaveDto }) =>
-      leaveApi.rejectLeaveRequest(id, data),
+    mutationFn: ({ id, comments }: { id: string; comments: string }) =>
+      leaveApi.rejectLeaveRequest(id, comments),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: leaveKeys.requests() });
+      queryClient.invalidateQueries({ queryKey: leaveKeys.pendingApprovals() });
     },
   });
 }
@@ -138,22 +116,7 @@ export function useCancelLeaveRequest() {
     mutationFn: (id: string) => leaveApi.cancelLeaveRequest(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: leaveKeys.requests() });
-      queryClient.invalidateQueries({ queryKey: leaveKeys.balance() });
+      queryClient.invalidateQueries({ queryKey: leaveKeys.myRequests() });
     },
-  });
-}
-
-// Leave Balance & Summary hooks
-export function useLeaveBalance(year?: number) {
-  return useQuery({
-    queryKey: leaveKeys.balance(year),
-    queryFn: () => leaveApi.getLeaveBalance(year),
-  });
-}
-
-export function useLeaveSummary(year?: number) {
-  return useQuery({
-    queryKey: leaveKeys.summary(year),
-    queryFn: () => leaveApi.getLeaveSummary(year),
   });
 }

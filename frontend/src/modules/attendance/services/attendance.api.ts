@@ -1,82 +1,51 @@
-import api from '../../../core/api/axios';
+import { apiClient } from '../../../core/api/api-client';
 import type {
   Attendance,
-  AttendanceListParams,
-  AttendanceListResponse,
+  AttendanceStats,
   CheckInDto,
   CheckOutDto,
-  CreateAttendanceDto,
-  UpdateAttendanceDto,
-  AttendanceSummary,
-  TodayAttendanceStats,
+  AttendanceListParams,
+  AttendanceListResponse,
 } from '../types';
 
 export const attendanceApi = {
-  // List attendance records with pagination and filters
-  list: async (params: AttendanceListParams): Promise<AttendanceListResponse> => {
-    const response = await api.get<AttendanceListResponse>('/attendance', { params });
-    return response.data;
-  },
-
-  // Get single attendance record
-  get: async (id: string): Promise<Attendance> => {
-    const response = await api.get<Attendance>(`/attendance/${id}`);
-    return response.data;
+  // List attendance records
+  list: (params: AttendanceListParams): Promise<AttendanceListResponse> => {
+    return apiClient.getPaginated<Attendance>('/attendance', { params });
   },
 
   // Check in
-  checkIn: async (data: CheckInDto): Promise<Attendance> => {
-    const response = await api.post<Attendance>('/attendance/check-in', data);
-    return response.data;
+  checkIn: (data: CheckInDto): Promise<Attendance> => {
+    return apiClient.post<Attendance>('/attendance/check-in', data);
   },
 
   // Check out
-  checkOut: async (data: CheckOutDto): Promise<Attendance> => {
-    const response = await api.post<Attendance>('/attendance/check-out', data);
-    return response.data;
+  checkOut: (data: CheckOutDto): Promise<Attendance> => {
+    return apiClient.post<Attendance>('/attendance/check-out', data);
   },
 
-  // Create attendance record (admin)
-  create: async (data: CreateAttendanceDto): Promise<Attendance> => {
-    const response = await api.post<Attendance>('/attendance', data);
-    return response.data;
-  },
-
-  // Update attendance record
-  update: async (id: string, data: UpdateAttendanceDto): Promise<Attendance> => {
-    const response = await api.patch<Attendance>(`/attendance/${id}`, data);
-    return response.data;
-  },
-
-  // Delete attendance record
-  delete: async (id: string): Promise<void> => {
-    await api.delete(`/attendance/${id}`);
-  },
-
-  // Get attendance summary for an employee
-  getSummary: async (employeeId: string, params?: { startDate?: string; endDate?: string }): Promise<AttendanceSummary> => {
-    const response = await api.get<AttendanceSummary>(`/attendance/summary/${employeeId}`, { params });
-    return response.data;
+  // Get attendance statistics
+  getStats: (params?: { startDate: string; endDate: string; departmentId?: string }): Promise<AttendanceStats> => {
+    return apiClient.get<AttendanceStats>('/analytics/attendance/metrics', { params });
   },
 
   // Get today's attendance stats
-  getTodayStats: async (): Promise<TodayAttendanceStats> => {
-    const response = await api.get<TodayAttendanceStats>('/attendance/today-stats');
-    return response.data;
+  getTodayStats: (): Promise<AttendanceStats> => {
+    return apiClient.get<AttendanceStats>('/analytics/attendance/today');
   },
 
-  // Get my attendance (for logged-in employee)
-  getMyAttendance: async (params?: { startDate?: string; endDate?: string }): Promise<Attendance[]> => {
-    const response = await api.get<Attendance[]>('/attendance/my', { params });
-    return response.data;
+  // Get employee attendance
+  getEmployeeAttendance: (employeeId: string, params?: AttendanceListParams): Promise<Attendance[]> => {
+    return apiClient.get<Attendance[]>(`/attendance/employee/${employeeId}`, { params });
   },
 
-  // Export attendance to CSV
-  exportCsv: async (params?: AttendanceListParams): Promise<Blob> => {
-    const response = await api.get('/attendance/export', {
-      params,
-      responseType: 'blob',
-    });
-    return response.data;
+  // Get employee attendance summary
+  getEmployeeSummary: (employeeId: string): Promise<AttendanceStats> => {
+    return apiClient.get<AttendanceStats>(`/attendance/summary/${employeeId}`);
+  },
+
+  // Delete attendance record
+  delete: (id: string): Promise<void> => {
+    return apiClient.delete(`/attendance/${id}`);
   },
 };

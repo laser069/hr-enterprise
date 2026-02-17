@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuthContext } from '../../../core/auth/use-auth-context';
+import { Button } from '../../../shared/components/ui/Button';
 
 export default function LoginForm() {
   const [email, setEmail] = useState('');
@@ -17,97 +18,112 @@ export default function LoginForm() {
       await login(email, password);
       navigate('/dashboard');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login failed. Please try again.');
+      setError(err instanceof Error ? err.message : 'Login failed. Please check your credentials.');
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Sign in to your account
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[#F8FAFC] py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden selection:bg-emerald-500/20 selection:text-emerald-900">
+      {/* Ambient Depth Elements */}
+      <div className="fixed top-[-20%] left-[-10%] w-[60%] h-[60%] bg-blue-100/40 rounded-full blur-[150px] pointer-events-none z-0 animate-pulse delay-1000"></div>
+      <div className="fixed bottom-[-20%] right-[-10%] w-[60%] h-[60%] bg-violet-100/40 rounded-full blur-[150px] pointer-events-none z-0"></div>
+      
+      <div className="max-w-md w-full relative z-10">
+        <div className="text-center mb-10">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-slate-900 rounded-[2rem] mb-6 shadow-2xl shadow-slate-900/20 group hover:scale-110 transition-transform duration-500">
+            <span className="text-white text-3xl font-black tracking-tighter">HR</span>
+          </div>
+          <h2 className="text-4xl font-black text-slate-900 tracking-tighter leading-none mb-4 drop-shadow-sm">
+            Command Center
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            HR Enterprise Management System
+          <p className="text-sm text-slate-500 font-black uppercase tracking-widest opacity-70">
+             Enterprise intelligence & resource management
           </p>
         </div>
         
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          {error && (
-            <div className="rounded-md bg-red-50 p-4">
-              <div className="flex">
-                <div className="ml-3">
-                  <h3 className="text-sm font-medium text-red-800">{error}</h3>
+        <div className="glass p-12 border border-white/40 shadow-[0_8px_30px_rgb(0,0,0,0.04)] relative overflow-hidden backdrop-blur-xl ring-1 ring-black/5">
+          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-slate-200 to-transparent"></div>
+          
+          <form className="space-y-8" onSubmit={handleSubmit}>
+            {error && (
+              <div className="rounded-2xl bg-red-500/10 p-4 border border-red-500/20 flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
+                 <svg className="h-5 w-5 text-red-500 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                 </svg>
+                 <span className="text-[10px] font-black text-red-400 uppercase tracking-widest leading-tight">{error}</span>
+              </div>
+            )}
+            
+            <div className="space-y-6">
+              <div className="space-y-3">
+                <label htmlFor="email" className="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1">
+                  Access Identifier
+                </label>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  required
+                  className="w-full px-6 py-4 border border-slate-200 rounded-2xl text-xs font-black text-slate-900 bg-white/60 focus:outline-none focus:ring-4 focus:ring-slate-100 transition-all uppercase tracking-widest placeholder:text-slate-400"
+                  placeholder="NAME@ENTERPRISE.COM"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </div>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between ml-1">
+                  <label htmlFor="password" className="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em]">
+                    Security Protocol
+                  </label>
                 </div>
+                <input
+                  id="password"
+                  name="password"
+                  type="password"
+                  required
+                  className="w-full px-6 py-4 border border-slate-200 rounded-2xl text-xs font-black text-slate-900 bg-white/60 focus:outline-none focus:ring-4 focus:ring-slate-100 transition-all uppercase tracking-widest placeholder:text-slate-400"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
               </div>
             </div>
-          )}
-          
-          <div className="rounded-md shadow-sm -space-y-px">
-            <div>
-              <label htmlFor="email" className="sr-only">
-                Email address
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="Email address"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-            <div>
-              <label htmlFor="password" className="sr-only">
-                Password
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="current-password"
-                required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
-          </div>
 
-          <div>
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isLoading ? (
-                <span className="flex items-center">
-                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Signing in...
-                </span>
-              ) : (
-                'Sign in'
-              )}
-            </button>
-          </div>
+            <div className="pt-4">
+              <Button
+                type="submit"
+                disabled={isLoading}
+                variant="primary"
+                className="w-full rounded-2xl py-5 shadow-xl shadow-slate-900/20"
+              >
+                {isLoading ? (
+                  <span className="flex items-center justify-center gap-3">
+                    <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
+                    Authenticating...
+                  </span>
+                ) : (
+                  'Establish Session'
+                )}
+              </Button>
+            </div>
+          </form>
 
-          <div className="text-center">
-            <Link
-              to="/register"
-              className="text-sm text-indigo-600 hover:text-indigo-500"
-            >
-              Don't have an account? Register here
-            </Link>
+          <div className="mt-12 pt-8 border-t border-slate-200 text-center">
+            <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest">
+              Unregistered entity?{' '}
+              <Link
+                to="/register"
+                className="text-slate-900 hover:text-slate-700 transition-colors"
+              >
+                Initialize Account
+              </Link>
+            </p>
           </div>
-        </form>
+        </div>
+        
+        <p className="mt-10 text-center text-[9px] text-slate-400 font-black uppercase tracking-[0.3em]">
+          &copy; 2026 HR ENTERPRISE &bull; SECURE DEPLOYMENT
+        </p>
       </div>
     </div>
   );

@@ -1,0 +1,5 @@
+src/modules/departments/pages/DepartmentListPage.tsx(1,1): error TS6133: 'useState' is declared but its value is never read.
+src/modules/payroll/pages/PayrollRuns.tsx(25,26): error TS2552: Cannot find name 'useDeletePayrollRun'. Did you mean 'useCreatePayrollRun'?
+src/modules/performance/hooks/usePerformance.ts(3,30): error TS6196: 'UpdateGoalProgressDto' is declared but never used.
+src/modules/performance/services/performance.api.ts(2,55): error TS6196: 'UpdateGoalProgressDto' is declared but never used.
+src/modules/recruitment/hooks/useRecruitment.ts(3,54): error TS6196: 'Candidate' is declared but never used.

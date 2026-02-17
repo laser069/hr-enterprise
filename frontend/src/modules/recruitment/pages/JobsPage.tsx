@@ -1,35 +1,29 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useJobs, useCreateJob, usePublishJob, useCloseJob, useDeleteJob } from '../hooks/useRecruitment';
-import { useDepartments } from '../../departments/hooks/useDepartments';
-import type { JobStatus, EmploymentType } from '../types';
+import { useJobs, useCreateJob, useCloseJob } from '../hooks/useRecruitment';
+import { useDepartments } from '../../departments/hooks/useDepartment';
+import type { JobStatus } from '../types';
 import { Badge } from '../../../shared/components/ui/Badge';
 import { Button } from '../../../shared/components/ui/Button';
+import { Modal } from '../../../shared/components/ui/Modal';
+import { Card } from '../../../shared/components/ui/Card';
 
-const jobStatuses: JobStatus[] = ['draft', 'open', 'closed', 'archived'];
-const employmentTypes: EmploymentType[] = ['full-time', 'part-time', 'contract', 'internship'];
+const jobStatuses: JobStatus[] = ['OPEN', 'CLOSED', 'ON_HOLD'];
 
 export default function JobsPage() {
   const [status, setStatus] = useState<JobStatus | ''>('');
-  const { data: jobs, isLoading } = useJobs(status ? { status } : {});
+  const { data: jobs, isLoading } = useJobs();
   const { data: departments } = useDepartments();
   
   const createMutation = useCreateJob();
-  const publishMutation = usePublishJob();
   const closeMutation = useCloseJob();
-  const deleteMutation = useDeleteJob();
 
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newJob, setNewJob] = useState({
     title: '',
     description: '',
     departmentId: '',
-    requirements: '',
-    location: '',
-    employmentType: 'full-time' as EmploymentType,
-    minSalary: undefined as number | undefined,
-    maxSalary: undefined as number | undefined,
-    openings: 1,
+    positions: 1,
   });
 
   const handleCreate = async () => {
@@ -39,170 +33,133 @@ export default function JobsPage() {
       title: '',
       description: '',
       departmentId: '',
-      requirements: '',
-      location: '',
-      employmentType: 'full-time',
-      minSalary: undefined,
-      maxSalary: undefined,
-      openings: 1,
+      positions: 1,
     });
-  };
-
-  const handlePublish = async (id: string) => {
-    await publishMutation.mutateAsync(id);
   };
 
   const handleClose = async (id: string) => {
     await closeMutation.mutateAsync(id);
   };
 
-  const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this job?')) {
-      await deleteMutation.mutateAsync(id);
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    const colors: Record<string, 'success' | 'warning' | 'default' | 'danger'> = {
-      open: 'success',
-      draft: 'warning',
-      closed: 'default',
-      archived: 'danger',
+  const getStatusColor = (status: JobStatus) => {
+    const colors: Record<JobStatus, 'success' | 'warning' | 'default'> = {
+      OPEN: 'success',
+      ON_HOLD: 'warning',
+      CLOSED: 'default',
     };
     return colors[status] || 'default';
   };
 
+  // Filter jobs locally since the hook doesn't support params yet
+  const filteredJobs = jobs?.filter(j => 
+    (!status || j.status === status)
+  );
+
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div className="space-y-10">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-10">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Jobs</h1>
-          <p className="text-gray-600 mt-1">
-            Manage job postings and open positions
+          <h1 className="text-5xl font-black text-slate-900 tracking-tighter leading-none drop-shadow-sm">Requisition Pipeline</h1>
+          <p className="text-xs text-slate-400 font-black uppercase tracking-[0.3em] mt-6 opacity-70">
+            Enterprise Talent Acquisition & Strategic Placement Oversight
           </p>
         </div>
-        <div className="flex gap-2">
-          <select
-            value={status}
-            onChange={(e) => setStatus(e.target.value as JobStatus | '')}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="">All Status</option>
-            {jobStatuses.map((s) => (
-              <option key={s} value={s}>
-                {s.charAt(0).toUpperCase() + s.slice(1)}
-              </option>
-            ))}
-          </select>
-          <Button variant="primary" onClick={() => setShowCreateModal(true)}>
-            Post New Job
+        
+        <div className="flex items-center gap-4">
+          <div className="flex items-center p-2 bg-white/40 backdrop-blur-xl border border-white/60 rounded-[2.5rem] shadow-xl ring-1 ring-white/10">
+            <select
+              value={status}
+              onChange={(e) => setStatus(e.target.value as JobStatus | '')}
+              className="bg-transparent px-8 py-3 text-[10px] font-black text-slate-900 uppercase tracking-widest outline-none cursor-pointer hover:text-indigo-600 transition-colors appearance-none"
+            >
+              <option value="" className="bg-white">Global Status</option>
+              {jobStatuses.map((s) => (
+                <option key={s} value={s} className="bg-white">
+                  {s} Protocol
+                </option>
+              ))}
+            </select>
+          </div>
+          <Button variant="primary" size="md" onClick={() => setShowCreateModal(true)}>
+            Initialize Posting
           </Button>
         </div>
       </div>
 
-      {/* Jobs List */}
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+      <Card title="Opportunity Ledger" subtitle="Sequential talent acquisition telemetry" noPadding>
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="min-w-full divide-y divide-slate-200/60">
+            <thead className="bg-slate-50/50 backdrop-blur-md">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Job Title
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Department
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Location
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Salary Range
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Candidates
-                </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
+                <th className="px-10 py-6 text-left text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Opportunity Identifier</th>
+                <th className="px-10 py-6 text-left text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Division</th>
+                <th className="px-10 py-6 text-left text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Pipeline Status</th>
+                <th className="px-10 py-6 text-left text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Resource Quantum</th>
+                <th className="px-10 py-6 text-right text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Protocols</th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="divide-y divide-slate-100/50 bg-white/40">
               {isLoading ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
-                    Loading...
+                  <td colSpan={5} className="px-10 py-20 text-center">
+                    <div className="flex justify-center"><div className="animate-spin h-6 w-6 border-2 border-slate-900 border-t-transparent rounded-full"></div></div>
                   </td>
                 </tr>
-              ) : !jobs || jobs.length === 0 ? (
+              ) : !filteredJobs || filteredJobs.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
-                    No jobs found
+                  <td colSpan={5} className="px-10 py-20 text-center">
+                    <p className="text-[11px] font-black text-slate-300 uppercase tracking-[0.3em]">No active requisitions found</p>
                   </td>
                 </tr>
               ) : (
-                jobs.map((job) => (
-                  <tr key={job.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4">
+                filteredJobs.map((job) => (
+                  <tr key={job.id} className="group hover:bg-white/80 transition-all duration-500">
+                    <td className="px-10 py-8">
                       <div>
-                        <p className="text-sm font-medium text-gray-900">{job.title}</p>
-                        <p className="text-xs text-gray-500">{job.employmentType?.replace('-', ' ')}</p>
+                        <p className="text-sm font-black text-slate-900 tracking-tighter leading-none mb-2">{job.title}</p>
+                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] opacity-70">
+                          PROVISIONED {new Date(job.createdAt).toLocaleDateString()}
+                        </p>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-10 py-8 text-sm font-black text-slate-900 tracking-tighter">
                       {job.department?.name || '-'}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {job.location || 'Remote'}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {job.minSalary && job.maxSalary
-                        ? `$${job.minSalary.toLocaleString()} - $${job.maxSalary.toLocaleString()}`
-                        : '-'}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <Badge variant={getStatusColor(job.status)}>
+                    <td className="px-10 py-8 whitespace-nowrap">
+                      <Badge variant={getStatusColor(job.status)} className="shadow-lg">
                         {job.status}
                       </Badge>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {job.candidateCount || 0} / {job.openings}
+                    <td className="px-10 py-8">
+                      <div className="flex items-center gap-3">
+                         <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest opacity-60">ALLOCATED NODES:</span>
+                         <span className="text-sm font-black text-slate-900 tracking-tighter">{job.positions}</span>
+                      </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      {job.status === 'draft' && (
-                        <button
-                          onClick={() => handlePublish(job.id)}
-                          className="text-green-600 hover:text-green-900 mr-3"
-                          disabled={publishMutation.isPending}
+                    <td className="px-10 py-8 whitespace-nowrap text-right">
+                      <div className="flex items-center justify-end gap-3 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
+                        {job.status === 'OPEN' && (
+                          <button
+                            onClick={() => handleClose(job.id)}
+                            className="p-3 text-amber-500 bg-white/40 hover:bg-white hover:shadow-xl rounded-2xl border border-white/60 transition-all duration-500"
+                            title="Terminate Lifecycle"
+                            disabled={closeMutation.isPending}
+                          >
+                             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                          </button>
+                        )}
+                        <Link
+                          to={`/recruitment/candidates?jobId=${job.id}`}
+                          className="p-3 text-indigo-500 bg-white/40 hover:bg-white hover:shadow-xl rounded-2xl border border-white/60 transition-all duration-500"
+                          title="Candidate Hub"
                         >
-                          Publish
-                        </button>
-                      )}
-                      {job.status === 'open' && (
-                        <button
-                          onClick={() => handleClose(job.id)}
-                          className="text-orange-600 hover:text-orange-900 mr-3"
-                          disabled={closeMutation.isPending}
-                        >
-                          Close
-                        </button>
-                      )}
-                      <Link
-                        to={`/recruitment/candidates?jobId=${job.id}`}
-                        className="text-blue-600 hover:text-blue-900 mr-3"
-                      >
-                        Candidates
-                      </Link>
-                      {(job.status === 'draft' || job.status === 'closed') && (
-                        <button
-                          onClick={() => handleDelete(job.id)}
-                          className="text-red-600 hover:text-red-900"
-                        >
-                          Delete
-                        </button>
-                      )}
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                          </svg>
+                        </Link>
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -210,131 +167,81 @@ export default function JobsPage() {
             </tbody>
           </table>
         </div>
-      </div>
+      </Card>
 
       {/* Create Modal */}
-      {showCreateModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Post New Job</h3>
+      <Modal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        title="Initialize Requisition"
+        size="lg"
+      >
+        <div className="space-y-10">
+          <div className="space-y-4">
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Functional Title *</label>
+            <input
+              type="text"
+              value={newJob.title}
+              onChange={(e) => setNewJob({ ...newJob, title: e.target.value })}
+              className="w-full px-8 py-5 border border-white/60 rounded-3xl text-sm font-black text-slate-900 bg-white/40 focus:outline-none focus:ring-4 focus:ring-slate-100 transition-all uppercase tracking-widest placeholder:text-slate-300 shadow-inner"
+              placeholder="e.g., SENIOR SYSTEMS ARCHITECT"
+            />
+          </div>
+          
+          <div className="grid grid-cols-2 gap-10">
             <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Job Title *</label>
-                <input
-                  type="text"
-                  value={newJob.title}
-                  onChange={(e) => setNewJob({ ...newJob, title: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  placeholder="e.g., Senior Software Engineer"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Department</label>
-                <select
-                  value={newJob.departmentId}
-                  onChange={(e) => setNewJob({ ...newJob, departmentId: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">Select Department</option>
-                  {departments?.map((dept) => (
-                    <option key={dept.id} value={dept.id}>
-                      {dept.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                <textarea
-                  value={newJob.description}
-                  onChange={(e) => setNewJob({ ...newJob, description: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  rows={3}
-                  placeholder="Job description..."
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Requirements</label>
-                <textarea
-                  value={newJob.requirements}
-                  onChange={(e) => setNewJob({ ...newJob, requirements: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  rows={2}
-                  placeholder="Job requirements..."
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
-                <input
-                  type="text"
-                  value={newJob.location}
-                  onChange={(e) => setNewJob({ ...newJob, location: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  placeholder="e.g., New York, NY or Remote"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Employment Type</label>
-                <select
-                  value={newJob.employmentType}
-                  onChange={(e) => setNewJob({ ...newJob, employmentType: e.target.value as EmploymentType })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                >
-                  {employmentTypes.map((type) => (
-                    <option key={type} value={type}>
-                      {type.replace('-', ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Min Salary</label>
-                  <input
-                    type="number"
-                    value={newJob.minSalary || ''}
-                    onChange={(e) => setNewJob({ ...newJob, minSalary: Number(e.target.value) || undefined })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                    placeholder="50000"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Max Salary</label>
-                  <input
-                    type="number"
-                    value={newJob.maxSalary || ''}
-                    onChange={(e) => setNewJob({ ...newJob, maxSalary: Number(e.target.value) || undefined })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                    placeholder="80000"
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Number of Openings</label>
-                <input
-                  type="number"
-                  value={newJob.openings}
-                  onChange={(e) => setNewJob({ ...newJob, openings: Number(e.target.value) })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  min={1}
-                />
-              </div>
+               <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Allocated Division</label>
+               <select
+                 value={newJob.departmentId}
+                 onChange={(e) => setNewJob({ ...newJob, departmentId: e.target.value })}
+                 className="w-full px-8 py-5 border border-white/60 rounded-3xl text-sm font-black text-slate-900 bg-white/40 focus:outline-none focus:ring-4 focus:ring-slate-100 transition-all cursor-pointer uppercase tracking-widest shadow-inner appearance-none"
+               >
+                 <option value="" className="bg-white">Global Department</option>
+                 {departments?.map((dept) => (
+                   <option key={dept.id} value={dept.id} className="bg-white">
+                     {dept.name}
+                   </option>
+                 ))}
+               </select>
             </div>
-            <div className="flex justify-end gap-2 mt-6">
-              <Button variant="outline" onClick={() => setShowCreateModal(false)}>
-                Cancel
-              </Button>
-              <Button
-                variant="primary"
-                onClick={handleCreate}
-                disabled={!newJob.title || createMutation.isPending}
-              >
-                Create Job
-              </Button>
+            <div className="space-y-4">
+               <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Node Count</label>
+               <input
+                 type="number"
+                 value={newJob.positions}
+                 onChange={(e) => setNewJob({ ...newJob, positions: Number(e.target.value) })}
+                 className="w-full px-8 py-5 border border-white/60 rounded-3xl text-sm font-black text-slate-900 bg-white/40 focus:outline-none focus:ring-4 focus:ring-slate-100 transition-all uppercase tracking-widest shadow-inner"
+                 min={1}
+               />
             </div>
           </div>
+
+          <div className="space-y-4">
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Objective Summary</label>
+            <textarea
+              value={newJob.description}
+              onChange={(e) => setNewJob({ ...newJob, description: e.target.value })}
+              className="w-full px-8 py-5 border border-white/60 rounded-3xl text-sm font-black text-slate-900 bg-white/40 focus:outline-none focus:ring-4 focus:ring-slate-100 transition-all uppercase tracking-widest h-48 placeholder:text-slate-300 shadow-inner"
+              placeholder="Protocol narrative..."
+            />
+          </div>
+
+          <div className="flex justify-end gap-6 mt-16 pt-10 border-t border-slate-100/50">
+            <Button variant="ghost" size="lg" onClick={() => setShowCreateModal(false)}>
+              Abort Protocol
+            </Button>
+            <Button
+              variant="primary"
+              size="lg"
+              className="px-12 shadow-2xl shadow-indigo-500/20"
+              onClick={handleCreate}
+              disabled={!newJob.title || !newJob.departmentId || createMutation.isPending}
+            >
+              {createMutation.isPending ? 'Provisioning...' : 'Provision Requisition'}
+            </Button>
+          </div>
         </div>
-      )}
+      </Modal>
     </div>
   );
 }

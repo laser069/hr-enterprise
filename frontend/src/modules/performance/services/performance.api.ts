@@ -1,90 +1,46 @@
-import api from '../../../core/api/axios';
-import type {
-  Goal,
-  PerformanceReview,
-  PerformanceSummary,
-  PerformanceStats,
-  CreateGoalDto,
-  CreatePerformanceReviewDto,
-} from '../types';
-
-interface ListParams {
-  employeeId?: string;
-  status?: string;
-  skip?: number;
-  take?: number;
-}
-
-interface ListResponse<T> {
-  data: T[];
-  total: number;
-}
+import { apiClient } from '../../../core/api/api-client';
+import type { Goal, PerformanceReview, CreateGoalDto, CreateReviewDto } from '../types';
 
 export const performanceApi = {
   // Goals
-  getGoals: async (params?: ListParams): Promise<ListResponse<Goal>> => {
-    const response = await api.get<ListResponse<Goal>>('/performance/goals', { params });
-    return response.data;
+  getGoals: (): Promise<Goal[]> => {
+    return apiClient.get<Goal[]>('/performance/goals');
   },
 
-  getGoal: async (id: string): Promise<Goal> => {
-    const response = await api.get<Goal>(`/performance/goals/${id}`);
-    return response.data;
+  createGoal: (data: CreateGoalDto): Promise<Goal> => {
+    return apiClient.post<Goal>('/performance/goals', data);
   },
 
-  createGoal: async (data: CreateGoalDto): Promise<Goal> => {
-    const response = await api.post<Goal>('/performance/goals', data);
-    return response.data;
+  updateGoalProgress: (id: string, achievedValue: number): Promise<Goal> => {
+    return apiClient.patch<Goal>(`/performance/goals/${id}/progress`, { achievedValue });
   },
 
-  updateGoalProgress: async (id: string, achievedValue: number): Promise<Goal> => {
-    const response = await api.patch<Goal>(`/performance/goals/${id}/progress`, { achievedValue });
-    return response.data;
+  // Reviews
+  getReviews: (): Promise<PerformanceReview[]> => {
+    return apiClient.get<PerformanceReview[]>('/performance/reviews');
   },
 
-  updateGoalStatus: async (id: string, status: string): Promise<Goal> => {
-    const response = await api.patch<Goal>(`/performance/goals/${id}/status`, { status });
-    return response.data;
+  createReview: (data: CreateReviewDto): Promise<PerformanceReview> => {
+    return apiClient.post<PerformanceReview>('/performance/reviews', data);
   },
 
-  deleteGoal: async (id: string): Promise<void> => {
-    await api.delete(`/performance/goals/${id}`);
+  getPendingReviews: (): Promise<PerformanceReview[]> => {
+    return apiClient.get<PerformanceReview[]>('/performance/reviews/pending');
   },
 
-  // Performance Reviews
-  getReviews: async (params?: ListParams & { reviewerId?: string }): Promise<ListResponse<PerformanceReview>> => {
-    const response = await api.get<ListResponse<PerformanceReview>>('/performance/reviews', { params });
-    return response.data;
+  submitReview: (id: string): Promise<PerformanceReview> => {
+    return apiClient.post<PerformanceReview>(`/performance/reviews/${id}/submit`);
   },
 
-  getReview: async (id: string): Promise<PerformanceReview> => {
-    const response = await api.get<PerformanceReview>(`/performance/reviews/${id}`);
-    return response.data;
+  acknowledgeReview: (id: string): Promise<PerformanceReview> => {
+    return apiClient.post<PerformanceReview>(`/performance/reviews/${id}/acknowledge`);
   },
 
-  createReview: async (data: CreatePerformanceReviewDto): Promise<PerformanceReview> => {
-    const response = await api.post<PerformanceReview>('/performance/reviews', data);
-    return response.data;
+  getSummary: (employeeId: string): Promise<Record<string, unknown>> => {
+    return apiClient.get<Record<string, unknown>>(`/performance/summary/${employeeId}`);
   },
 
-  submitReview: async (id: string): Promise<PerformanceReview> => {
-    const response = await api.post<PerformanceReview>(`/performance/reviews/${id}/submit`);
-    return response.data;
-  },
-
-  acknowledgeReview: async (id: string): Promise<PerformanceReview> => {
-    const response = await api.post<PerformanceReview>(`/performance/reviews/${id}/acknowledge`);
-    return response.data;
-  },
-
-  // Summary & Stats
-  getEmployeeSummary: async (employeeId: string): Promise<PerformanceSummary> => {
-    const response = await api.get<PerformanceSummary>(`/performance/summary/${employeeId}`);
-    return response.data;
-  },
-
-  getStats: async (): Promise<PerformanceStats> => {
-    const response = await api.get<PerformanceStats>('/performance/stats');
-    return response.data;
+  deleteGoal: (id: string): Promise<void> => {
+    return apiClient.delete(`/performance/goals/${id}`);
   },
 };
