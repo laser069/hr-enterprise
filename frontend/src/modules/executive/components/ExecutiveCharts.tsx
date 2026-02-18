@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import {
   PieChart,
   Pie,
@@ -22,22 +23,26 @@ interface ChartDataItem {
 
 export function ExecutiveCharts({ data }: ExecutiveChartsProps) {
   // Handle backend response formats - actual properties are departmentBreakdown and attendanceSummary
-  const departmentBreakdown = Array.isArray(data.departmentBreakdown) ? data.departmentBreakdown : [];
-  const departmentData: ChartDataItem[] = departmentBreakdown.map((dept) => ({
-    name: dept.department,
-    value: dept.count,
-  }));
+  const departmentData: ChartDataItem[] = useMemo(() => {
+    const departmentBreakdown = Array.isArray(data.departmentBreakdown) ? data.departmentBreakdown : [];
+    return departmentBreakdown.map((dept) => ({
+      name: dept.department,
+      value: dept.count,
+    }));
+  }, [data.departmentBreakdown]);
 
   // Backend returns attendance summary
-  const attendance = data.attendanceSummary;
-  const attendanceData: ChartDataItem[] = [
-    { name: 'Present', value: attendance?.present ?? 0 },
-    { name: 'Absent', value: attendance?.absent ?? 0 },
-    { name: 'Late', value: attendance?.late ?? 0 },
-    { name: 'On Leave', value: attendance?.onLeave ?? 0 },
-  ];
+  const attendanceData: ChartDataItem[] = useMemo(() => {
+    const attendance = data.attendanceSummary;
+    return [
+      { name: 'Present', value: attendance?.present ?? 0 },
+      { name: 'Absent', value: attendance?.absent ?? 0 },
+      { name: 'Late', value: attendance?.late ?? 0 },
+      { name: 'On Leave', value: attendance?.onLeave ?? 0 },
+    ];
+  }, [data.attendanceSummary]);
 
-  const tooltipStyle = {
+  const tooltipStyle = useMemo(() => ({
     borderRadius: '24px',
     border: '1px solid rgba(255,255,255,0.6)',
     boxShadow: '0 30px 60px -15px rgba(0,0,0,0.1)',
@@ -49,7 +54,7 @@ export function ExecutiveCharts({ data }: ExecutiveChartsProps) {
     textTransform: 'uppercase' as const,
     letterSpacing: '0.1em',
     color: '#0f172a',
-  };
+  }), []);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-10">

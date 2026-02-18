@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import type { Employee, EmployeeListParams, EmployeeStatus } from '../types';
 import { Badge } from '../../../shared/components/ui/Badge';
@@ -37,12 +37,12 @@ export function EmployeeList({
   const [searchQuery, setSearchQuery] = useState(params.search || '');
   const navigate = useNavigate();
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     onParamsChange({ search: searchQuery, page: 1 });
   };
 
-  const columns: Column<Employee>[] = [
+  const columns: Column<Employee>[] = useMemo(() => [
     {
       header: 'Consultant',
       accessor: (employee) => (
@@ -53,7 +53,10 @@ export function EmployeeList({
               <img
                 className="h-10 w-10 rounded-full object-cover border border-white/20 relative z-10"
                 src={employee.profilePicture}
-                alt=""
+                alt={`${employee.firstName} ${employee.lastName}`}
+                loading="lazy"
+                width={40}
+                height={40}
               />
             ) : (
               <div className="h-10 w-10 rounded-full bg-white/10 text-white flex items-center justify-center border border-white/20 relative z-10">
@@ -148,8 +151,7 @@ export function EmployeeList({
         </div>
       ),
     },
-    
-  ];
+  ], [navigate, onDelete]);
 
   return (
     <div className="space-y-6">

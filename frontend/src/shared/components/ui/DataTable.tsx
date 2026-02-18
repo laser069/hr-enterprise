@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import type { ReactNode } from 'react';
 import { cn } from '../../utils/cn';
 import { Spinner } from './Spinner';
@@ -28,7 +29,7 @@ interface DataTableProps<T> {
   className?: string;
 }
 
-export function DataTable<T extends { id: string | number }>({
+const DataTableInner = <T extends { id: string | number }>({
   columns,
   data,
   isLoading,
@@ -36,7 +37,7 @@ export function DataTable<T extends { id: string | number }>({
   pagination,
   onRowClick,
   className,
-}: DataTableProps<T>) {
+}: DataTableProps<T>) => {
   return (
     <div className={cn('flex flex-col gap-6', className)}>
       <div className="glass overflow-hidden shadow-[0_30px_60px_-15px_rgba(0,0,0,0.1)] border-white/40 ring-1 ring-white/10">
@@ -173,4 +174,6 @@ export function DataTable<T extends { id: string | number }>({
       )}
     </div>
   );
-}
+};
+
+export const DataTable = (memo(DataTableInner) as unknown) as typeof DataTableInner;
