@@ -45,7 +45,12 @@ async function bootstrap(): Promise<void> {
 
   // Enable CORS
   app.enableCors({
-    origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+    origin: [
+      'http://localhost:3000',
+      'http://localhost:5173',
+      'https://hr-enterprisee.netlify.app',
+      ...(process.env.CORS_ORIGIN ? [process.env.CORS_ORIGIN] : []),
+    ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'x-correlation-id'],
@@ -61,7 +66,7 @@ async function bootstrap(): Promise<void> {
       const { statusCode } = res;
       const responseTime = Date.now() - startTime;
       const message = `${method} ${url} ${statusCode} - ${responseTime}ms - ${ip} - ${userAgent}`;
-      
+
       if (statusCode >= 400) {
         logger.error(message);
       } else {
@@ -110,7 +115,7 @@ async function bootstrap(): Promise<void> {
     .addTag('Notifications', 'Notifications & Real-time Updates')
     .addTag('Health', 'Health Checks')
     .build();
-  
+
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, document, {
     swaggerOptions: {
