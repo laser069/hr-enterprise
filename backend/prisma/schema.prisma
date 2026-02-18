@@ -145,8 +145,82 @@ model Employee {
   approvalDecisions       Approval[]           @relation("ApprovalApprover")
   approvalSteps           ApprovalStep[]
   documents               Document[]
+  interviews              Interview[]
+
+  bankAccountNumber String?   @map("bank_account_number")
+  ifscCode          String?   @map("ifsc_code")
+  bankName          String?   @map("bank_name")
+
+  shiftId          String?   @map("shift_id")
+  shift            Shift?    @relation(fields: [shiftId], references: [id])
 
   @@map("employees")
+}
+
+// ============================================
+// SHIFT & HOLIDAY MODELS
+// ============================================
+
+model Shift {
+  id            String    @id @default(uuid())
+  name          String    @unique
+  startTime     String    @map("start_time") // HH:mm
+  endTime       String    @map("end_time")   // HH:mm
+  breakDuration Int       @default(60) @map("break_duration") // minutes
+  workDays      String[]  @map("work_days") // ["MON", "TUE", ...]
+  isActive      Boolean   @default(true) @map("is_active")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  employees     Employee[]
+
+  @@map("shifts")
+}
+
+model Holiday {
+  id          String   @id @default(uuid())
+  name        String
+  date        DateTime @db.Date
+  description String?
+  isRecurring Boolean  @default(false) @map("is_recurring")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@unique([date, name])
+  @@map("holidays")
+}
+
+// ============================================
+// PAYROLL CONFIG MODELS
+// ============================================
+
+model TaxSlab {
+  id        String   @id @default(uuid())
+  regime    String   @default("new") // "old" or "new"
+  minIncome Decimal  @map("min_income")
+  maxIncome Decimal? @map("max_income") // null means infinite
+  rate      Decimal
+  cess      Decimal  @default(0.04)
+  ageGroup  String   @default("general") // general, senior, super_senior
+  
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("tax_slabs")
+}
+
+model StatutoryComponent {
+  id           String  @id @default(uuid())
+  name         String  @unique // "PF", "ESI", "PT"
+  employeeRate Decimal @map("employee_rate") // Percentage or Fixed
+  employerRate Decimal @map("employer_rate")
+  type         String  // "percentage", "fixed"
+  minLimit     Decimal? @map("min_limit") // Limit for applicability
+  maxLimit     Decimal? @map("max_limit") // Limit for calculation cap
+  
+  isEnabled    Boolean @default(true) @map("is_enabled")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@map("statutory_components")
 }
 
 // ============================================
@@ -322,6 +396,10 @@ model PayrollEntry {
   lopDeduction    Decimal  @default(0) @map("lop_deduction") @db.Decimal(12, 2)
   totalDeductions Decimal  @map("total_deductions") @db.Decimal(12, 2)
   netSalary       Decimal  @map("net_salary") @db.Decimal(12, 2)
+  
+  additions       Json?    // { bonus: 5000, incentives: 2000 }
+  deductions      Json?    // { pf: 1800, esi: 500, tds: 1200 }
+
   createdAt       DateTime @default(now()) @map("created_at")
   updatedAt       DateTime @updatedAt @map("updated_at")
 
@@ -427,10 +505,33 @@ model Candidate {
   updatedAt    DateTime @updatedAt @map("updated_at")
 
   job Job @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  interviews Interview[]
 
   @@index([jobId])
   @@index([stage])
   @@map("candidates")
+}
+
+model Interview {
+  id           String   @id @default(uuid())
+  candidateId  String   @map("candidate_id")
+  interviewerId String  @map("interviewer_id")
+  scheduledAt  DateTime @map("scheduled_at")
+  duration     Int      @default(60) // minutes
+  type         String   @default("technical") // technical, hr, managerial
+  status         String   @default("scheduled") // scheduled, completed, cancelled, no_show
+  feedback     String?
+  score        Int?     // 1 to 5 or 10
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  candidate    Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  interviewer  Employee  @relation(fields: [interviewerId], references: [id])
+
+  @@index([candidateId])
+  @@index([interviewerId])
+  @@index([status])
+  @@map("interviews")
 }
 
 // ============================================

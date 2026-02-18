@@ -121,38 +121,20 @@ export class EmployeesService {
         where.id = user.employeeId;
       } else if (user.roleName === 'manager') {
         // Managers can see their department/team
-        // Assuming user.employeeId is linked to a department via Employee record
-        // We need to fetch the manager's department if not in user object, but let's assume standard flow.
-        // The user object from token might not have departmentId directly unless added.
-        // Let's rely on finding the employee record if needed, but for efficiency, 
-        // let's assume we can filter by the manager's team or department.
+        const manager = await this.prisma.employee.findUnique({
+          where: { id: user.employeeId },
+          select: { departmentId: true },
+        });
 
-        // If manager, they should see employees where they are the manager OR in their department.
-        // Let's restrict to their department for simplicity and broader visibility within their scope.
-        // We need to know the manager's department.
-        // Since `user` payload in `auth.service.ts` (checked in architecture doc) has `employeeId`, 
-        // but maybe not department. We might need to fetch it or rely on `managerId` filter.
-
-        // Better approach: If manager, show employees where `managerId` is their ID OR `departmentId` is their department.
-        // Since we don't have departmentId in token readily (unless I check auth service), 
-        // let's fetch the current employee's details to get department.
-
-        // WAIT: Doing a DB call inside findAll for every request is expensive. 
-        // But necessary if token doesn't have it.
-        // Let's assume for now we filter by managerId = user.employeeId for direct reports.
-        // AND potentially their department.
-
-        // Let's try to see if we can get department from the user record if possible, 
-        // or just restrict to direct reports for "Manager" role if top-level department access isn't guaranteed.
-        // The seed says "Department manager with team oversight".
-
-        // Plan: Restrict to Department if possible, else Direct Reports.
-        // Let's start with Direct Reports (where managerId = user.employeeId) 
-        // OR allow them to see their own record.
-        where.OR = [
-          { managerId: user.employeeId },
-          { id: user.employeeId }
-        ];
+        if (manager?.departmentId) {
+          where.departmentId = manager.departmentId;
+        } else {
+          // Fallback to direct reports if no department assigned
+          where.OR = [
+            { managerId: user.employeeId },
+            { id: user.employeeId }
+          ];
+        }
       }
       // Admin / HR Manager -> No extra filters (can see all)
     }

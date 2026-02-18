@@ -48,4 +48,8 @@ export class CreateEmployeeDto {
   @IsString()
   @IsOptional()
   employmentStatus?: string;
+
+  @IsUUID()
+  @IsOptional()
+  shiftId?: string;
 }

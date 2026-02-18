@@ -321,7 +321,15 @@ export class LeaveService {
     if (startDate || endDate) {
       where.startDate = {};
       if (startDate) where.startDate.gte = startDate;
-      if (endDate) where.startDate.lte = endDate;
+      if (endDate) {
+        // If endDate is provided, ensure it covers the full day if it's just a date
+        // However, startDate/endDate params are typed as Date. 
+        // If passed as query params, they might be strings transformed.
+        // Let's ensure strict comparison.
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        where.startDate.lte = end;
+      }
     }
 
     const [requests, total] = await Promise.all([

@@ -9,12 +9,13 @@ import { PrismaService } from '../database/prisma.service';
 import { CreateJobDto } from './dto/create-job.dto';
 import { CreateCandidateDto } from './dto/create-candidate.dto';
 import { Decimal } from '@prisma/client-runtime-utils';
+import * as puppeteer from 'puppeteer';
 
 @Injectable()
 export class RecruitmentService {
   private readonly logger = new Logger(RecruitmentService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   // ============ Job Methods ============
 
@@ -407,7 +408,7 @@ export class RecruitmentService {
     const totalJobs = await this.prisma.job.count();
     const openJobs = await this.prisma.job.count({ where: { status: 'open' } });
     const totalCandidates = await this.prisma.candidate.count();
-    
+
     const candidatesByStage = await this.prisma.candidate.groupBy({
       by: ['stage'],
       _count: true,
@@ -431,6 +432,142 @@ export class RecruitmentService {
         return acc;
       }, {} as Record<string, number>),
       hiredThisMonth,
+
+
     };
+  }
+
+  // ============ Interview Methods ============
+
+  async scheduleInterview(data: { candidateId: string; interviewerId: string; scheduledAt: string; type: string }) {
+    console.log('Service: Scheduling interview...', data); // DEBUG
+    const candidate = await this.prisma.candidate.findUnique({ where: { id: data.candidateId } });
+    if (!candidate) {
+      console.error('Service: Candidate not found', data.candidateId); // DEBUG
+      throw new NotFoundException('Candidate not found');
+    }
+
+    const interviewer = await this.prisma.employee.findUnique({ where: { id: data.interviewerId } });
+    if (!interviewer) {
+      console.error('Service: Interviewer not found', data.interviewerId); // DEBUG
+      throw new NotFoundException('Interviewer not found');
+    }
+
+    const interview = await this.prisma.interview.create({
+      data: {
+        candidateId: data.candidateId,
+        interviewerId: data.interviewerId,
+        scheduledAt: new Date(data.scheduledAt),
+        type: data.type,
+      },
+      include: {
+        candidate: true,
+        interviewer: true,
+      },
+    });
+
+    // Move candidate to interview stage
+    await this.prisma.candidate.update({
+      where: { id: data.candidateId },
+      data: { stage: 'interview' },
+    });
+
+    this.logger.log(`Interview scheduled for candidate ${data.candidateId} with ${data.interviewerId}`);
+    return interview;
+  }
+
+  async updateInterview(id: string, data: { status?: string; feedback?: string; score?: number }) {
+    const interview = await this.prisma.interview.findUnique({ where: { id } });
+    if (!interview) throw new NotFoundException('Interview not found');
+
+    const updated = await this.prisma.interview.update({
+      where: { id },
+      data: {
+        status: data.status,
+        feedback: data.feedback,
+        score: data.score,
+      },
+    });
+
+    return updated;
+  }
+
+  async getInterviews(candidateId?: string) {
+    return this.prisma.interview.findMany({
+      where: candidateId ? { candidateId } : undefined,
+      include: {
+        candidate: true,
+        interviewer: true,
+      },
+      orderBy: { scheduledAt: 'desc' },
+    });
+  }
+
+  // ============ Offer Letter ============
+
+  async generateOfferLetter(candidateId: string): Promise<Buffer> {
+    const candidate = await this.prisma.candidate.findUnique({
+      where: { id: candidateId },
+      include: {
+        job: {
+          include: { department: true }
+        }
+      },
+    });
+
+    if (!candidate) throw new NotFoundException('Candidate not found');
+
+    // Simple Offer Letter Template
+    const htmlContent = `
+      <html>
+        <body style="font-family: Arial, sans-serif; padding: 40px; line-height: 1.6;">
+          <div style="text-align: center; margin-bottom: 40px;">
+            <h1>OFFER LETTER</h1>
+            <h3>Akkurate</h3>
+          </div>
+          
+          <p>Date: ${new Date().toLocaleDateString()}</p>
+          <br/>
+          <p>Dear <strong>${candidate.firstName} ${candidate.lastName}</strong>,</p>
+          
+          <p>We are pleased to offer you the position of <strong>${candidate.job.title}</strong> at Akkurate.</p>
+          
+          <p>Based on your interviews and experience, we believe you will be a valuable asset to our team.
+          Your starting date will be communicated shortly upon acceptance of this offer.</p>
+          
+          <p><strong>Offer Details:</strong></p>
+          <ul>
+            <li><strong>Position:</strong> ${candidate.job.title}</li>
+            <li><strong>Department:</strong> ${candidate.job.department?.name || 'General'}</li>
+            <li><strong>Employment Type:</strong> ${candidate.job.employmentType || 'Full-time'}</li>
+          </ul>
+
+          <p>We look forward to welcoming you to the team!</p>
+          
+          <br/>
+          <p>Sincerely,</p>
+          <p>HR Department<br/>Akkurate</p>
+        </body>
+      </html>
+    `;
+
+    try {
+      console.log('Service: Launching Puppeteer...'); // DEBUG
+      const browser = await puppeteer.launch({
+        headless: true,
+        args: ['--no-sandbox', '--disable-setuid-sandbox']
+      });
+      try {
+        const page = await browser.newPage();
+        await page.setContent(htmlContent);
+        const pdf = await page.pdf({ format: 'A4' });
+        return Buffer.from(pdf);
+      } finally {
+        await browser.close();
+      }
+    } catch (error: any) {
+      console.error('Service: Error generating offer letter', error); // DEBUG
+      throw new Error('Failed to generate offer letter: ' + error.message);
+    }
   }
 }

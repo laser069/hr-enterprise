@@ -9,7 +9,9 @@ import {
   Query,
   UseGuards,
   Request,
+  Res,
 } from '@nestjs/common';
+import { Response } from 'express';
 import { PayrollService } from './payroll.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
@@ -21,7 +23,7 @@ import { CreatePayrollRunDto } from './dto/create-payroll-run.dto';
 @Controller('payroll')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class PayrollController {
-  constructor(private readonly payrollService: PayrollService) {}
+  constructor(private readonly payrollService: PayrollService) { }
 
   // ============ Salary Structure Endpoints ============
 
@@ -122,5 +124,28 @@ export class PayrollController {
   @Get('runs/:id/summary')
   async getPayrollSummary(@Param('id') id: string) {
     return this.payrollService.getPayrollSummary(id);
+  }
+
+  @Get('entries/:id/pdf')
+  async downloadPayslip(@Param('id') id: string, @Res() res: Response) {
+    const buffer = await this.payrollService.generatePayslip(id);
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': 'attachment; filename=payslip.pdf',
+      'Content-Length': buffer.length,
+    });
+    res.end(buffer);
+  }
+
+  @Get('runs/:id/bank-export')
+  @Roles('admin', 'hr')
+  async downloadBankFile(@Param('id') id: string, @Res() res: Response) {
+    const buffer = await this.payrollService.generateBankTransferFile(id);
+    res.set({
+      'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'Content-Disposition': 'attachment; filename=bank_transfer.xlsx',
+      'Content-Length': buffer.length,
+    });
+    res.end(buffer);
   }
 }

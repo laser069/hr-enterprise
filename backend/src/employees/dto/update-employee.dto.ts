@@ -42,4 +42,8 @@ export class UpdateEmployeeDto {
   @IsString()
   @IsOptional()
   employmentStatus?: string;
+
+  @IsUUID()
+  @IsOptional()
+  shiftId?: string;
 }

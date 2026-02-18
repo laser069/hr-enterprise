@@ -8,7 +8,9 @@ import {
   Query,
   UseGuards,
   Patch,
+  Res,
 } from '@nestjs/common';
+import { Response } from 'express';
 import { RecruitmentService } from './recruitment.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
@@ -19,7 +21,7 @@ import { CreateCandidateDto } from './dto/create-candidate.dto';
 @Controller('recruitment')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class RecruitmentController {
-  constructor(private readonly recruitmentService: RecruitmentService) {}
+  constructor(private readonly recruitmentService: RecruitmentService) { }
 
   // ============ Job Endpoints ============
 
@@ -113,5 +115,41 @@ export class RecruitmentController {
   @Get('summary')
   async getRecruitmentSummary() {
     return this.recruitmentService.getRecruitmentSummary();
+  }
+
+  // ============ Interview Endpoints ============
+
+  @Post('interviews')
+  @Roles('admin', 'hr', 'manager')
+  async scheduleInterview(@Body() data: { candidateId: string; interviewerId: string; scheduledAt: string; type: string }) {
+    console.log('HIT: scheduleInterview endpoint'); // DEBUG
+    console.log('Payload:', data); // DEBUG
+    return this.recruitmentService.scheduleInterview(data);
+  }
+
+  @Get('interviews')
+  @Roles('admin', 'hr', 'manager')
+  async getInterviews(@Query('candidateId') candidateId?: string) {
+    return this.recruitmentService.getInterviews(candidateId);
+  }
+
+  @Patch('interviews/:id')
+  @Roles('admin', 'hr', 'manager')
+  async updateInterview(@Param('id') id: string, @Body() data: { status?: string; feedback?: string; score?: number }) {
+    return this.recruitmentService.updateInterview(id, data);
+  }
+
+  // ============ Offer Letter ============
+
+  @Get('candidates/:id/offer-letter')
+  @Roles('admin', 'hr')
+  async generateOfferLetter(@Param('id') id: string, @Res() res: Response) {
+    const buffer = await this.recruitmentService.generateOfferLetter(id);
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': 'attachment; filename=offer_letter.pdf',
+      'Content-Length': buffer.length,
+    });
+    res.end(buffer);
   }
 }

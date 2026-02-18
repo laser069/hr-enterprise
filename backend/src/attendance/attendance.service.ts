@@ -36,13 +36,25 @@ export class AttendanceService {
     return ist.toISOString().split('T')[0];
   }
 
-  private calculateLateMinutes(checkIn: Date): number {
+  private calculateLateMinutes(checkIn: Date, shift?: { startTime: string } | null): number {
     const ist = this.toIST(checkIn);
     const hour = ist.getUTCHours();
     const minute = ist.getUTCMinutes();
 
-    const lateThresholdMinutes =
-      this.LATE_THRESHOLD_HOUR * 60 + this.LATE_THRESHOLD_MINUTE;
+    let thresholdHour = this.LATE_THRESHOLD_HOUR;
+    let thresholdMinute = this.LATE_THRESHOLD_MINUTE;
+
+    if (shift) {
+      const [sh, sm] = shift.startTime.split(':').map(Number);
+      thresholdHour = sh;
+      thresholdMinute = sm + 15; // 15 mins grace
+      if (thresholdMinute >= 60) {
+        thresholdHour += Math.floor(thresholdMinute / 60);
+        thresholdMinute %= 60;
+      }
+    }
+
+    const lateThresholdMinutes = thresholdHour * 60 + thresholdMinute;
     const actualMinutes = hour * 60 + minute;
 
     if (actualMinutes <= lateThresholdMinutes) {
@@ -64,6 +76,7 @@ export class AttendanceService {
     checkIn: Date | null,
     checkOut: Date | null,
     workMinutes: number,
+    shift?: { startTime: string } | null,
   ): string {
     if (!checkIn) {
       return 'absent';
@@ -73,7 +86,7 @@ export class AttendanceService {
       return 'present';
     }
 
-    const lateMinutes = this.calculateLateMinutes(checkIn);
+    const lateMinutes = this.calculateLateMinutes(checkIn, shift);
 
     if (lateMinutes > 0 && workMinutes < this.HALF_DAY_MINUTES) {
       return 'half-day';
@@ -92,6 +105,8 @@ export class AttendanceService {
     // Validate employee
     const employee = await this.prisma.employee.findUnique({
       where: { id: employeeId },
+      // @ts-ignore
+      include: { shift: true },
     });
 
     if (!employee) {
@@ -116,8 +131,8 @@ export class AttendanceService {
     }
 
     // Create or update attendance record
-    const lateMinutes = this.calculateLateMinutes(now);
-    const status = this.determineStatus(now, null, 0);
+    const lateMinutes = this.calculateLateMinutes(now, (employee as any).shift);
+    const status = this.determineStatus(now, null, 0, (employee as any).shift);
 
     const attendance = await this.prisma.attendance.upsert({
       where: {
@@ -162,6 +177,8 @@ export class AttendanceService {
     // Validate employee
     const employee = await this.prisma.employee.findUnique({
       where: { id: employeeId },
+      // @ts-ignore
+      include: { shift: true },
     });
 
     if (!employee) {
@@ -196,6 +213,7 @@ export class AttendanceService {
       attendance.checkIn,
       now,
       workMinutes,
+      (employee as any).shift,
     );
 
     const updatedAttendance = await this.prisma.attendance.update({
@@ -235,6 +253,8 @@ export class AttendanceService {
     // Validate employee
     const employee = await this.prisma.employee.findUnique({
       where: { id: employeeId },
+      // @ts-ignore
+      include: { shift: true },
     });
 
     if (!employee) {
@@ -267,7 +287,7 @@ export class AttendanceService {
 
     if (checkIn) {
       const checkInDate = new Date(checkIn);
-      lateMinutes = this.calculateLateMinutes(checkInDate);
+      lateMinutes = this.calculateLateMinutes(checkInDate, (employee as any).shift);
 
       if (checkOut) {
         const checkOutDate = new Date(checkOut);
@@ -280,6 +300,7 @@ export class AttendanceService {
           checkInDate,
           checkOut ? new Date(checkOut) : null,
           workMinutes || 0,
+          (employee as any).shift,
         );
       }
     }
@@ -349,7 +370,11 @@ export class AttendanceService {
     if (startDate || endDate) {
       where.date = {};
       if (startDate) where.date.gte = new Date(startDate);
-      if (endDate) where.date.lte = new Date(endDate);
+      if (endDate) {
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        where.date.lte = end;
+      }
     }
 
     // Merge role-based `where` with query params `where`
@@ -447,6 +472,12 @@ export class AttendanceService {
   async update(id: string, updateAttendanceDto: UpdateAttendanceDto) {
     const attendance = await this.prisma.attendance.findUnique({
       where: { id },
+      include: {
+        employee: {
+          // @ts-ignore
+          include: { shift: true },
+        },
+      },
     });
 
     if (!attendance) {
@@ -465,7 +496,7 @@ export class AttendanceService {
     const newCheckOut = checkOut ? new Date(checkOut) : attendance.checkOut;
 
     if (newCheckIn) {
-      lateMinutes = this.calculateLateMinutes(newCheckIn);
+      lateMinutes = this.calculateLateMinutes(newCheckIn, ((attendance as any).employee as any).shift);
 
       if (newCheckOut) {
         workMinutes = this.calculateWorkMinutes(newCheckIn, newCheckOut);
@@ -477,6 +508,7 @@ export class AttendanceService {
           newCheckIn,
           newCheckOut,
           workMinutes || 0,
+          ((attendance as any).employee as any).shift,
         );
       }
     }
