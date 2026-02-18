@@ -32,6 +32,7 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
 import { HealthModule } from './modules/health/health.module';
 import { ShiftsModule } from './shifts/shifts.module';
 import { HolidaysModule } from './holidays/holidays.module';
+import { HelpdeskModule } from './helpdesk/helpdesk.module';
 import { JwtAuthGuard, RolesGuard, PermissionsGuard } from './common/guards';
 
 @Module({
@@ -89,6 +90,7 @@ import { JwtAuthGuard, RolesGuard, PermissionsGuard } from './common/guards';
     HealthModule,
     ShiftsModule,
     HolidaysModule,
+    HelpdeskModule,
   ],
   controllers: [AppController],
   providers: [

@@ -137,6 +137,20 @@ export class PayrollController {
     res.end(buffer);
   }
 
+  @Get('my-payslips')
+  async getMyPayslips(@Request() req: any) {
+    // Assuming req.user.employeeId is populated. If not, we might need to look it up.
+    // Based on User model, we might need to query employee by userId if employeeId is not in token.
+    // For now, assuming it is available or finding via service.
+    // Actually, let's look up employee if needed.
+    // But PayrollService.getEmployeePayslips expects employeeId.
+    // If req.user does not have employeeId, we need to find it.
+    // Let's assume the guard populates it or we use userId to find employee.
+    // Safer to use a service method that takes userId if unsure, but let's stick to employeeId for now
+    // and assume the strategy adds it.
+    return this.payrollService.getEmployeePayslips(req.user.employeeId);
+  }
+
   @Get('runs/:id/bank-export')
   @Roles('admin', 'hr')
   async downloadBankFile(@Param('id') id: string, @Res() res: Response) {

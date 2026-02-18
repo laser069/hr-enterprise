@@ -1,5 +1,5 @@
 import { apiClient } from '../../../core/api/api-client';
-import type { Goal, PerformanceReview, CreateGoalDto, CreateReviewDto } from '../types';
+import type { Goal, PerformanceReview, CreateGoalDto, CreateReviewDto, UpdateGoalProgressDto } from '../types';
 
 export const performanceApi = {
   // Goals
@@ -11,8 +11,8 @@ export const performanceApi = {
     return apiClient.post<Goal>('/performance/goals', data);
   },
 
-  updateGoalProgress: (id: string, achievedValue: number): Promise<Goal> => {
-    return apiClient.patch<Goal>(`/performance/goals/${id}/progress`, { achievedValue });
+  updateGoalProgress: (id: string, data: UpdateGoalProgressDto): Promise<Goal> => {
+    return apiClient.patch<Goal>(`/performance/goals/${id}/progress`, data);
   },
 
   // Reviews
@@ -25,7 +25,7 @@ export const performanceApi = {
   },
 
   getPendingReviews: (): Promise<PerformanceReview[]> => {
-    return apiClient.get<PerformanceReview[]>('/performance/reviews', { params: { status: 'DRAFT' } });
+    return apiClient.get<PerformanceReview[]>('/performance/reviews', { params: { status: 'draft' } });
   },
 
   submitReview: (id: string): Promise<PerformanceReview> => {

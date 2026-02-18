@@ -7,10 +7,6 @@ import { Button } from '../../../shared/components/ui/Button';
 import { DataTable, type Column } from '../../../shared/components/ui/DataTable';
 
 const statusColors: Record<string, 'success' | 'warning' | 'danger' | 'default'> = {
-  APPROVED: 'success',
-  PENDING: 'warning',
-  REJECTED: 'danger',
-  CANCELLED: 'default',
   approved: 'success',
   pending: 'warning',
   rejected: 'danger',
@@ -46,7 +42,7 @@ export default function LeaveRequests() {
     if (selectedRequestId && rejectionReason) {
       await rejectMutation.mutateAsync({
         id: selectedRequestId,
-        comments: rejectionReason,
+        rejectionReason: rejectionReason,
       });
       setRejectModalOpen(false);
       setRejectionReason('');
@@ -128,7 +124,7 @@ export default function LeaveRequests() {
     {
       header: 'Status',
       accessor: (request) => (
-        <Badge variant={statusColors[request.status]}>
+        <Badge variant={statusColors[request.status.toLowerCase()]}>
           {request.status}
         </Badge>
       ),
@@ -138,7 +134,7 @@ export default function LeaveRequests() {
       align: 'right',
       accessor: (request) => (
         <div className="flex items-center justify-end gap-2">
-          {request.status === 'PENDING' && canApprove && (
+          {request.status.toLowerCase() === 'pending' && canApprove && (
             <>
               <button
                 onClick={() => handleApprove(request.id, `${request.employee?.firstName} ${request.employee?.lastName}`)}
@@ -162,7 +158,7 @@ export default function LeaveRequests() {
               </button>
             </>
           )}
-          {request.status === 'PENDING' && (
+          {request.status.toLowerCase() === 'pending' && (
              <button
               onClick={() => handleCancel(request.id)}
               className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-all"
@@ -236,7 +232,7 @@ export default function LeaveRequests() {
           currentPage: data.meta.page,
           totalPages: data.meta.totalPages,
           totalItems: data.meta.total,
-          itemsPerPage: data.meta.limit,
+          itemsPerPage: params.limit || 10,
           onPageChange: (page) => handleParamsChange({ page })
         } : undefined}
       />

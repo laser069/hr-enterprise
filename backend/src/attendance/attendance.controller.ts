@@ -68,7 +68,6 @@ export class AttendanceController {
 
   @Get('today-stats')
   @Permissions('attendance:read')
-  @UseGuards(JwtAuthGuard, PermissionsGuard)
   async getTodayStats(@CurrentUser() user: CurrentUserPayload) {
     console.log(`User ${user?.userId} requesting today stats`);
     return this.attendanceService.getTodayStats();

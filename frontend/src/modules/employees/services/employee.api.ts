@@ -48,4 +48,9 @@ export const employeeApi = {
   getSubordinates: async (managerId: string): Promise<Employee[]> => {
     return apiClient.get<Employee[]>(`/employees/${managerId}/team`);
   },
+
+  // Get full organization hierarchy
+  getHierarchy: async (): Promise<any> => {
+    return apiClient.get('/employees/hierarchy');
+  },
 };

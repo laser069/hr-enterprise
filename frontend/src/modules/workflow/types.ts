@@ -1,6 +1,6 @@
 // Workflow Types
 
-export type ApprovalStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
+export type ApprovalStatus = 'pending' | 'approved' | 'rejected';
 export type ApprovalEntityType = 'LEAVE_REQUEST' | 'PAYROLL_RUN' | 'EXPENSE_CLAIM';
 
 export interface Approval {

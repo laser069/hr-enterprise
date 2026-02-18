@@ -7,13 +7,13 @@ import { Button } from '../../../shared/components/ui/Button';
 import { Card } from '../../../shared/components/ui/Card';
 import { Modal } from '../../../shared/components/ui/Modal';
 
-const goalStatuses: GoalStatus[] = ['PENDING', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'];
+const goalStatuses: GoalStatus[] = ['draft', 'active', 'completed', 'cancelled'];
 
 const statusColors: Record<GoalStatus, 'success' | 'warning' | 'default' | 'danger'> = {
-  COMPLETED: 'success',
-  IN_PROGRESS: 'warning',
-  PENDING: 'default',
-  CANCELLED: 'danger',
+  completed: 'success',
+  active: 'warning',
+  draft: 'default',
+  cancelled: 'danger',
 };
 
 export default function GoalsPage() {
@@ -153,7 +153,7 @@ export default function GoalsPage() {
                       </td>
                       <td className="px-10 py-8 text-right">
                         <div className="flex items-center justify-end gap-3 opacity-0 group-hover:opacity-100 transition-all">
-                          {goal.status !== 'COMPLETED' && goal.status !== 'CANCELLED' && (
+                          {goal.status !== 'completed' && goal.status !== 'cancelled' && (
                             <button
                               onClick={() => handleProgressUpdate(goal.id, goal.achievedValue)}
                               className="p-3 text-indigo-500 bg-white/40 hover:bg-white hover:shadow-xl rounded-2xl border border-white/60 transition-all duration-500"

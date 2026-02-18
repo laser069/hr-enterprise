@@ -1,7 +1,7 @@
 // Compliance Types
 
 export type FilingType = 'PF' | 'ESI' | 'TDS' | 'PT' | 'GST';
-export type FilingStatus = 'PENDING' | 'FILED' | 'OVERDUE';
+export type FilingStatus = 'pending' | 'filed' | 'acknowledged';
 
 export interface FilingRecord {
   id: string;
@@ -11,7 +11,7 @@ export interface FilingRecord {
   filedDate?: string;
   status: FilingStatus;
   amount?: number;
-  referenceNumber?: string;
+  receiptNo?: string;
   createdAt: string;
   updatedAt: string;
 }

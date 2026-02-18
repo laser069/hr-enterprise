@@ -8,7 +8,7 @@ import { Card } from '../../../shared/components/ui/Card';
 import { Modal } from '../../../shared/components/ui/Modal';
 
 const filingTypes: FilingType[] = ['PF', 'ESI', 'TDS', 'GST', 'PT'];
-const filingStatuses: FilingStatus[] = ['PENDING', 'FILED', 'OVERDUE'];
+const filingStatuses: FilingStatus[] = ['pending', 'filed', 'acknowledged'];
 
 export default function FilingsPage() {
   const { hasPermission } = useAuthContext();
@@ -171,7 +171,7 @@ export default function FilingsPage() {
                        <Badge variant={getStatusColor(filing.status.toLowerCase())} className="shadow-lg">{filing.status}</Badge>
                     </td>
                     <td className="px-10 py-8 whitespace-nowrap">
-                       <span className={`text-[10px] font-black uppercase tracking-widest ${isOverdue(filing.dueDate) && filing.status === 'PENDING' ? 'text-rose-500' : 'text-slate-400'}`}>
+                       <span className={`text-[10px] font-black uppercase tracking-widest ${isOverdue(filing.dueDate) && filing.status === 'pending' ? 'text-rose-500' : 'text-slate-400'}`}>
                           {new Date(filing.dueDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
                        </span>
                     </td>
@@ -180,7 +180,7 @@ export default function FilingsPage() {
                     </td>
                     <td className="px-10 py-8 whitespace-nowrap text-right">
                        <div className="flex justify-end gap-3">
-                          {filing.status === 'PENDING' && canManage && (
+                          {filing.status === 'pending' && canManage && (
                             <Button variant="ghost" size="sm" onClick={() => openFileModal(filing.id)}>Execute</Button>
                           )}
                        </div>

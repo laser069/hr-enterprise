@@ -53,7 +53,10 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         disabled={disabled || isLoading}
         {...props}
       >
-        <GlassEffect className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none rounded-inherit">
+        <GlassEffect 
+          className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none rounded-inherit"
+          disableFilter={true}
+        >
           <div />
         </GlassEffect>
         <div className="relative z-10 flex items-center justify-center">

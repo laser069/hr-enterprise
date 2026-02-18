@@ -15,4 +15,5 @@ export interface Notification {
 
 export interface NotificationStats {
   unreadCount: number;
+  count: number;
 }

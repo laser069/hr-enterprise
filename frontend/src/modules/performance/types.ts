@@ -1,7 +1,7 @@
 // Performance Management Types
 
-export type GoalStatus = 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
-export type ReviewStatus = 'DRAFT' | 'SUBMITTED' | 'ACKNOWLEDGED';
+export type GoalStatus = 'draft' | 'active' | 'completed' | 'cancelled';
+export type ReviewStatus = 'draft' | 'submitted' | 'acknowledged';
 
 export interface Goal {
   id: string;
@@ -27,11 +27,13 @@ export interface PerformanceReview {
   id: string;
   employeeId: string;
   reviewerId: string;
-  reviewPeriod: string;
-  rating: number; // 1-5
-  strengths: string;
-  improvements: string;
-  comments: string;
+  reviewPeriodStart: string;
+  reviewPeriodEnd: string;
+  overallRating?: number;  // 1-5
+  strengths?: string;
+  areasOfImprovement?: string;
+  feedback?: string;
+  goals?: string;
   status: ReviewStatus;
   createdAt: string;
   updatedAt: string;
@@ -65,9 +67,12 @@ export interface UpdateGoalProgressDto {
 export interface CreateReviewDto {
   employeeId: string;
   reviewerId: string;
-  reviewPeriod: string;
-  rating: number;
+  reviewPeriodStart: string;
+  reviewPeriodEnd: string;
+  overallRating: number;
   comments?: string;
   strengths?: string;
   improvements?: string;
+  feedback?: string;
+  goals?: string;
 }

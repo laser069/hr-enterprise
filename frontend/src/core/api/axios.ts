@@ -21,9 +21,20 @@ axiosInstance.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Response interceptor - handle 401 and token refresh
+// Response interceptor - unwrap data & handle 401
 axiosInstance.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // Backend wraps responses in { success: boolean, data: T, meta?: ... }
+    // We unwrap the data field so components get T directly
+    if (response.data && response.data.data !== undefined) {
+      // Attach meta to response if it exists for pagination help
+      if (response.data.meta) {
+        (response as any).meta = response.data.meta;
+      }
+      return { ...response, data: response.data.data };
+    }
+    return response;
+  },
   async (error: AxiosError) => {
     const originalRequest = error.config;
     

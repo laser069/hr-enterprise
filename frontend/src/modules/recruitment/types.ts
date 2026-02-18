@@ -1,7 +1,7 @@
 // Recruitment Types
 
-export type JobStatus = 'OPEN' | 'CLOSED' | 'ON_HOLD';
-export type CandidateStage = 'APPLIED' | 'SCREENING' | 'INTERVIEW' | 'OFFERED' | 'HIRED' | 'REJECTED';
+export type JobStatus = 'draft' | 'published' | 'closed';
+export type CandidateStage = 'applied' | 'screening' | 'interview' | 'offer' | 'hired' | 'rejected';
 
 export interface Job {
   id: string;
@@ -84,4 +84,29 @@ export interface RecruitmentSummary {
   avgTimeToHire: number;
   interviewsScheduled: number;
   candidatesByStage: Record<CandidateStage, number>;
+}
+
+export type InterviewType = 'screening' | 'technical' | 'behavioral' | 'final';
+export type InterviewStatus = 'scheduled' | 'completed' | 'cancelled' | 'pending_feedback';
+
+export interface Interview {
+  id: string;
+  candidateId: string;
+  interviewerId: string;
+  scheduledAt: string;
+  type: InterviewType;
+  status: InterviewStatus;
+  feedback?: string;
+  score?: number;
+  meetingLink?: string;
+  location?: string;
+  createdAt: string;
+  updatedAt: string;
+  candidate?: Candidate;
+  interviewer?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
 }

@@ -84,8 +84,8 @@ export default function PayrollRunDetails() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Badge variant={getStatusColor(run.status)} className="text-sm px-3 py-1">
-            {run.status.charAt(0).toUpperCase() + run.status.slice(1)}
+          <Badge variant={getStatusColor(run.status.toLowerCase())} className="text-sm px-3 py-1">
+            {run.status.charAt(0).toUpperCase() + run.status.slice(1).toLowerCase()}
           </Badge>
         </div>
       </div>
@@ -128,9 +128,9 @@ export default function PayrollRunDetails() {
       </div>
 
       {/* Action Buttons */}
-      {canManage && run.status !== 'PROCESSED' && (
+      {canManage && run.status.toLowerCase() !== 'processed' && (
         <div className="flex gap-3">
-          {run.status === 'DRAFT' && (
+          {run.status.toLowerCase() === 'draft' && (
             <>
               <Button
                 variant="primary"
@@ -148,7 +148,7 @@ export default function PayrollRunDetails() {
               </Button>
             </>
           )}
-          {run.status === 'APPROVED' && (
+          {run.status.toLowerCase() === 'approved' && (
             <Button
               variant="success"
               onClick={handleProcess}
@@ -215,15 +215,15 @@ export default function PayrollRunDetails() {
                   </td>
                 </tr>
               ) : (
-                run.entries.map((entry) => (
+                run.entries.map((entry: any) => (
                   <tr key={entry.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className="h-10 w-10 flex-shrink-0">
-                          {entry.employee?.profilePicture ? (
+                          {entry.employee?.profilePicture || entry.employee?.photo ? (
                             <img
                               className="h-10 w-10 rounded-full object-cover"
-                              src={entry.employee.profilePicture}
+                              src={entry.employee.profilePicture || entry.employee.photo}
                               alt=""
                             />
                           ) : (
@@ -244,7 +244,7 @@ export default function PayrollRunDetails() {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {entry.employee?.department?.name || '-'}
+                      {entry.employee?.department?.name || entry.employee?.departmentName || '-'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       ${entry.grossSalary.toLocaleString()}
@@ -257,7 +257,7 @@ export default function PayrollRunDetails() {
                       )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-red-600">
-                      -${entry.deductions.toLocaleString()}
+                      -${(entry.totalDeductions || entry.deductions || 0).toLocaleString()}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600">
                       ${entry.netSalary.toLocaleString()}

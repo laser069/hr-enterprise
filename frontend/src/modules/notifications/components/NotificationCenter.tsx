@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNotifications, useUnreadCount, useMarkAsRead, useMarkAllAsRead } from '../hooks/useNotifications';
 import { Link } from 'react-router-dom';
+import type { Notification } from '../types';
 
 export default function NotificationCenter() {
   const [isOpen, setIsOpen] = useState(false);
@@ -20,7 +21,7 @@ export default function NotificationCenter() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const unreadCount = unreadData?.unreadCount || 0;
+  const unreadCount = unreadData?.count || 0;
 
   return (
     <div className="relative" ref={dropdownRef}>
@@ -58,7 +59,7 @@ export default function NotificationCenter() {
             ) : !notifications || notifications.length === 0 ? (
               <div className="p-10 text-center text-slate-400 text-[10px] font-black uppercase tracking-widest">No active telemetry</div>
             ) : (
-              notifications.map((n) => (
+              notifications.map((n: Notification) => (
                 <div
                   key={n.id}
                   className={`p-6 border-b border-white/5 transition-all hover:bg-white/5 cursor-pointer group ${!n.isRead ? 'bg-indigo-500/5' : ''}`}

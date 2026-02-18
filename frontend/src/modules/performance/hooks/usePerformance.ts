@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { performanceApi } from '../services/performance.api';
-import type { CreateGoalDto, CreateReviewDto } from '../types';
+import type { CreateGoalDto, CreateReviewDto, UpdateGoalProgressDto } from '../types';
 
 export const performanceKeys = {
   all: ['performance'] as const,
@@ -43,8 +43,8 @@ export function useCreateGoal() {
 export function useUpdateGoalProgress() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, achievedValue }: { id: string; achievedValue: number }) =>
-      performanceApi.updateGoalProgress(id, achievedValue),
+    mutationFn: ({ id, ...data }: { id: string } & UpdateGoalProgressDto) =>
+      performanceApi.updateGoalProgress(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: performanceKeys.goals() });
     },

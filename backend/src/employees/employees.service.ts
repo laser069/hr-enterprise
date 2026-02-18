@@ -460,6 +460,27 @@ export class EmployeesService {
     return employee;
   }
 
+  async getCompanyHierarchy() {
+    // Find top-level managers (no managerId)
+    const roots = await this.prisma.employee.findMany({
+      where: { managerId: null },
+      include: {
+        subordinates: {
+          include: {
+            subordinates: {
+              include: {
+                subordinates: true,
+              },
+            },
+          },
+        },
+        department: true,
+      },
+    });
+
+    return roots;
+  }
+
   async getTeamMembers(managerId: string) {
     const manager = await this.prisma.employee.findUnique({
       where: { id: managerId },

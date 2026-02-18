@@ -6,11 +6,11 @@ import { Button } from '../../../shared/components/ui/Button';
 import { DataTable, type Column } from '../../../shared/components/ui/DataTable';
 
 const statusColors: Record<string, 'success' | 'warning' | 'danger' | 'default'> = {
-  PRESENT: 'success',
-  ABSENT: 'danger',
-  LATE: 'warning',
-  HALF_DAY: 'warning',
-  ON_LEAVE: 'default',
+  present: 'success',
+  absent: 'danger',
+  late: 'warning',
+  'half-day': 'warning',
+  'on-leave': 'default',
 };
 
 export default function AttendanceList() {
@@ -103,11 +103,11 @@ export default function AttendanceList() {
     {
       header: 'Work Hours',
       accessor: (record) => (
-        record.workHours ? (
+        record.workMinutes ? (
           <div className="flex items-center gap-1.5">
-            <span className="text-sm font-black text-slate-900">{record.workHours}h</span>
-            {record.overtimeHours ? (
-               <span className="text-[10px] font-black text-emerald-600 bg-emerald-50 px-1.5 rounded">+{record.overtimeHours} OT</span>
+            <span className="text-sm font-black text-slate-900">{(record.workMinutes / 60).toFixed(1)}h</span>
+            {record.overtimeMinutes ? (
+               <span className="text-[10px] font-black text-emerald-600 bg-emerald-50 px-1.5 rounded">+{(record.overtimeMinutes / 60).toFixed(1)} OT</span>
             ) : null}
           </div>
         ) : '-'
@@ -197,11 +197,11 @@ export default function AttendanceList() {
             className="flex-1 md:w-48 px-4 py-2.5 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all cursor-pointer"
           >
             <option value="">All Statuses</option>
-            <option value="PRESENT">Present</option>
-            <option value="ABSENT">Absent</option>
-            <option value="LATE">Late</option>
-            <option value="HALF_DAY">Half Day</option>
-            <option value="ON_LEAVE">On Leave</option>
+            <option value="present">Present</option>
+            <option value="absent">Absent</option>
+            <option value="late">Late</option>
+            <option value="half-day">Half Day</option>
+            <option value="on-leave">On Leave</option>
           </select>
           
           <button 

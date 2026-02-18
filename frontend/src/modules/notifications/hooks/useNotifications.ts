@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import type { Notification, NotificationStats } from '../types';
 import { notificationsApi } from '../services/notifications.api';
 
 export const notificationKeys = {
@@ -8,15 +9,15 @@ export const notificationKeys = {
 };
 
 export function useNotifications() {
-  return useQuery({
+  return useQuery<Notification[]>({
     queryKey: notificationKeys.lists(),
-    queryFn: () => notificationsApi.getNotifications(),
+    queryFn: () => notificationsApi.getNotifications().then(res => res.data),
     refetchInterval: 30000, // Poll every 30 seconds
   });
 }
 
 export function useUnreadCount() {
-  return useQuery({
+  return useQuery<NotificationStats>({
     queryKey: notificationKeys.unreadCount(),
     queryFn: () => notificationsApi.getUnreadCount(),
     refetchInterval: 30000,

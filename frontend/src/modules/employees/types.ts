@@ -1,7 +1,7 @@
 // Employee Types
 
-export type EmploymentType = 'FULL_TIME' | 'PART_TIME' | 'CONTRACT' | 'INTERN';
-export type EmployeeStatus = 'ACTIVE' | 'ON_LEAVE' | 'TERMINATED' | 'SUSPENDED';
+export type EmploymentType = 'full-time' | 'part-time' | 'contract' | 'internship';
+export type EmployeeStatus = 'active' | 'inactive' | 'terminated' | 'ACTIVE' | 'ON_LEAVE' | 'TERMINATED' | 'SUSPENDED';
 export type Gender = 'MALE' | 'FEMALE' | 'OTHER';
 
 export interface Employee {
@@ -16,15 +16,19 @@ export interface Employee {
   profilePicture?: string;
   departmentId?: string;
   department?: Department;
-  designation?: string; // Backend returns string, not object
+  designation?: string;
   managerId?: string;
   manager?: Employee;
-  employmentType: EmploymentType;
   status: EmployeeStatus;
-  employmentStatus?: string; // Matching backend field
+  employmentStatus: 'active' | 'inactive' | 'terminated';
+  salaryStructureId?: string;
+  bankAccountNumber?: string;
+  ifscCode?: string;
+  bankName?: string;
+  shiftId?: string;
   dateOfJoining: string;
   endDate?: string;
-  address?: string; // Backend stores as string
+  address?: string;
   emergencyContact?: string;
   bankDetails?: string;
   createdAt: string;
@@ -46,26 +50,6 @@ export interface Designation {
   title: string;
   description?: string;
   level?: number;
-}
-
-export interface Address {
-  street?: string;
-  city?: string;
-  state?: string;
-  country?: string;
-  zipCode?: string;
-}
-
-export interface EmergencyContact {
-  name?: string;
-  relationship?: string;
-  phone?: string;
-}
-
-export interface BankDetails {
-  bankName?: string;
-  accountNumber?: string;
-  ifscCode?: string;
 }
 
 export interface EmployeeListParams {
@@ -91,7 +75,7 @@ export interface EmployeeListResponse {
 }
 
 export interface CreateEmployeeDto {
-  employeeCode: string; // Must match /^EMP\d{3,5}$/
+  employeeCode: string;
   firstName: string;
   lastName: string;
   email: string;
@@ -99,7 +83,7 @@ export interface CreateEmployeeDto {
   departmentId?: string;
   designation?: string;
   managerId?: string;
-  dateOfJoining: string; // ISO date string
+  dateOfJoining: string;
   employmentStatus?: string;
 }
 

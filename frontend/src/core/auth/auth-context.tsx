@@ -2,6 +2,15 @@ import { useState, useEffect, type ReactNode } from 'react';
 import type { User } from '../types/user.types';
 import { authService } from './auth-service';
 import { AuthContext } from './auth-context-def';
+import { useContext } from 'react';
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};
 
 interface ProfileResponse {
   user: User;
@@ -31,7 +40,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
     // Check for existing session on mount
     const token = localStorage.getItem('accessToken');
     if (token) {
-      // Fetch user profile
       fetchUserProfile();
     } else {
       setIsLoading(false);
@@ -43,8 +51,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const data = await authService.getProfile() as ProfileResponse;
       setUser(data.user);
       setPermissions(data.permissions || []);
+      
+      // Attempt to connect socket if possible
+      try {
+        const { notificationSocket } = await import('../../modules/notifications/services/notifications.socket');
+        notificationSocket.connect(localStorage.getItem('accessToken')!);
+      } catch (err) {
+        console.warn('Socket connection deferred or failed:', err);
+      }
     } catch {
-      // Token invalid - clear storage
       localStorage.removeItem('accessToken');
       localStorage.removeItem('refreshToken');
     } finally {
@@ -54,10 +69,19 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const login = async (email: string, password: string) => {
     const data = await authService.login({ email, password });
-    localStorage.setItem('accessToken', data.accessToken);
-    localStorage.setItem('refreshToken', data.refreshToken);
+    localStorage.setItem('accessToken', data.tokens.accessToken);
+    localStorage.setItem('refreshToken', data.tokens.refreshToken);
     setUser(data.user);
-    setPermissions(data.permissions || []);
+    // Assuming backend returns permissions under role or as a separate field
+    const perms = data.user.role?.permissions?.map((p: any) => p.name) || [];
+    setPermissions(perms);
+    
+    try {
+      const { notificationSocket } = await import('../../modules/notifications/services/notifications.socket');
+      notificationSocket.connect(data.tokens.accessToken);
+    } catch (err) {
+       console.warn('Socket connection failed after login:', err);
+    }
   };
 
   const logout = async () => {
@@ -66,6 +90,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
     } finally {
       localStorage.removeItem('accessToken');
       localStorage.removeItem('refreshToken');
+      try {
+        const { notificationSocket } = await import('../../modules/notifications/services/notifications.socket');
+        notificationSocket.disconnect();
+      } catch {}
       setUser(null);
       setPermissions([]);
     }

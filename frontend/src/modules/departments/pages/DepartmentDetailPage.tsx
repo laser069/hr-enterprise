@@ -46,7 +46,7 @@ export default function DepartmentDetailPage() {
       header: 'Status',
       accessor: (emp: Employee) => (
         <Badge 
-          variant={emp.employmentStatus === 'active' || emp.employmentStatus === 'ACTIVE' ? 'success' : 'default'} 
+          variant={emp.employmentStatus === 'active' ? 'success' : 'default'} 
           className="font-black text-[9px] uppercase tracking-widest"
         >
           {emp.employmentStatus || (emp as unknown as { status: string }).status}
@@ -66,7 +66,7 @@ export default function DepartmentDetailPage() {
   const stats = [
     {
       title: 'Active Nodes',
-      value: department.employees?.filter(e => e.employmentStatus === 'active' || e.employmentStatus === 'ACTIVE').length || 0,
+      value: department.employees?.filter(e => e.employmentStatus === 'active').length || 0,
       icon: 'UserCheck',
       trend: { value: 2.5, isPositive: true }
     },

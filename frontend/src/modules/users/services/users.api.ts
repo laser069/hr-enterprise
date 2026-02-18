@@ -6,13 +6,12 @@ import type {
   UpdateUserRoleDto,
   ResetPasswordDto,
   GetUsersParams,
-  UsersListResponse,
 } from '../types';
 
 export const usersApi = {
   // Get all users with pagination
-  getUsers: async (params?: GetUsersParams): Promise<UsersListResponse> => {
-    return apiClient.get<UsersListResponse>('/users', { params });
+  getUsers: async (params?: GetUsersParams) => {
+    return apiClient.getPaginated<User>('/users', { params });
   },
 
   // Get current user

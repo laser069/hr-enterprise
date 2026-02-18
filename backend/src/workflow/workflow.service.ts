@@ -327,6 +327,10 @@ export class WorkflowService {
   }
 
   async getPendingApprovalsForUser(approverId: string) {
+    if (!approverId) {
+      this.logger.warn('getPendingApprovalsForUser called with null/empty approverId');
+      return [];
+    }
     const approvals = await this.prisma.approval.findMany({
       where: {
         status: 'pending',
@@ -403,6 +407,19 @@ export class WorkflowService {
   }
 
   async getApprovalStats(userId: string) {
+    if (!userId) {
+      this.logger.warn('getApprovalStats called with null/empty userId');
+      return {
+        pendingForMe: 0,
+        myRequestsPending: 0,
+        totalApproved: 0,
+        totalRejected: 0,
+        pendingTrend: { value: 0, isPositive: true },
+        requestsTrend: { value: 0, isPositive: true },
+        approvalRate: 0,
+        rejectionRate: 0,
+      };
+    }
     const now = new Date();
     const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
     const fourteenDaysAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);

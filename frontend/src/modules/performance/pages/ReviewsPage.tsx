@@ -2,18 +2,18 @@ import { useState } from 'react';
 import { useReviews, useCreateReview, useSubmitReview, useAcknowledgeReview } from '../hooks/usePerformance';
 import { useAuthContext } from '../../../core/auth/use-auth-context';
 import { useEmployees } from '../../employees/hooks/useEmployee';
-import type { ReviewStatus } from '../types';
+import type { ReviewStatus, CreateReviewDto } from '../types';
 import { Badge } from '../../../shared/components/ui/Badge';
 import { Button } from '../../../shared/components/ui/Button';
 import { Card } from '../../../shared/components/ui/Card';
 import { Modal } from '../../../shared/components/ui/Modal';
 
-const reviewStatuses: ReviewStatus[] = ['DRAFT', 'SUBMITTED', 'ACKNOWLEDGED'];
+const reviewStatuses: ReviewStatus[] = ['draft', 'submitted', 'acknowledged'];
 
 const statusColors: Record<ReviewStatus, 'success' | 'warning' | 'default'> = {
-  ACKNOWLEDGED: 'success',
-  SUBMITTED: 'success',
-  DRAFT: 'warning',
+  acknowledged: 'success',
+  submitted: 'success',
+  draft: 'warning',
 };
 
 export default function ReviewsPage() {
@@ -40,8 +40,13 @@ export default function ReviewsPage() {
     await createMutation.mutateAsync({
       ...newReview,
       reviewerId: user?.id || '',
-      rating: Number(newReview.rating)
-    });
+      overallRating: Number(newReview.rating),
+      reviewPeriodStart: new Date().toISOString(),
+      reviewPeriodEnd: new Date().toISOString(),
+      comments: newReview.comments,
+      strengths: newReview.strengths,
+      improvements: newReview.improvements
+    } as any);
     setShowCreateModal(false);
     setNewReview({
       employeeId: '',
@@ -127,13 +132,13 @@ export default function ReviewsPage() {
                       </div>
                     </td>
                     <td className="px-10 py-8 text-xs font-black text-slate-900 tracking-widest uppercase">
-                      {review.reviewPeriod}
+                      {new Date(review.reviewPeriodStart).toLocaleDateString()} - {new Date(review.reviewPeriodEnd).toLocaleDateString()}
                     </td>
                     <td className="px-10 py-8">
                       <div className="flex items-center gap-2">
-                        <span className="text-sm font-black text-slate-900">{review.rating}</span>
+                        <span className="text-sm font-black text-slate-900">{review.overallRating || '-'}</span>
                         <div className="flex text-amber-500 text-[10px]">
-                          {'★'.repeat(Math.round(review.rating))}
+                          {'★'.repeat(Math.round(review.overallRating || 0))}
                         </div>
                       </div>
                     </td>
@@ -142,7 +147,7 @@ export default function ReviewsPage() {
                     </td>
                     <td className="px-10 py-8 text-right">
                       <div className="flex items-center justify-end gap-3 opacity-0 group-hover:opacity-100 transition-all">
-                        {review.status === 'DRAFT' && (
+                        {review.status === 'draft' && (
                           <Button 
                             variant="primary" 
                             size="sm" 
@@ -153,7 +158,7 @@ export default function ReviewsPage() {
                             Submit
                           </Button>
                         )}
-                        {review.status === 'SUBMITTED' && (
+                        {review.status === 'submitted' && (
                           <Button 
                             variant="primary" 
                             size="sm" 

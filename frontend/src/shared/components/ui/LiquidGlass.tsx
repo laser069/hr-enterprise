@@ -10,6 +10,7 @@ interface GlassEffectProps {
   style?: React.CSSProperties;
   href?: string;
   target?: string;
+  disableFilter?: boolean;
 }
 
 interface DockIcon {
@@ -25,6 +26,7 @@ export const GlassEffect: React.FC<GlassEffectProps> = ({
   style = {},
   href,
   target = "_blank",
+  disableFilter = false,
 }) => {
   const glassStyle = {
     boxShadow: "0 6px 6px rgba(0, 0, 0, 0.2), 0 0 20px rgba(0, 0, 0, 0.1)",
@@ -45,7 +47,7 @@ export const GlassEffect: React.FC<GlassEffectProps> = ({
         className="absolute inset-0 z-0 overflow-hidden rounded-inherit"
         style={{
           backdropFilter: "blur(3px)",
-          filter: "url(#glass-distortion)",
+          filter: disableFilter ? "none" : "url(#glass-distortion)",
           isolation: "isolate",
         }}
       />

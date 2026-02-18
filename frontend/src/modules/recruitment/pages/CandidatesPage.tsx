@@ -3,15 +3,15 @@ import { useSearchParams } from 'react-router-dom';
 import { useCandidates, useJobs, useMoveCandidateStage, useConvertToEmployee, useDeleteCandidate } from '../hooks/useRecruitment';
 import type { CandidateStage, Candidate } from '../types';
 
-const stages: CandidateStage[] = ['APPLIED', 'SCREENING', 'INTERVIEW', 'OFFERED', 'HIRED', 'REJECTED'];
+const stages: CandidateStage[] = ['applied', 'screening', 'interview', 'offer', 'hired', 'rejected'];
 
 const stageColors: Record<CandidateStage, string> = {
-  APPLIED: 'bg-slate-100 text-slate-500 border border-slate-200',
-  SCREENING: 'bg-amber-50 text-amber-700 border border-amber-200',
-  INTERVIEW: 'bg-indigo-50 text-indigo-700 border border-indigo-200',
-  OFFERED: 'bg-emerald-50 text-emerald-700 border border-emerald-200',
-  HIRED: 'bg-emerald-500 text-white shadow-[0_0_15px_rgba(16,185,129,0.5)]',
-  REJECTED: 'bg-red-50 text-red-700 border border-red-200',
+  applied: 'bg-slate-100 text-slate-500 border border-slate-200',
+  screening: 'bg-amber-50 text-amber-700 border border-amber-200',
+  interview: 'bg-indigo-50 text-indigo-700 border border-indigo-200',
+  offer: 'bg-emerald-50 text-emerald-700 border border-emerald-200',
+  hired: 'bg-emerald-500 text-white shadow-[0_0_15px_rgba(16,185,129,0.5)]',
+  rejected: 'bg-red-50 text-red-700 border border-red-200',
 };
 
 export default function CandidatesPage() {
@@ -197,7 +197,7 @@ export default function CandidatesPage() {
                       {new Date(candidate.appliedAt).toLocaleDateString()}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      {candidate.stage === 'HIRED' && (
+                      {candidate.stage === 'hired' && (
                         <button
                           onClick={() => handleConvert(candidate.id)}
                           className="text-emerald-500 hover:text-emerald-600 mr-3 transition-colors"

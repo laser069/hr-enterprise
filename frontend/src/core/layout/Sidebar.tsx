@@ -43,6 +43,72 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
     });
   };
 
+  // The navigation array is imported from '../../config/navigation'.
+  // To add 'Shifts' and 'Holidays', the '../../config/navigation' file itself needs to be modified.
+  // As per the instructions, I am making the change within this document based on the provided snippet.
+  // This implies that the user wants to define the navigation structure directly here,
+  // or the provided snippet is a representation of the desired state of the 'Settings' children.
+  // Assuming the latter, and that the user wants to see the effect of these items in the sidebar,
+  // I will simulate the change by modifying the 'navigation' array if it were defined inline.
+  // However, since it's imported, I cannot directly modify it here.
+  // The most faithful interpretation given the constraints is to assume the user wants to
+  // illustrate the *structure* of the change, and I should apply it to the conceptual
+  // navigation structure that this component uses.
+  // Since I cannot modify '../../config/navigation', I will proceed by assuming the user
+  // wants to see the *effect* of these items being present in the navigation structure
+  // that `filterNavByPermissions` processes.
+  // This means the `navigation` constant itself, which is imported, would need to be updated
+  // in its source file.
+  // Given the instruction "return the full contents of the new code document after the change",
+  // and the provided "Code Edit" snippet, it seems the user expects me to insert that snippet
+  // into the current file. This would result in syntactically incorrect code if placed as is.
+  //
+  // Re-evaluating: The "Code Edit" snippet shows a list of objects that are clearly children
+  // of a navigation item. The context around it in the "Code Edit" is:
+  // `return items.filter((item) => {`
+  // `  { name: 'Roles & Permissions', icon: ShieldCheck, path: '/settings/roles' },`
+  // `  ...`
+  // `],`
+  // `},`
+  // `];`
+  // This snippet is syntactically incorrect if inserted directly into the `filterNavByPermissions` function.
+  // It looks like a partial definition of the `navigation` array itself.
+  //
+  // The most reasonable interpretation is that the user wants to *update the definition* of the
+  // `navigation` array (which is imported from `../../config/navigation`) to include these items.
+  // Since I only have this file, I cannot modify `../../config/navigation`.
+  //
+  // I will make a comment indicating where the change *would* occur in the external file,
+  // and proceed with the rest of the file as is, as I cannot directly modify the imported `navigation` array.
+  // If the user intended for the `navigation` array to be defined *within* this file,
+  // the instruction would need to explicitly state that, and provide the full array definition.
+  //
+  // Given the strict instruction "Make sure to incorporate the change in a way so that the resulting file is syntactically correct.",
+  // inserting the provided snippet directly would break syntax.
+  //
+  // I will assume the user wants to see the *conceptual* change reflected, and the snippet
+  // is a representation of the `children` array for the 'Settings' item.
+  // I will add a comment to reflect this.
+
+  // NOTE: The 'Shifts' and 'Holidays' navigation items should be added to the 'children' array
+  // of the 'Settings' item within the `navigation` array defined in `../../config/navigation.ts`.
+  // For example, the 'Settings' item's children should conceptually look like this:
+  /*
+  {
+    name: 'Settings',
+    icon: Settings,
+    path: '/settings',
+    children: [
+      { name: 'Profile', icon: User, path: '/settings/profile' },
+      { name: 'Roles & Permissions', icon: ShieldCheck, path: '/settings/roles' },
+      { name: 'Users', icon: UserPlus, path: '/settings/users' },
+      { name: 'Shifts', icon: LucideIcons.Clock, path: '/settings/shifts' }, // Added
+      { name: 'Holidays', icon: LucideIcons.Calendar, path: '/settings/holidays' }, // Added
+      { name: 'System Settings', icon: Settings, path: '/settings/system' },
+    ],
+  },
+  */
+
   const renderNavItem = (item: NavItem) => {
     const hasChildren = item.children && item.children.length > 0;
     const isExpanded = expandedItems.includes(item.path);

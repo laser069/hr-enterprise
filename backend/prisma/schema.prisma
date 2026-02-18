@@ -10,6 +10,46 @@ datasource db {
 // USER & AUTHENTICATION MODELS
 // ============================================
 
+// ============================================
+// HELPDESK MODELS
+// ============================================
+
+model Ticket {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  status      String   @default("open") // open, in_progress, resolved, closed
+  priority    String   @default("medium") // low, medium, high, critical
+  category    String   // it_support, hr_query, payroll_issue, other
+  requesterId String   @map("requester_id")
+  assignedTo  String?  @map("assigned_to")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  requester   User     @relation("TicketRequester", fields: [requesterId], references: [id])
+  assignee    User?    @relation("TicketAssignee", fields: [assignedTo], references: [id])
+  comments    TicketComment[]
+
+  @@index([requesterId])
+  @@index([assignedTo])
+  @@index([status])
+  @@map("tickets")
+}
+
+model TicketComment {
+  id        String   @id @default(uuid())
+  ticketId  String   @map("ticket_id")
+  userId    String   @map("user_id")
+  content   String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  ticket    Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@index([ticketId])
+  @@map("ticket_comments")
+}
+
 model User {
   id            String    @id @default(uuid())
   email         String    @unique
@@ -32,6 +72,11 @@ model User {
   emailVerificationTokens EmailVerificationToken[]
   notifications Notification[]
   uploadedDocuments Document[]
+
+  // Helpdesk Relations
+  ticketsRequested Ticket[] @relation("TicketRequester")
+  ticketsAssigned  Ticket[] @relation("TicketAssignee")
+  ticketComments   TicketComment[]
 
   @@map("users")
 }

@@ -100,8 +100,8 @@ export function useRejectLeaveRequest() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, comments }: { id: string; comments: string }) =>
-      leaveApi.rejectLeaveRequest(id, comments),
+    mutationFn: ({ id, rejectionReason }: { id: string; rejectionReason: string }) =>
+      leaveApi.rejectLeaveRequest(id, rejectionReason),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: leaveKeys.requests() });
       queryClient.invalidateQueries({ queryKey: leaveKeys.pendingApprovals() });

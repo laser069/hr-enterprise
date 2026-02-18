@@ -1,6 +1,6 @@
 // Attendance Types
 
-export type AttendanceStatus = 'PRESENT' | 'LATE' | 'HALF_DAY' | 'ABSENT' | 'ON_LEAVE';
+export type AttendanceStatus = 'present' | 'absent' | 'late' | 'half-day' | 'on-leave';
 
 export interface Attendance {
   id: string;
@@ -9,8 +9,10 @@ export interface Attendance {
   checkIn?: string;
   checkOut?: string;
   status: AttendanceStatus;
-  workHours?: number;
-  overtimeHours?: number;
+  workMinutes?: number;
+  lateMinutes?: number;
+  overtimeMinutes?: number;
+  isManualEntry: boolean;
   notes?: string;
   createdAt: string;
   updatedAt: string;
@@ -36,13 +38,13 @@ export interface AttendanceStats {
 
 export interface CheckInDto {
   employeeId: string;
-  timestamp?: string;
+  timestamp?: string; // ISO datetime
   notes?: string;
 }
 
 export interface CheckOutDto {
   employeeId: string;
-  timestamp?: string;
+  timestamp?: string; // ISO datetime
   notes?: string;
 }
 

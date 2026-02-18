@@ -1,9 +1,10 @@
 import { apiClient } from '../../../core/api/api-client';
+import type { PaginatedResponse } from '../../../core/api/api-client';
 import type { Notification, NotificationStats } from '../types';
 
 export const notificationsApi = {
-  getNotifications: (): Promise<Notification[]> => {
-    return apiClient.get<Notification[]>('/notifications');
+  getNotifications: (params?: Record<string, unknown>): Promise<PaginatedResponse<Notification>> => {
+    return apiClient.getPaginated<Notification>('/notifications', { params });
   },
 
   getUnreadCount: (): Promise<NotificationStats> => {
@@ -11,11 +12,11 @@ export const notificationsApi = {
   },
 
   markAsRead: (id: string): Promise<void> => {
-    return apiClient.patch(`/notifications/${id}/read`);
+    return apiClient.post(`/notifications/${id}/read`);
   },
 
   markAllAsRead: (): Promise<void> => {
-    return apiClient.patch('/notifications/mark-all-read');
+    return apiClient.post('/notifications/read-all');
   },
 
   deleteNotification: (id: string): Promise<void> => {

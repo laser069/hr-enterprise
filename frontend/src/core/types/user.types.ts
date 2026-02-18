@@ -1,16 +1,37 @@
+import type { Employee } from '../../modules/employees/types';
+
 export interface User {
   id: string;
   email: string;
-  firstName: string;
-  lastName: string;
-  roleId: string;
-  role?: {
-    id: string;
-    name: string;
-  };
+  isActive: boolean;
+  emailVerified: boolean;
+  roleId?: string;
   employeeId?: string;
+  lastLoginAt?: string;
   createdAt: string;
   updatedAt: string;
+  firstName?: string;
+  lastName?: string;
+  role?: Role;
+  employee?: Employee;
+}
+
+export interface Role {
+  id: string;
+  name: string;
+  description?: string;
+  isSystem: boolean;
+  permissions: Permission[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Permission {
+  id: string;
+  name: string;
+  resource: string;
+  action: string;
+  createdAt: string;
 }
 
 export interface LoginRequest {
@@ -19,10 +40,12 @@ export interface LoginRequest {
 }
 
 export interface LoginResponse {
-  accessToken: string;
-  refreshToken: string;
   user: User;
-  permissions: string[];
+  tokens: {
+    accessToken: string;
+    refreshToken: string;
+    expiresIn: number;
+  };
 }
 
 export interface RegisterRequest {

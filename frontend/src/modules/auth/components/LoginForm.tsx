@@ -86,6 +86,14 @@ export default function LoginForm() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
+                <div className="flex justify-end pr-1">
+                  <Link
+                    to="/forgot-password"
+                    className="text-[9px] font-black text-slate-400 hover:text-slate-600 uppercase tracking-widest transition-colors"
+                  >
+                    Forgot Protocol?
+                  </Link>
+                </div>
               </div>
             </div>
 

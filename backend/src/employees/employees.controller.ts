@@ -59,6 +59,12 @@ export class EmployeesController {
     return this.employeesService.getStatistics();
   }
 
+  @Get('hierarchy')
+  @Permissions('employees:read')
+  getCompanyHierarchy() {
+    return this.employeesService.getCompanyHierarchy();
+  }
+
   @Get(':id')
   @Permissions('employees:read')
   findOne(@Param('id') id: string) {

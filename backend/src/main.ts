@@ -1,5 +1,5 @@
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe, VersioningType } from '@nestjs/common';
+import { Logger, ValidationPipe, VersioningType } from '@nestjs/common';
 import helmet from 'helmet';
 import compression from 'compression';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
@@ -21,6 +21,8 @@ async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule, {
     logger: WinstonModule.createLogger(winstonConfig),
   });
+
+  const logger = new Logger('HTTP');
 
   // Security middleware
   app.use(helmet({
@@ -51,7 +53,6 @@ async function bootstrap(): Promise<void> {
 
   // Request logging middleware
   app.use((req: any, res: any, next: any) => {
-    const logger = app.get('NestWinston');
     const { method, url, ip } = req;
     const userAgent = req.get('user-agent') || 'unknown';
     const startTime = Date.now();
@@ -62,9 +63,9 @@ async function bootstrap(): Promise<void> {
       const message = `${method} ${url} ${statusCode} - ${responseTime}ms - ${ip} - ${userAgent}`;
       
       if (statusCode >= 400) {
-        logger?.error?.(message) || console.error(message);
+        logger.error(message);
       } else {
-        logger?.log?.(message) || console.log(message);
+        logger.log(message);
       }
     });
 

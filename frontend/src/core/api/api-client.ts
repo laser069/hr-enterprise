@@ -42,14 +42,13 @@ export interface ApiError {
 }
 
 class ApiClient {
-  private unwrapResponse<T>(response: AxiosResponse<BackendResponse<T>>): T {
-    // Backend wraps responses in { data: T, meta?: ... }
-    // We extract the actual data
-    return response.data.data;
+  private unwrapResponse<T>(response: AxiosResponse<T>): T {
+    // response.data is already unwrapped by axios interceptor
+    return response.data;
   }
 
   async get<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
-    const response = await axiosInstance.get<BackendResponse<T>>(url, config);
+    const response = await axiosInstance.get<T>(url, config);
     return this.unwrapResponse(response);
   }
 
@@ -63,17 +62,23 @@ class ApiClient {
     if (params.page !== undefined && params.limit !== undefined && params.skip === undefined) {
       params.take = params.limit;
       params.skip = (params.page - 1) * params.limit;
-      // Remove frontend-only params if needed, or keep them for compatibility
+      delete params.page;
+      delete params.limit;
     }
 
-    const response = await axiosInstance.get<BackendResponse<T[]>>(url, {
+    const response = await axiosInstance.get<T[]>(url, {
       ...config,
       params,
     });
     
     return {
-      data: response.data.data,
-      meta: response.data.meta!,
+      data: response.data,
+      meta: (response as any).meta ?? {
+        page: params.page || 1,
+        limit: params.limit || response.data.length,
+        total: response.data.length,
+        totalPages: 1,
+      },
     };
   }
 
@@ -82,11 +87,7 @@ class ApiClient {
     data?: unknown,
     config?: AxiosRequestConfig,
   ): Promise<T> {
-    const response = await axiosInstance.post<BackendResponse<T>>(
-      url,
-      data,
-      config,
-    );
+    const response = await axiosInstance.post<T>(url, data, config);
     return this.unwrapResponse(response);
   }
 
@@ -95,11 +96,7 @@ class ApiClient {
     data?: unknown,
     config?: AxiosRequestConfig,
   ): Promise<T> {
-    const response = await axiosInstance.patch<BackendResponse<T>>(
-      url,
-      data,
-      config,
-    );
+    const response = await axiosInstance.patch<T>(url, data, config);
     return this.unwrapResponse(response);
   }
 
@@ -108,20 +105,18 @@ class ApiClient {
     data?: unknown,
     config?: AxiosRequestConfig,
   ): Promise<T> {
-    const response = await axiosInstance.put<BackendResponse<T>>(
-      url,
-      data,
-      config,
-    );
+    const response = await axiosInstance.put<T>(url, data, config);
     return this.unwrapResponse(response);
   }
 
   async delete<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
-    const response = await axiosInstance.delete<BackendResponse<T>>(
-      url,
-      config,
-    );
+    const response = await axiosInstance.delete<T>(url, config);
     return this.unwrapResponse(response);
+  }
+
+  async getBlob(url: string, config?: AxiosRequestConfig): Promise<Blob> {
+    const response = await axiosInstance.get(url, { ...config, responseType: 'blob' });
+    return response.data;
   }
 }
 

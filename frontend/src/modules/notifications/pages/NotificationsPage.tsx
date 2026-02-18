@@ -1,10 +1,12 @@
-import { useNotifications, useMarkAsRead, useMarkAllAsRead, useDeleteNotification } from '../hooks/useNotifications';
+import { useNotifications, useMarkAsRead, useMarkAllAsRead, useDeleteNotification, useUnreadCount } from '../hooks/useNotifications';
 import { Badge } from '../../../shared/components/ui/Badge';
 import { Card } from '../../../shared/components/ui/Card';
 import { Button } from '../../../shared/components/ui/Button';
+import type { Notification } from '../types';
 
 export default function NotificationsPage() {
   const { data: notifications, isLoading } = useNotifications();
+  const { data: unreadData } = useUnreadCount();
   const markAsRead = useMarkAsRead();
   const markAllRead = useMarkAllAsRead();
   const deleteNotification = useDeleteNotification();
@@ -33,7 +35,7 @@ export default function NotificationsPage() {
           <Button
             variant="outline"
             onClick={() => markAllRead.mutate()}
-            disabled={!notifications?.some(n => !n.isRead)}
+            disabled={!(unreadData?.count && unreadData.count > 0)}
             className="rounded-2xl h-14 px-8"
           >
             Acknowledge All
@@ -52,7 +54,7 @@ export default function NotificationsPage() {
               No enterprise telemetry detected
             </div>
           ) : (
-            notifications.map((notification) => (
+            notifications.map((notification: Notification) => (
               <div
                 key={notification.id}
                 className={`px-10 py-8 flex items-start justify-between gap-8 transition-all hover:bg-slate-50 group border-l-4 ${

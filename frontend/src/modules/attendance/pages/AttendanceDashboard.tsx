@@ -7,11 +7,11 @@ import { DataTable, type Column } from '../../../shared/components/ui/DataTable'
 import type { Attendance } from '../types';
 
 const statusColors: Record<string, 'success' | 'warning' | 'danger' | 'default'> = {
-  PRESENT: 'success',
-  ABSENT: 'danger',
-  LATE: 'warning',
-  HALF_DAY: 'warning',
-  ON_LEAVE: 'default',
+  present: 'success',
+  absent: 'danger',
+  late: 'warning',
+  'half-day': 'warning',
+  'on-leave': 'default',
 };
 
 export default function AttendanceDashboard() {
@@ -48,7 +48,10 @@ export default function AttendanceDashboard() {
       return;
     }
     try {
-      await checkInMutation.mutateAsync({ employeeId: user.employeeId });
+      await checkInMutation.mutateAsync({ 
+        employeeId: user.employeeId,
+        timestamp: new Date().toISOString()
+      });
     } catch (err) {
       console.error('Punch In failed:', err);
     }
@@ -60,7 +63,10 @@ export default function AttendanceDashboard() {
       return;
     }
     try {
-      await checkOutMutation.mutateAsync({ employeeId: user.employeeId });
+      await checkOutMutation.mutateAsync({ 
+        employeeId: user.employeeId,
+        timestamp: new Date().toISOString()
+      });
     } catch (err) {
       console.error('Punch Out failed:', err);
     }
@@ -135,7 +141,7 @@ export default function AttendanceDashboard() {
     {
        header: 'Protocol Status',
        accessor: (record) => (
-         <Badge variant={statusColors[record.status]} className="font-black text-[9px] uppercase tracking-[0.2em] px-3 py-1.5 shadow-xl backdrop-blur-md">
+         <Badge variant={statusColors[record.status.toLowerCase()]} className="font-black text-[9px] uppercase tracking-[0.2em] px-3 py-1.5 shadow-xl backdrop-blur-md">
            {record.status}
          </Badge>
        )

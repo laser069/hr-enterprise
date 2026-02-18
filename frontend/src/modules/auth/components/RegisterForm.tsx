@@ -37,8 +37,8 @@ export default function RegisterForm() {
         lastName,
       });
       
-      localStorage.setItem('accessToken', data.accessToken);
-      localStorage.setItem('refreshToken', data.refreshToken);
+      localStorage.setItem('accessToken', data.tokens.accessToken);
+      localStorage.setItem('refreshToken', data.tokens.refreshToken);
       navigate('/dashboard');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Registration failed. Please try again.');

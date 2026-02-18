@@ -701,6 +701,23 @@ export class PayrollService {
     };
   }
 
+  async getEmployeePayslips(employeeId: string) {
+    if (!employeeId) {
+        return [];
+    }
+    return this.prisma.payrollEntry.findMany({
+      where: { employeeId },
+      include: {
+        payrollRun: true,
+      },
+      orderBy: {
+        payrollRun: {
+          year: 'desc',
+        },
+      },
+    });
+  }
+
   async generatePayslip(payrollEntryId: string): Promise<Buffer> {
     const entry = await this.prisma.payrollEntry.findUnique({
       where: { id: payrollEntryId },

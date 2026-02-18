@@ -22,6 +22,10 @@ export const leaveApi = {
     return apiClient.patch<LeaveType>(`/leave-types/${id}`, data);
   },
 
+  deleteLeaveType: (id: string): Promise<void> => {
+    return apiClient.delete(`/leave-types/${id}`);
+  },
+
   // Leave Requests
   getLeaveRequests: (params?: LeaveListParams): Promise<PaginatedResponse<LeaveRequest>> => {
     return apiClient.getPaginated<LeaveRequest>('/leave-requests', { params });
@@ -47,12 +51,12 @@ export const leaveApi = {
     return apiClient.patch<LeaveRequest>(`/leave-requests/${id}/cancel`);
   },
 
-  getMyLeaveRequests: (): Promise<LeaveRequest[]> => {
-    return apiClient.get<LeaveRequest[]>('/leave-requests/my-requests');
+  getMyLeaveRequests: (params?: LeaveListParams): Promise<PaginatedResponse<LeaveRequest>> => {
+    return apiClient.getPaginated<LeaveRequest>('/leave-requests/my-requests', { params });
   },
 
   getPendingApprovals: (): Promise<PaginatedResponse<LeaveRequest>> => {
-    return apiClient.getPaginated<LeaveRequest>('/leave-requests', { params: { status: 'PENDING' } });
+    return apiClient.getPaginated<LeaveRequest>('/leave-requests', { params: { status: 'pending' } });
   },
 
   // Leave Balances & Summary

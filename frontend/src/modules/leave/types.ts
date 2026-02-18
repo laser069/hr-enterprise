@@ -1,6 +1,6 @@
 // Leave Management Types
 
-export type LeaveRequestStatus = 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED';
+export type LeaveRequestStatus = 'pending' | 'approved' | 'rejected' | 'cancelled';
 export type LeaveStatus = LeaveRequestStatus;
 
 export interface LeaveType {

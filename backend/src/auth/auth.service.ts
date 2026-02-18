@@ -29,11 +29,12 @@ export interface AuthResponse {
     id: string;
     email: string;
     roleId?: string;
+    roleName?: string;
     employeeId?: string;
   };
+  permissions: string[];
   tokens: TokenPayload;
 }
-
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
@@ -85,13 +86,19 @@ export class AuthService {
     // Generate tokens
     const tokens = await this.generateTokens(user);
 
+    const permissions = user.role?.permissions.map(
+      (rp: any) => `${rp.permission.resource}:${rp.permission.action}`,
+    ) || [];
+
     return {
       user: {
         id: user.id,
         email: user.email,
         roleId: user.roleId || undefined,
+        roleName: user.role?.name,
         employeeId: user.employeeId || undefined,
       },
+      permissions,
       tokens,
     };
   }
@@ -141,13 +148,19 @@ export class AuthService {
     // Generate tokens
     const tokens = await this.generateTokens(user);
 
+    const permissions = user.role?.permissions.map(
+      (rp: any) => `${rp.permission.resource}:${rp.permission.action}`,
+    ) || [];
+
     return {
       user: {
         id: user.id,
         email: user.email,
         roleId: user.roleId || undefined,
+        roleName: user.role?.name,
         employeeId: user.employeeId || undefined,
       },
+      permissions,
       tokens,
     };
   }

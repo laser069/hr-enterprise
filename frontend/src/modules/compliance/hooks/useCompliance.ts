@@ -67,8 +67,8 @@ export function useCreateFiling() {
 export function useFileFiling() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: { filedDate: string; referenceNumber: string } }) =>
-      complianceApi.fileFiling(id, data),
+    mutationFn: ({ id, data }: { id: string; data: { referenceNumber: string } }) =>
+      complianceApi.fileFiling(id, data.referenceNumber),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: complianceKeys.filings() });
       queryClient.invalidateQueries({ queryKey: complianceKeys.dashboard() });
