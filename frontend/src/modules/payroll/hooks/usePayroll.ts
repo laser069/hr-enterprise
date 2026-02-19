@@ -81,6 +81,7 @@ export function useCalculatePayroll() {
     onSuccess: (_: unknown, id: string) => {
       queryClient.invalidateQueries({ queryKey: payrollKeys.run(id) });
       queryClient.invalidateQueries({ queryKey: payrollKeys.entries(id) });
+      queryClient.invalidateQueries({ queryKey: payrollKeys.summary(id) });
     },
   });
 }
@@ -139,5 +140,11 @@ export function useDeletePayrollRun() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: payrollKeys.runs() });
     },
+  });
+}
+
+export function useDownloadBankExport() {
+  return useMutation({
+    mutationFn: (id: string) => payrollApi.downloadBankExport(id),
   });
 }

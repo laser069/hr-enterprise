@@ -9,10 +9,12 @@ export class UpdateSalaryStructureDto {
   @IsOptional()
   description?: string;
 
+  basic?: number;
+
   @IsNumber()
   @Min(0)
   @IsOptional()
-  basic?: number;
+  da?: number;
 
   @IsNumber()
   @Min(0)
@@ -48,6 +50,11 @@ export class UpdateSalaryStructureDto {
   @Min(0)
   @IsOptional()
   esi?: number;
+
+  @IsNumber()
+  @Min(0)
+  @IsOptional()
+  overtimeRate?: number;
 
   @IsBoolean()
   @IsOptional()

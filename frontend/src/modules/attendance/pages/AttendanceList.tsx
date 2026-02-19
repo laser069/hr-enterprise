@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { useAttendance, useDeleteAttendance } from '../hooks/useAttendance';
+import { useAttendance, useDeleteAttendance, useUpdateAttendance } from '../hooks/useAttendance';
 import type { Attendance, AttendanceListParams, AttendanceStatus } from '../types';
 import { Badge } from '../../../shared/components/ui/Badge';
 import { Button } from '../../../shared/components/ui/Button';
 import { DataTable, type Column } from '../../../shared/components/ui/DataTable';
+import { Modal } from '../../../shared/components/ui/Modal';
 
 const statusColors: Record<string, 'success' | 'warning' | 'danger' | 'default'> = {
   present: 'success',
@@ -19,12 +20,51 @@ export default function AttendanceList() {
     limit: 10,
   });
 
+  const [editRecord, setEditRecord] = useState<Attendance | null>(null);
+  const [editForm, setEditForm] = useState({
+    checkIn: '',
+    checkOut: '',
+    status: '' as AttendanceStatus,
+    notes: '',
+  });
+
   const { data, isLoading } = useAttendance(params);
   const deleteMutation = useDeleteAttendance();
+  const updateMutation = useUpdateAttendance();
 
   const handleDelete = async (id: string) => {
     if (window.confirm('Are you sure you want to delete this attendance record?')) {
       await deleteMutation.mutateAsync(id);
+    }
+  };
+
+  const handleEditOpen = (record: Attendance) => {
+    setEditRecord(record);
+    setEditForm({
+      checkIn: record.checkIn ? new Date(record.checkIn).toISOString().slice(0, 16) : '',
+      checkOut: record.checkOut ? new Date(record.checkOut).toISOString().slice(0, 16) : '',
+      status: record.status,
+      notes: record.notes || '',
+    });
+  };
+
+  const handleEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editRecord) return;
+
+    try {
+      await updateMutation.mutateAsync({
+        id: editRecord.id,
+        data: {
+          ...editForm,
+          checkIn: editForm.checkIn ? new Date(editForm.checkIn).toISOString() : undefined,
+          checkOut: editForm.checkOut ? new Date(editForm.checkOut).toISOString() : undefined,
+        },
+      });
+      setEditRecord(null);
+    } catch (error: unknown) {
+      const message = (error as any).response?.data?.message || (error as Error).message;
+      alert(`Failed to update attendance: ${message}`);
     }
   };
 
@@ -107,7 +147,7 @@ export default function AttendanceList() {
           <div className="flex items-center gap-1.5">
             <span className="text-sm font-black text-slate-900">{(record.workMinutes / 60).toFixed(1)}h</span>
             {record.overtimeMinutes ? (
-               <span className="text-[10px] font-black text-emerald-600 bg-emerald-50 px-1.5 rounded">+{(record.overtimeMinutes / 60).toFixed(1)} OT</span>
+              <span className="text-[10px] font-black text-emerald-600 bg-emerald-50 px-1.5 rounded">+{(record.overtimeMinutes / 60).toFixed(1)} OT</span>
             ) : null}
           </div>
         ) : '-'
@@ -127,7 +167,7 @@ export default function AttendanceList() {
       accessor: (record) => (
         <div className="flex items-center justify-end gap-2">
           <button
-            onClick={() => alert('Edit functionality coming soon')}
+            onClick={() => handleEditOpen(record)}
             className="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all"
             title="Edit"
           >
@@ -231,6 +271,73 @@ export default function AttendanceList() {
             : undefined
         }
       />
+
+      <Modal
+        isOpen={!!editRecord}
+        onClose={() => setEditRecord(null)}
+        title="Edit Protocol Log"
+      >
+        <form onSubmit={handleEditSubmit} className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Punch In</label>
+              <input
+                type="datetime-local"
+                value={editForm.checkIn}
+                onChange={(e) => setEditForm({ ...editForm, checkIn: e.target.value })}
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Punch Out</label>
+              <input
+                type="datetime-local"
+                value={editForm.checkOut}
+                onChange={(e) => setEditForm({ ...editForm, checkOut: e.target.value })}
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Status</label>
+            <select
+              value={editForm.status}
+              onChange={(e) => setEditForm({ ...editForm, status: e.target.value as AttendanceStatus })}
+              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all cursor-pointer"
+            >
+              <option value="present">Present</option>
+              <option value="absent">Absent</option>
+              <option value="late">Late</option>
+              <option value="half-day">Half Day</option>
+              <option value="on-leave">On Leave</option>
+            </select>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Notes</label>
+            <textarea
+              value={editForm.notes}
+              onChange={(e) => setEditForm({ ...editForm, notes: e.target.value })}
+              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all min-h-[100px]"
+              placeholder="Enter internal notes..."
+            />
+          </div>
+
+          <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
+            <Button variant="secondary" onClick={() => setEditRecord(null)}>
+              Cancel
+            </Button>
+            <Button
+              variant="primary"
+              type="submit"
+              isLoading={updateMutation.isPending}
+            >
+              Update Log
+            </Button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 }

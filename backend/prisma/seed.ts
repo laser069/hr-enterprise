@@ -167,6 +167,12 @@ async function main() {
     { name: 'Manage Leave Types', resource: 'leave', action: 'manage' },
     // Analytics permissions
     { name: 'View Analytics', resource: 'analytics', action: 'read' },
+    // Payroll permissions
+    { name: 'View Payroll', resource: 'payroll', action: 'read' },
+    { name: 'Create Payroll', resource: 'payroll', action: 'create' },
+    { name: 'Update Payroll', resource: 'payroll', action: 'update' },
+    { name: 'Delete Payroll', resource: 'payroll', action: 'delete' },
+    { name: 'Manage Payroll', resource: 'payroll', action: 'manage' },
   ];
 
   // Create all permissions

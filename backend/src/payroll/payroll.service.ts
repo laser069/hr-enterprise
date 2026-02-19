@@ -38,6 +38,7 @@ export class PayrollService {
         name: createDto.name,
         description: createDto.description,
         basic: new Decimal(createDto.basic),
+        da: new Decimal(createDto.da ?? 0),
         hra: new Decimal(createDto.hra),
         conveyance: new Decimal(createDto.conveyance ?? 0),
         medicalAllowance: new Decimal(createDto.medicalAllowance ?? 0),
@@ -45,6 +46,7 @@ export class PayrollService {
         professionalTax: new Decimal(createDto.professionalTax ?? 0),
         pf: new Decimal(createDto.pf ?? 0),
         esi: new Decimal(createDto.esi ?? 0),
+        overtimeRate: new Decimal(createDto.overtimeRate ?? 1.5),
         isActive: createDto.isActive ?? true,
       },
     });
@@ -109,6 +111,7 @@ export class PayrollService {
     if (updateDto.name !== undefined) updateData.name = updateDto.name;
     if (updateDto.description !== undefined) updateData.description = updateDto.description;
     if (updateDto.basic !== undefined) updateData.basic = new Decimal(updateDto.basic);
+    if (updateDto.da !== undefined) updateData.da = new Decimal(updateDto.da);
     if (updateDto.hra !== undefined) updateData.hra = new Decimal(updateDto.hra);
     if (updateDto.conveyance !== undefined) updateData.conveyance = new Decimal(updateDto.conveyance);
     if (updateDto.medicalAllowance !== undefined) updateData.medicalAllowance = new Decimal(updateDto.medicalAllowance);
@@ -116,6 +119,7 @@ export class PayrollService {
     if (updateDto.professionalTax !== undefined) updateData.professionalTax = new Decimal(updateDto.professionalTax);
     if (updateDto.pf !== undefined) updateData.pf = new Decimal(updateDto.pf);
     if (updateDto.esi !== undefined) updateData.esi = new Decimal(updateDto.esi);
+    if (updateDto.overtimeRate !== undefined) updateData.overtimeRate = new Decimal(updateDto.overtimeRate);
     if (updateDto.isActive !== undefined) updateData.isActive = updateDto.isActive;
 
     const updated = await this.prisma.salaryStructure.update({
@@ -245,9 +249,10 @@ export class PayrollService {
     // 1. LOP Calculation is done separately based on days
 
     // 2. PF (EPF) Calculation
-    // 12% of Basic
+    // 12% of (Basic + DA)
     const basic = Number(structure.basic);
-    const pfDeduction = basic * 0.12;
+    const da = Number(structure.da || 0);
+    const pfDeduction = (basic + da) * 0.12;
 
     // 3. ESI Calculation
     // 0.75% of Gross if Gross <= 21,000
@@ -364,23 +369,26 @@ export class PayrollService {
       lopDeduction: Decimal;
       totalDeductions: Decimal;
       netSalary: Decimal;
+      additions: any;
       deductions: any;
     }[] = [];
 
     for (const employee of employees) {
       if (!employee.salaryStructure) continue;
 
-      // Get attendance for the month
-      const attendance = await this.prisma.attendance.findMany({
+      // Get attendance (absent and overtime) for the month
+      const attendanceRecords = await this.prisma.attendance.findMany({
         where: {
           employeeId: employee.id,
           date: {
             gte: startDate,
             lte: endDate,
           },
-          status: 'absent',
         },
       });
+
+      const absentRecords = attendanceRecords.filter(a => a.status === 'absent');
+      const totalOvertimeMinutes = attendanceRecords.reduce((sum, a) => sum + (a.overtimeMinutes || 0), 0);
 
       // Get approved leave requests for the month
       const approvedLeaves = await this.prisma.leaveRequest.findMany({
@@ -401,18 +409,30 @@ export class PayrollService {
         return total + Math.ceil((effectiveEnd.getTime() - effectiveStart.getTime()) / (1000 * 60 * 60 * 24)) + 1;
       }, 0);
 
-      const lopDays = Math.max(0, attendance.length - leaveDays);
+      const lopDays = Math.max(0, absentRecords.length - leaveDays);
 
       // Calculate Components
       const structure = employee.salaryStructure;
       const basic = Number(structure.basic);
-      const grossSalary = basic + Number(structure.hra) +
+      const da = Number(structure.da || 0);
+      
+      // Base Gross (Fixed components)
+      const baseGross = basic + da + Number(structure.hra) +
         Number(structure.conveyance) + Number(structure.medicalAllowance) +
         Number(structure.specialAllowance);
 
       // 1. LOP Calculation
-      const perDaySalary = grossSalary / 30;
+      const perDaySalary = baseGross / 30;
       const lopDeduction = perDaySalary * lopDays;
+
+      // 2. Overtime Calculation
+      // Assuming 20 working days, 8 hours each = 160 hours/month
+      const hourlyRate = (basic + da) / 160;
+      const overtimeRate = Number(structure.overtimeRate || 1.5);
+      const overtimePay = (totalOvertimeMinutes / 60) * hourlyRate * overtimeRate;
+
+      // Final Gross for the month
+      const grossSalary = baseGross + overtimePay;
 
       // Calculate dynamic deductions
       const { pf, esi, pt, tds } = this.calculateDeductions(grossSalary, structure);
@@ -429,6 +449,10 @@ export class PayrollService {
         lopDeduction: new Decimal(lopDeduction.toFixed(2)),
         totalDeductions: new Decimal(totalDeductions.toFixed(2)),
         netSalary: new Decimal(netSalary.toFixed(2)),
+        additions: {
+          overtime: Number(overtimePay.toFixed(2)),
+          da: Number(da.toFixed(2)),
+        },
         deductions: {
           lop: Number(lopDeduction.toFixed(2)),
           pf: Number(pf.toFixed(2)),
@@ -788,20 +812,26 @@ export class PayrollService {
                 <td>${((entry as any).deductions as any)?.pf?.toFixed(2) || 0}</td>
               </tr>
               <tr>
-                <td>HRA</td>
-                <td>${entry.employee.salaryStructure?.hra || 0}</td>
+                <td>DA</td>
+                <td>${((entry as any).additions as any)?.da?.toFixed(2) || 0}</td>
                 <td>ESI</td>
                 <td>${((entry as any).deductions as any)?.esi?.toFixed(2) || 0}</td>
               </tr>
               <tr>
-                <td>Allowances</td>
-                <td>${(Number(entry.employee.salaryStructure?.medicalAllowance || 0) + Number(entry.employee.salaryStructure?.specialAllowance || 0)).toFixed(2)}</td>
+                <td>HRA</td>
+                <td>${entry.employee.salaryStructure?.hra || 0}</td>
                 <td>TDS</td>
                 <td>${((entry as any).deductions as any)?.tds?.toFixed(2) || 0}</td>
               </tr>
-               <tr>
-                <td></td>
-                <td></td>
+              <tr>
+                <td>Allowances</td>
+                <td>${(Number(entry.employee.salaryStructure?.medicalAllowance || 0) + Number(entry.employee.salaryStructure?.specialAllowance || 0) + Number(entry.employee.salaryStructure?.conveyance || 0)).toFixed(2)}</td>
+                <td>Professional Tax</td>
+                <td>${((entry as any).deductions as any)?.pt?.toFixed(2) || 0}</td>
+              </tr>
+              <tr>
+                <td>Overtime</td>
+                <td>${((entry as any).additions as any)?.overtime?.toFixed(2) || 0}</td>
                 <td>LOP</td>
                 <td>${Number(entry.lopDeduction).toFixed(2)}</td>
               </tr>

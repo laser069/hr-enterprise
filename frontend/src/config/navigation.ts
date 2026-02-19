@@ -25,9 +25,13 @@ export const navigation: NavItem[] = [
   },
   {
     name: 'Attendance',
-    path: '/attendance',
+    path: '/attendance-root',
     icon: 'Clock',
     requiredPermissions: ['attendance:read'],
+    children: [
+      { name: 'Dashboard', path: '/attendance', icon: '' },
+      { name: 'Records', path: '/attendance/list', icon: '' },
+    ],
   },
   {
     name: 'Leave',
@@ -46,6 +50,7 @@ export const navigation: NavItem[] = [
     requiredPermissions: ['payroll:read'],
     children: [
       { name: 'Dashboard', path: '/payroll', icon: '' },
+      { name: 'My Payslips', path: '/payroll/my-payslips', icon: '' },
       { name: 'Payroll Runs', path: '/payroll/runs', requiredPermissions: ['payroll:manage'], icon: '' },
       { name: 'Salary Structures', path: '/payroll/structures', requiredPermissions: ['payroll:manage'], icon: '' },
     ],

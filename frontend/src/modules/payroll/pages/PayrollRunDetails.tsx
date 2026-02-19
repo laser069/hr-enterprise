@@ -1,6 +1,7 @@
 import { useParams } from 'react-router-dom';
-import { usePayrollRun, usePayrollSummary, useCalculatePayroll, useApprovePayroll, useProcessPayroll } from '../hooks/usePayroll';
+import { usePayrollRun, usePayrollSummary, useCalculatePayroll, useApprovePayroll, useProcessPayroll, useDownloadBankExport } from '../hooks/usePayroll';
 import { useAuthContext } from '../../../core/auth/use-auth-context';
+import type { PayrollEntry } from '../types';
 import { Badge } from '../../../shared/components/ui/Badge';
 import { Button } from '../../../shared/components/ui/Button';
 
@@ -21,29 +22,51 @@ export default function PayrollRunDetails() {
   const { hasPermission } = useAuthContext();
   
   const { data: run, isLoading: runLoading } = usePayrollRun(id || '');
-  const { data: rawSummary, isLoading: summaryLoading } = usePayrollSummary(id || '');
-  const summary = rawSummary as unknown as PayrollSummary | undefined;
+  const { data: summaryData, isLoading: summaryLoading } = usePayrollSummary(id || '');
+  const summary = (summaryData as { summary?: PayrollSummary })?.summary;
   
   const calculateMutation = useCalculatePayroll();
   const approveMutation = useApprovePayroll();
   const processMutation = useProcessPayroll();
+  const downloadBankExportMutation = useDownloadBankExport();
 
   const canManage = hasPermission('payroll:manage');
 
   const handleCalculate = async () => {
-    if (id) await calculateMutation.mutateAsync(id);
+    if (!id) return;
+    try {
+      await calculateMutation.mutateAsync(id);
+      alert('Payroll calculation completed successfully!');
+    } catch (error: unknown) {
+      const message = (error as any).response?.data?.message || (error as Error).message;
+      alert(`Calculation failed: ${message}`);
+    }
   };
 
   const handleApprove = async () => {
-    if (id && window.confirm('Are you sure you want to approve this payroll?')) {
+    if (!id || !window.confirm('Are you sure you want to approve this payroll?')) return;
+    try {
       await approveMutation.mutateAsync(id);
+      alert('Payroll approved successfully!');
+    } catch (error: unknown) {
+      const message = (error as { response?: { data?: { message?: string } } })?.response?.data?.message || (error as Error).message;
+      alert(`Approval failed: ${message}`);
     }
   };
 
   const handleProcess = async () => {
-    if (id && window.confirm('Are you sure you want to process this payroll? This action cannot be undone.')) {
+    if (!id || !window.confirm('Are you sure you want to process this payroll? This action cannot be undone.')) return;
+    try {
       await processMutation.mutateAsync(id);
+      alert('Payroll processed successfully!');
+    } catch (error: unknown) {
+      const message = (error as { response?: { data?: { message?: string } } })?.response?.data?.message || (error as Error).message;
+      alert(`Processing failed: ${message}`);
     }
+  };
+
+  const handleDownloadBankExport = async () => {
+    if (id) await downloadBankExportMutation.mutateAsync(id);
   };
 
   const getStatusColor = (status: string) => {
@@ -108,19 +131,19 @@ export default function PayrollRunDetails() {
             <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
               <p className="text-sm text-gray-600 mb-1">Gross Salary</p>
               <p className="text-2xl font-bold text-gray-900">
-                ${summary.totalGrossSalary.toLocaleString()}
+                ${Number(summary.totalGrossSalary || 0).toLocaleString()}
               </p>
             </div>
             <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
               <p className="text-sm text-gray-600 mb-1">Total Deductions</p>
               <p className="text-2xl font-bold text-gray-900">
-                ${summary.totalDeductions.toLocaleString()}
+                ${Number(summary.totalDeductions || 0).toLocaleString()}
               </p>
             </div>
             <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
               <p className="text-sm text-gray-600 mb-1">Net Salary</p>
               <p className="text-2xl font-bold text-green-600">
-                ${summary.totalNetSalary.toLocaleString()}
+                ${Number(summary.totalNetSalary || 0).toLocaleString()}
               </p>
             </div>
           </>
@@ -128,7 +151,7 @@ export default function PayrollRunDetails() {
       </div>
 
       {/* Action Buttons */}
-      {canManage && run.status.toLowerCase() !== 'processed' && (
+      {canManage && (
         <div className="flex gap-3">
           {run.status.toLowerCase() === 'draft' && (
             <>
@@ -155,6 +178,19 @@ export default function PayrollRunDetails() {
               disabled={processMutation.isPending}
             >
               Process Payments
+            </Button>
+          )}
+          {run.status.toLowerCase() === 'processed' && (
+            <Button
+              variant="outline"
+              onClick={handleDownloadBankExport}
+              disabled={downloadBankExportMutation.isPending}
+              className="flex items-center gap-2"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor font-bold">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+              Download Bank Export (XLSX)
             </Button>
           )}
         </div>
@@ -197,6 +233,9 @@ export default function PayrollRunDetails() {
                   Gross Salary
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Additions
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   LOP Days
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -215,15 +254,15 @@ export default function PayrollRunDetails() {
                   </td>
                 </tr>
               ) : (
-                run.entries.map((entry: any) => (
+                run.entries.map((entry: PayrollEntry) => (
                   <tr key={entry.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className="h-10 w-10 flex-shrink-0">
-                          {entry.employee?.profilePicture || entry.employee?.photo ? (
+                          {entry.employee?.profilePicture ? (
                             <img
                               className="h-10 w-10 rounded-full object-cover"
-                              src={entry.employee.profilePicture || entry.employee.photo}
+                              src={entry.employee.profilePicture}
                               alt=""
                             />
                           ) : (
@@ -244,10 +283,17 @@ export default function PayrollRunDetails() {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {entry.employee?.department?.name || entry.employee?.departmentName || '-'}
+                      {entry.employee?.department?.name || '-'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      ${entry.grossSalary.toLocaleString()}
+                      ${Number(entry.grossSalary || 0).toLocaleString()}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <div className="flex flex-col">
+                        {Number(entry.additions?.da || 0) > 0 && <span>DA: ${Number(entry.additions?.da).toLocaleString()}</span>}
+                        {Number(entry.additions?.overtime || 0) > 0 && <span className="text-indigo-600 font-medium">OT: ${Number(entry.additions?.overtime).toLocaleString()}</span>}
+                        {!entry.additions?.da && !entry.additions?.overtime && '-'}
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {entry.lopDays > 0 ? (
@@ -257,10 +303,10 @@ export default function PayrollRunDetails() {
                       )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-red-600">
-                      -${(entry.totalDeductions || entry.deductions || 0).toLocaleString()}
+                      -${Number(entry.totalDeductions || 0).toLocaleString()}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600">
-                      ${entry.netSalary.toLocaleString()}
+                      ${Number(entry.netSalary || 0).toLocaleString()}
                     </td>
                   </tr>
                 ))

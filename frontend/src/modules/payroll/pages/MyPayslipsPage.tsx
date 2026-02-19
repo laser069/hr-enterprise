@@ -6,7 +6,8 @@ import { Button } from '../../../shared/components/ui/Button';
 import { DataTable } from '../../../shared/components/ui/DataTable';
 import { Download, FileText, DollarSign, Calendar } from 'lucide-react';
 import { format } from 'date-fns';
-import { CreateColumnHelper } from '@tanstack/react-table';
+import type { Column } from '../../../shared/components/ui/DataTable';
+import type { PayrollEntry } from '../types';
 
 const MyPayslipsPage = () => {
   const { data: payslips, isLoading } = useQuery({
@@ -22,62 +23,84 @@ const MyPayslipsPage = () => {
     }
   };
 
-  const columnHelper = CreateColumnHelper<any>(); // Replace 'any' with PayrollEntry type if available
-
-  const columns = [
-    columnHelper.accessor('payrollRun', {
+  const columns: Column<PayrollEntry>[] = [
+    {
       header: 'Period',
-      cell: (info) => {
-        const run = info.getValue();
+      accessor: (entry) => {
+        const run = entry.payrollRun;
+        if (!run) return '-';
         return (
-            <div className="flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-slate-400" />
-                <span className="font-medium">{format(new Date(run.year, run.month - 1), 'MMMM yyyy')}</span>
-            </div>
+          <div className="flex items-center gap-2">
+            <Calendar className="w-4 h-4 text-slate-400" />
+            <span className="font-medium">{format(new Date(run.year, run.month - 1), 'MMMM yyyy')}</span>
+          </div>
         );
       },
-    }),
-    columnHelper.accessor('netSalary', {
-      header: 'Net Pay',
-      cell: (info) => (
-        <div className="flex items-center text-green-600 font-semibold">
-          <DollarSign className="w-3 h-3 mr-1" />
-          {Number(info.getValue()).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+    },
+    {
+      header: 'Gross Salary',
+      accessor: (entry) => (
+        <div className="font-medium text-slate-700">
+          ${Number(entry.grossSalary).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
         </div>
       ),
-    }),
-    columnHelper.accessor('payrollRun.paidDate', {
-        header: 'Paid Date',
-        cell: (info) => info.getValue() ? format(new Date(info.getValue()), 'MMM d, yyyy') : '-',
-    }),
-    columnHelper.accessor('status', { // Available on PayrollRun, need to check if accessible here easily or if we should use run status
-        header: 'Status',
-        cell: (info) => {
-            const status = info.row.original.payrollRun.status;
-             return (
-                <span className={`px-2 py-1 rounded-full text-xs font-medium capitalize 
-                    ${status === 'processed' ? 'bg-green-100 text-green-700' : 
-                      status === 'approved' ? 'bg-blue-100 text-blue-700' : 'bg-yellow-100 text-yellow-700'}`}>
-                    {status}
-                </span>
-            );
-        }
-    }),
-    columnHelper.display({
-      id: 'actions',
+    },
+    {
+      header: 'Additions',
+      accessor: (entry) => {
+        const additions = entry.additions;
+        const total = (Number(additions?.da) || 0) + (Number(additions?.overtime) || 0);
+        return total > 0 ? (
+          <div className="text-xs text-slate-500">
+            {Number(additions?.da) > 0 && <div>DA: ${Number(additions?.da).toLocaleString()}</div>}
+            {Number(additions?.overtime) > 0 && <div className="text-indigo-600">OT: ${Number(additions?.overtime).toLocaleString()}</div>}
+          </div>
+        ) : '-';
+      },
+    },
+    {
+      header: 'Net Pay',
+      accessor: (entry) => (
+        <div className="flex items-center text-green-600 font-semibold">
+          <DollarSign className="w-3 h-3 mr-1" />
+          {Number(entry.netSalary).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+        </div>
+      ),
+    },
+    {
+      header: 'Paid Date',
+      accessor: (entry) => entry.payrollRun?.paidDate ? format(new Date(entry.payrollRun.paidDate), 'MMM d, yyyy') : '-',
+    },
+    {
+      header: 'Status',
+      accessor: (entry) => {
+        const status = entry.payrollRun?.status;
+        return (
+          <span className={`px-2 py-1 rounded-full text-xs font-medium capitalize 
+            ${status === 'processed' ? 'bg-green-100 text-green-700' : 
+              status === 'approved' ? 'bg-blue-100 text-blue-700' : 'bg-yellow-100 text-yellow-700'}`}>
+            {status || 'draft'}
+          </span>
+        );
+      },
+    },
+    {
       header: 'Actions',
-      cell: (info) => (
+      accessor: (entry) => (
         <Button
           variant="outline"
           size="sm"
-          onClick={() => handleDownload(info.row.original.id)}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleDownload(entry.id);
+          }}
           className="flex items-center gap-2"
         >
           <Download className="w-3 h-3" />
           Download
         </Button>
       ),
-    }),
+    },
   ];
 
   if (isLoading) return <div>Loading payslips...</div>;

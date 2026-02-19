@@ -15,6 +15,7 @@ export interface SalaryStructure {
   name: string;
   description?: string;
   basic: number;
+  da?: number;
   baseSalary: number; // Alias for UI compatibility
   hra: number;
   conveyance?: number;
@@ -23,6 +24,7 @@ export interface SalaryStructure {
   professionalTax?: number;
   pf?: number;
   esi?: number;
+  overtimeRate?: number;
   isActive?: boolean;
   allowances?: SalaryComponent[];
   deductions?: SalaryComponent[];
@@ -73,6 +75,13 @@ export interface PayrollEntry {
       name: string;
     };
   };
+  payrollRun?: {
+    id: string;
+    month: number;
+    year: number;
+    status: string;
+    paidDate?: string;
+  };
 }
 
 export interface CreatePayrollRunDto {
@@ -84,6 +93,7 @@ export interface CreateSalaryStructureDto {
   name: string;
   description?: string;
   basic: number;
+  da?: number;
   hra: number;
   conveyance?: number;
   medicalAllowance?: number;
@@ -91,4 +101,5 @@ export interface CreateSalaryStructureDto {
   professionalTax?: number;
   pf?: number;
   esi?: number;
+  overtimeRate?: number;
 }

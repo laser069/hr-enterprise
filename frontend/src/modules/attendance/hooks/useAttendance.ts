@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { attendanceApi } from '../services/attendance.api';
 import type {
+  Attendance,
   AttendanceListParams,
   CheckInDto,
   CheckOutDto,
@@ -101,6 +102,20 @@ export function useDeleteAttendance() {
     mutationFn: (id: string) => attendanceApi.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: attendanceKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: attendanceKeys.stats() });
+    },
+  });
+}
+
+// Update attendance hook
+export function useUpdateAttendance() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<Attendance> }) => attendanceApi.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: attendanceKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: attendanceKeys.todayStats() });
       queryClient.invalidateQueries({ queryKey: attendanceKeys.stats() });
     },
   });

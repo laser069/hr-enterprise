@@ -127,21 +127,25 @@ export default function PayrollDashboard() {
         <div className="lg:col-span-2 space-y-12">
            <Card title="Tactical Operations" subtitle="Standardize and manage compensation nodes">
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 py-6">
-                 <QuickAction 
-                    title="Structures" 
-                    desc="Basic, HRA & Vectors"
-                    icon={<svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>}
-                 />
+                 <Link to="/payroll/structures" className="block">
+                    <QuickAction 
+                       title="Structures" 
+                       desc="Basic, HRA & Vectors"
+                       icon={<svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>}
+                    />
+                 </Link>
                  <QuickAction 
                     title="Deductions" 
                     desc="PF, ESI & Tax Vectors"
                     icon={<svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
                  />
-                 <QuickAction 
-                    title="Direct Advice" 
-                    desc="Advice protocol formats"
-                    icon={<svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg>}
-                 />
+                  <Link to="/payroll/my-payslips" className="block text-inherit no-underline">
+                     <QuickAction 
+                        title="My Payslips" 
+                        desc="View & download slips"
+                        icon={<svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>}
+                     />
+                  </Link>
               </div>
            </Card>
 
@@ -253,12 +257,12 @@ export default function PayrollDashboard() {
 
 function QuickAction({ title, desc, icon }: { title: string; desc: string; icon: React.ReactNode }) {
   return (
-    <button className="flex flex-col items-start p-10 rounded-[3rem] border border-white/10 bg-white/5 hover:bg-white/10 transition-all duration-500 text-left group shadow-2xl backdrop-blur-md hover:scale-[1.02] active:scale-[0.98]">
+    <div className="flex flex-col items-start p-10 rounded-[3rem] border border-white/10 bg-white/5 hover:bg-white/10 transition-all duration-500 text-left group shadow-2xl backdrop-blur-md hover:scale-[1.02] active:scale-[0.98] cursor-pointer w-full h-full">
        <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center text-white/40 group-hover:text-white group-hover:bg-white/20 transition-all duration-500 mb-8 border border-white/10 shadow-xl group-hover:scale-110">
           {icon}
        </div>
        <h4 className="text-lg font-black text-white group-hover:text-white mb-3 tracking-tighter transition-colors drop-shadow-md">{title}</h4>
        <p className="text-[10px] text-white/30 group-hover:text-white/60 font-black uppercase tracking-[0.2em] leading-relaxed transition-colors opacity-80 group-hover:opacity-100">{desc}</p>
-    </button>
+    </div>
   );
 }

@@ -82,7 +82,7 @@ export class JwtAuthGuard implements CanActivate {
         email: payload.email,
         roleId: payload.roleId,
         roleName: payload.roleName,
-        employeeId: payload.employeeId,
+        employeeId: user.employeeId || payload.employeeId,
         permissions: freshPermissions.length > 0 ? freshPermissions : (payload.permissions || []),
       };
     } catch (error) {

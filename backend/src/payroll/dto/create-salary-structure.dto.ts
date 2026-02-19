@@ -11,6 +11,11 @@ export class CreateSalaryStructureDto {
   @IsNumber()
   @Min(0)
   basic: number;
+  
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  da?: number;
 
   @IsNumber()
   @Min(0)
@@ -45,6 +50,11 @@ export class CreateSalaryStructureDto {
   @IsNumber()
   @Min(0)
   esi?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  overtimeRate?: number;
 
   @IsOptional()
   @IsBoolean()
