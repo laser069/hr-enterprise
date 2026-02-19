@@ -46,9 +46,9 @@ async function bootstrap(): Promise<void> {
   // Enable CORS
   app.enableCors({
     origin: [
+      'https://hr-enterprisee.netlify.app',
       'http://localhost:3000',
       'http://localhost:5173',
-      'https://hr-enterprisee.netlify.app',
       ...(process.env.CORS_ORIGIN ? [process.env.CORS_ORIGIN] : []),
     ],
     credentials: true,

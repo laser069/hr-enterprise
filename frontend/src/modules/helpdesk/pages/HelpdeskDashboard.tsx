@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Card } from '../../../shared/components/ui/Card';
 import { Button } from '../../../shared/components/ui/Button';
 import { CreateTicketModal } from '../components/CreateTicketModal';
@@ -11,7 +11,7 @@ import { format } from 'date-fns';
 
 const HelpdeskDashboard = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { data: stats, isLoading: statsLoading } = useHelpdeskStats();
+  const { data: stats } = useHelpdeskStats();
   const { data: ticketsData, isLoading: ticketsLoading } = useTickets({ take: 5 });
   const navigate = useNavigate();
 
@@ -38,55 +38,51 @@ const HelpdeskDashboard = () => {
   const columns = [
     {
       header: 'Subject',
-      accessorKey: 'title',
-      cell: (info: any) => (
+      accessor: (item: any) => (
         <div>
-          <div className="font-medium text-slate-900 dark:text-white">{info.getValue()}</div>
-          <div className="text-xs text-slate-500">{info.row.original.id.slice(0, 8)}</div>
+          <div className="font-medium text-slate-900 dark:text-white">{item.title}</div>
+          <div className="text-xs text-slate-500">{item.id.slice(0, 8)}</div>
         </div>
       ),
     },
     {
       header: 'Category',
-      accessorKey: 'category',
-      cell: (info: any) => (
-        <span className="capitalize">{info.getValue().replace('_', ' ')}</span>
+      accessor: (item: any) => (
+        <span className="capitalize">{item.category.replace('_', ' ')}</span>
       ),
     },
     {
       header: 'Status',
-      accessorKey: 'status',
-      cell: (info: any) => (
-        <Badge variant={getStatusColor(info.getValue()) as any}>
-          {info.getValue().replace('_', ' ')}
+      accessor: (item: any) => (
+        <Badge variant={getStatusColor(item.status) as any}>
+          {item.status.replace('_', ' ')}
         </Badge>
       ),
     },
     {
       header: 'Priority',
-      accessorKey: 'priority',
-      cell: (info: any) => (
-        <Badge variant={getPriorityColor(info.getValue()) as any}>
-          {info.getValue()}
+      accessor: (item: any) => (
+        <Badge variant={getPriorityColor(item.priority) as any}>
+          {item.priority}
         </Badge>
       ),
     },
     {
       header: 'Date',
-      accessorKey: 'createdAt',
-      cell: (info: any) => format(new Date(info.getValue()), 'MMM d, yyyy'),
+      accessor: (item: any) => format(new Date(item.createdAt), 'MMM d, yyyy'),
     },
     {
-      id: 'actions',
-      cell: (info: any) => (
+      header: '',
+      accessor: (item: any) => (
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => navigate(`/helpdesk/tickets/${info.row.original.id}`)}
+          onClick={() => navigate(`/helpdesk/tickets/${item.id}`)}
         >
           View
         </Button>
       ),
+      align: 'right' as const,
     },
   ];
 
@@ -98,13 +94,13 @@ const HelpdeskDashboard = () => {
           <p className="text-slate-500 dark:text-slate-400">Manage support tickets and inquiries</p>
         </div>
         <div className="flex gap-2">
-            <Button variant="outline" onClick={() => navigate('/helpdesk/tickets')}>
-                View All Tickets
-            </Button>
-            <Button onClick={() => setIsModalOpen(true)}>
+          <Button variant="outline" onClick={() => navigate('/helpdesk/tickets')}>
+            View All Tickets
+          </Button>
+          <Button onClick={() => setIsModalOpen(true)}>
             <Plus className="w-4 h-4 mr-2" />
             New Ticket
-            </Button>
+          </Button>
         </div>
       </div>
 
@@ -161,12 +157,12 @@ const HelpdeskDashboard = () => {
           <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Recent Tickets</h2>
         </div>
         {ticketsLoading ? (
-            <div>Loading...</div>
+          <div>Loading...</div>
         ) : (
-            <DataTable
+          <DataTable
             data={ticketsData?.data || []}
             columns={columns}
-            />
+          />
         )}
       </Card>
 

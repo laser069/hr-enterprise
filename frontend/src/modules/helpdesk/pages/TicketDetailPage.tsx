@@ -15,7 +15,7 @@ const TicketDetailPage = () => {
   const addComment = useAddTicketComment();
   const updateStatus = useUpdateTicketStatus();
   const { user } = useAuth();
-  
+
   const [comment, setComment] = useState('');
 
   if (isLoading) return <div>Loading...</div>;
@@ -24,7 +24,7 @@ const TicketDetailPage = () => {
   const handleAddComment = (e: React.FormEvent) => {
     e.preventDefault();
     if (!comment.trim()) return;
-    
+
     addComment.mutate({ id: ticket.id, content: comment }, {
       onSuccess: () => setComment('')
     });
@@ -59,8 +59,8 @@ const TicketDetailPage = () => {
           <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">{ticket.title}</h1>
           <div className="flex gap-2">
             <Badge variant={getStatusColor(ticket.status) as any}>{ticket.status.replace('_', ' ')}</Badge>
-            <Badge variant="outline">{ticket.priority}</Badge>
-            <Badge variant="outline">{ticket.category.replace('_', ' ')}</Badge>
+            <Badge variant="default">{ticket.priority}</Badge>
+            <Badge variant="default">{ticket.category.replace('_', ' ')}</Badge>
           </div>
         </div>
         {canManage && (
@@ -90,7 +90,7 @@ const TicketDetailPage = () => {
               <MessageSquare className="w-5 h-5 mr-2" />
               Comments
             </h3>
-            
+
             <div className="space-y-6 mb-6">
               {ticket.comments?.map((comment: any) => (
                 <div key={comment.id} className="flex gap-4">
@@ -99,12 +99,12 @@ const TicketDetailPage = () => {
                   </div>
                   <div className="flex-1 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-lg">
                     <div className="flex justify-between items-center mb-2">
-                        <span className="font-medium text-sm">
-                            {comment.user.employee?.firstName} {comment.user.employee?.lastName || 'Unknown'}
-                        </span>
-                        <span className="text-xs text-slate-500">
-                            {format(new Date(comment.createdAt), 'MMM d, h:mm a')}
-                        </span>
+                      <span className="font-medium text-sm">
+                        {comment.user.employee?.firstName} {comment.user.employee?.lastName || 'Unknown'}
+                      </span>
+                      <span className="text-xs text-slate-500">
+                        {format(new Date(comment.createdAt), 'MMM d, h:mm a')}
+                      </span>
                     </div>
                     <p className="text-slate-700 dark:text-slate-300 text-sm whitespace-pre-wrap">{comment.content}</p>
                   </div>
@@ -136,12 +136,12 @@ const TicketDetailPage = () => {
               <div>
                 <label className="text-xs text-slate-500 block mb-1">Requester</label>
                 <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs">
-                        {ticket.requester?.employee?.firstName?.[0]}
-                    </div>
-                    <span className="text-sm font-medium">
-                        {ticket.requester?.employee?.firstName} {ticket.requester?.employee?.lastName}
-                    </span>
+                  <div className="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs">
+                    {ticket.requester?.employee?.firstName?.[0]}
+                  </div>
+                  <span className="text-sm font-medium">
+                    {ticket.requester?.employee?.firstName} {ticket.requester?.employee?.lastName}
+                  </span>
                 </div>
               </div>
               <div>
@@ -151,11 +151,11 @@ const TicketDetailPage = () => {
               <div>
                 <label className="text-xs text-slate-500 block mb-1">Assigned To</label>
                 <span className="text-sm">
-                    {ticket.assignee ? (
-                        `${ticket.assignee.employee?.firstName} ${ticket.assignee.employee?.lastName}`
-                    ) : (
-                        <span className="text-slate-400 italic">Unassigned</span>
-                    )}
+                  {ticket.assignee ? (
+                    `${ticket.assignee.employee?.firstName} ${ticket.assignee.employee?.lastName}`
+                  ) : (
+                    <span className="text-slate-400 italic">Unassigned</span>
+                  )}
                 </span>
               </div>
               <div>

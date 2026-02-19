@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { helpdeskApi } from '../services/helpdesk.api';
-import { CreateTicketDTO } from '../types';
+import type { CreateTicketDTO } from '../types';
 
 export const useTickets = (params?: { status?: string; priority?: string; skip?: number; take?: number }) => {
   return useQuery({

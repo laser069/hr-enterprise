@@ -14,15 +14,15 @@ export default function FilingsPage() {
   const { hasPermission } = useAuthContext();
   const [selectedType, setSelectedType] = useState<FilingType | ''>('');
   const [selectedStatus, setSelectedStatus] = useState<FilingStatus | ''>('');
-  
+
   const { data: filings, isLoading } = useFilings();
-  
+
   // Filter filings locally since the hook doesn't support params yet
-  const filteredFilings = filings?.filter(f => 
-    (!selectedType || f.type === selectedType) && 
+  const filteredFilings = filings?.filter(f =>
+    (!selectedType || f.type === selectedType) &&
     (!selectedStatus || f.status === selectedStatus)
   );
-  
+
   const createMutation = useCreateFiling();
   const fileMutation = useFileFiling();
 
@@ -30,7 +30,7 @@ export default function FilingsPage() {
   const [fileModalOpen, setFileModalOpen] = useState(false);
   const [selectedFilingId, setSelectedFilingId] = useState<string | null>(null);
   const [receiptNo, setReceiptNo] = useState('');
-  
+
   const [newFiling, setNewFiling] = useState({
     type: 'PF' as FilingType,
     period: '',
@@ -55,12 +55,11 @@ export default function FilingsPage() {
 
   const handleFile = async () => {
     if (selectedFilingId) {
-      await fileMutation.mutateAsync({ 
-        id: selectedFilingId, 
-        data: { 
-          filedDate: new Date().toISOString(), 
-          referenceNumber: receiptNo 
-        } 
+      await fileMutation.mutateAsync({
+        id: selectedFilingId,
+        data: {
+          referenceNumber: receiptNo
+        }
       });
       setFileModalOpen(false);
       setReceiptNo('');
@@ -146,9 +145,9 @@ export default function FilingsPage() {
             <tbody className="divide-y divide-slate-100/50 bg-white/40">
               {isLoading ? (
                 <tr>
-                   <td colSpan={6} className="px-10 py-20 text-center">
-                      <div className="flex justify-center"><div className="animate-spin h-6 w-6 border-2 border-slate-900 border-t-transparent rounded-full"></div></div>
-                   </td>
+                  <td colSpan={6} className="px-10 py-20 text-center">
+                    <div className="flex justify-center"><div className="animate-spin h-6 w-6 border-2 border-slate-900 border-t-transparent rounded-full"></div></div>
+                  </td>
                 </tr>
               ) : !filteredFilings || filteredFilings.length === 0 ? (
                 <tr>
@@ -160,30 +159,30 @@ export default function FilingsPage() {
                 filteredFilings.map((filing) => (
                   <tr key={filing.id} className="group hover:bg-white/80 transition-all duration-500">
                     <td className="px-10 py-8 whitespace-nowrap">
-                       <span className="inline-flex px-3 py-1 bg-slate-900 text-white rounded-lg text-[9px] font-black tracking-widest shadow-lg shadow-slate-900/10">
-                          {filing.type}
-                       </span>
+                      <span className="inline-flex px-3 py-1 bg-slate-900 text-white rounded-lg text-[9px] font-black tracking-widest shadow-lg shadow-slate-900/10">
+                        {filing.type}
+                      </span>
                     </td>
                     <td className="px-10 py-8 whitespace-nowrap">
-                       <span className="text-[11px] font-black text-slate-900 tracking-tighter">{filing.period}</span>
+                      <span className="text-[11px] font-black text-slate-900 tracking-tighter">{filing.period}</span>
                     </td>
                     <td className="px-10 py-8 whitespace-nowrap">
-                       <Badge variant={getStatusColor(filing.status.toLowerCase())} className="shadow-lg">{filing.status}</Badge>
+                      <Badge variant={getStatusColor(filing.status.toLowerCase())} className="shadow-lg">{filing.status}</Badge>
                     </td>
                     <td className="px-10 py-8 whitespace-nowrap">
-                       <span className={`text-[10px] font-black uppercase tracking-widest ${isOverdue(filing.dueDate) && filing.status === 'pending' ? 'text-rose-500' : 'text-slate-400'}`}>
-                          {new Date(filing.dueDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
-                       </span>
+                      <span className={`text-[10px] font-black uppercase tracking-widest ${isOverdue(filing.dueDate) && filing.status === 'pending' ? 'text-rose-500' : 'text-slate-400'}`}>
+                        {new Date(filing.dueDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                      </span>
                     </td>
                     <td className="px-10 py-8 whitespace-nowrap text-[11px] font-black text-slate-900 tracking-tighter">
-                       {filing.amount ? `₹${filing.amount.toLocaleString()}` : '—'}
+                      {filing.amount ? `₹${filing.amount.toLocaleString()}` : '—'}
                     </td>
                     <td className="px-10 py-8 whitespace-nowrap text-right">
-                       <div className="flex justify-end gap-3">
-                          {filing.status === 'pending' && canManage && (
-                            <Button variant="ghost" size="sm" onClick={() => openFileModal(filing.id)}>Execute</Button>
-                          )}
-                       </div>
+                      <div className="flex justify-end gap-3">
+                        {filing.status === 'pending' && canManage && (
+                          <Button variant="ghost" size="sm" onClick={() => openFileModal(filing.id)}>Execute</Button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useReviews, useCreateReview, useSubmitReview, useAcknowledgeReview } from '../hooks/usePerformance';
 import { useAuthContext } from '../../../core/auth/use-auth-context';
 import { useEmployees } from '../../employees/hooks/useEmployee';
-import type { ReviewStatus, CreateReviewDto } from '../types';
+import type { ReviewStatus } from '../types';
 import { Badge } from '../../../shared/components/ui/Badge';
 import { Button } from '../../../shared/components/ui/Button';
 import { Card } from '../../../shared/components/ui/Card';
@@ -21,7 +21,7 @@ export default function ReviewsPage() {
   const { user } = useAuthContext();
   const { data: reviews, isLoading } = useReviews();
   const { data: employees } = useEmployees({ limit: 100 });
-  
+
   const createMutation = useCreateReview();
   const submitMutation = useSubmitReview();
   const acknowledgeMutation = useAcknowledgeReview();
@@ -66,7 +66,7 @@ export default function ReviewsPage() {
     await acknowledgeMutation.mutateAsync(id);
   };
 
-  const filteredReviews = reviews?.filter(r => 
+  const filteredReviews = reviews?.filter(r =>
     (!statusFilter || r.status === statusFilter)
   ) || [];
 
@@ -75,12 +75,12 @@ export default function ReviewsPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-10">
         <div>
-           <h1 className="text-5xl font-black text-slate-900 tracking-tighter leading-none drop-shadow-sm">Appraisal Ledger</h1>
-           <p className="text-xs text-slate-400 font-black uppercase tracking-[0.3em] mt-6 opacity-70">
-             Lifecycle management for employee evaluations and 360° feedback
-           </p>
+          <h1 className="text-5xl font-black text-slate-900 tracking-tighter leading-none drop-shadow-sm">Appraisal Ledger</h1>
+          <p className="text-xs text-slate-400 font-black uppercase tracking-[0.3em] mt-6 opacity-70">
+            Lifecycle management for employee evaluations and 360° feedback
+          </p>
         </div>
-        
+
         <div className="flex items-center gap-4">
           <div className="flex items-center p-2 bg-white/40 backdrop-blur-xl border border-white/60 rounded-[2.5rem] shadow-xl ring-1 ring-white/10">
             <select
@@ -95,7 +95,7 @@ export default function ReviewsPage() {
             </select>
           </div>
           <Button variant="primary" size="md" onClick={() => setShowCreateModal(true)}>
-             Initiate Review
+            Initiate Review
           </Button>
         </div>
       </div>
@@ -121,9 +121,9 @@ export default function ReviewsPage() {
                 filteredReviews.map((review) => (
                   <tr key={review.id} className="group hover:bg-white/80 transition-all duration-500">
                     <td className="px-10 py-8">
-                       <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-4">
                         <div className="w-10 h-10 rounded-2xl bg-slate-900 text-white flex items-center justify-center text-[10px] font-black uppercase tracking-tighter">
-                           {review.employee?.firstName?.[0]}{review.employee?.lastName?.[0]}
+                          {review.employee?.firstName?.[0]}{review.employee?.lastName?.[0]}
                         </div>
                         <div>
                           <p className="text-sm font-black text-slate-900 tracking-tighter leading-none mb-1">{review.employee?.firstName} {review.employee?.lastName}</p>
@@ -148,9 +148,9 @@ export default function ReviewsPage() {
                     <td className="px-10 py-8 text-right">
                       <div className="flex items-center justify-end gap-3 opacity-0 group-hover:opacity-100 transition-all">
                         {review.status === 'draft' && (
-                          <Button 
-                            variant="primary" 
-                            size="sm" 
+                          <Button
+                            variant="primary"
+                            size="sm"
                             className="h-9 px-4 rounded-xl text-[9px] font-black uppercase tracking-widest"
                             onClick={() => handleSubmit(review.id)}
                             disabled={submitMutation.isPending}
@@ -159,9 +159,9 @@ export default function ReviewsPage() {
                           </Button>
                         )}
                         {review.status === 'submitted' && (
-                          <Button 
-                            variant="primary" 
-                            size="sm" 
+                          <Button
+                            variant="primary"
+                            size="sm"
                             className="h-9 px-4 rounded-xl text-[9px] font-black uppercase tracking-widest bg-emerald-500 hover:bg-emerald-600 border-none"
                             onClick={() => handleAcknowledge(review.id)}
                             disabled={acknowledgeMutation.isPending}
@@ -169,9 +169,9 @@ export default function ReviewsPage() {
                             Acknowledge
                           </Button>
                         )}
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           className="h-9 px-4 rounded-xl text-[9px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900"
                           onClick={() => alert('Detail stream access coming soon')}
                         >
@@ -197,35 +197,35 @@ export default function ReviewsPage() {
         <div className="space-y-10">
           <div className="grid grid-cols-1 gap-10">
             <div className="space-y-4">
-               <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Subject Associate</label>
-               <select
-                 value={newReview.employeeId}
-                 onChange={(e) => setNewReview({ ...newReview, employeeId: e.target.value })}
-                 className="w-full px-8 py-5 border border-white/60 rounded-3xl text-sm font-black text-slate-900 bg-white/40 focus:outline-none focus:ring-4 focus:ring-slate-100 transition-all cursor-pointer uppercase tracking-widest shadow-inner appearance-none"
-               >
-                 <option value="" className="bg-white">Select Associate</option>
-                 {employees?.data?.map((emp) => (
-                   <option key={emp.id} value={emp.id} className="bg-white">{emp.firstName} {emp.lastName}</option>
-                 ))}
-               </select>
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Subject Associate</label>
+              <select
+                value={newReview.employeeId}
+                onChange={(e) => setNewReview({ ...newReview, employeeId: e.target.value })}
+                className="w-full px-8 py-5 border border-white/60 rounded-3xl text-sm font-black text-slate-900 bg-white/40 focus:outline-none focus:ring-4 focus:ring-slate-100 transition-all cursor-pointer uppercase tracking-widest shadow-inner appearance-none"
+              >
+                <option value="" className="bg-white">Select Associate</option>
+                {employees?.data?.map((emp) => (
+                  <option key={emp.id} value={emp.id} className="bg-white">{emp.firstName} {emp.lastName}</option>
+                ))}
+              </select>
             </div>
-            
+
             <div className="space-y-4">
-               <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Appraisal Period</label>
-               <input
-                 type="text"
-                 value={newReview.reviewPeriod}
-                 onChange={(e) => setNewReview({ ...newReview, reviewPeriod: e.target.value })}
-                 className="w-full px-8 py-5 border border-white/60 rounded-3xl text-sm font-black text-slate-900 bg-white/40 focus:outline-none focus:ring-4 focus:ring-slate-100 transition-all uppercase tracking-widest placeholder:text-slate-300 shadow-inner"
-                 placeholder="e.g., ANNUAL REVIEW 2024"
-               />
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Appraisal Period</label>
+              <input
+                type="text"
+                value={newReview.reviewPeriod}
+                onChange={(e) => setNewReview({ ...newReview, reviewPeriod: e.target.value })}
+                className="w-full px-8 py-5 border border-white/60 rounded-3xl text-sm font-black text-slate-900 bg-white/40 focus:outline-none focus:ring-4 focus:ring-slate-100 transition-all uppercase tracking-widest placeholder:text-slate-300 shadow-inner"
+                placeholder="e.g., ANNUAL REVIEW 2024"
+              />
             </div>
           </div>
 
           <div className="space-y-6">
             <div className="flex justify-between items-center px-1">
-               <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Merit Rating</label>
-               <span className="text-2xl font-black text-slate-900">{newReview.rating} <span className="text-xs text-slate-400 font-black uppercase tracking-widest ml-1">/ 5.0</span></span>
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Merit Rating</label>
+              <span className="text-2xl font-black text-slate-900">{newReview.rating} <span className="text-xs text-slate-400 font-black uppercase tracking-widest ml-1">/ 5.0</span></span>
             </div>
             <input
               type="range"
@@ -250,22 +250,22 @@ export default function ReviewsPage() {
 
           <div className="grid grid-cols-2 gap-10">
             <div className="space-y-4">
-               <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Core Strengths</label>
-               <textarea
-                 value={newReview.strengths}
-                 onChange={(e) => setNewReview({ ...newReview, strengths: e.target.value })}
-                 className="w-full px-8 py-5 border border-white/60 rounded-3xl text-sm font-black text-slate-900 bg-white/40 focus:outline-none focus:ring-4 focus:ring-slate-100 transition-all uppercase tracking-widest h-24 placeholder:text-slate-300 shadow-inner"
-                 placeholder="Competencies..."
-               />
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Core Strengths</label>
+              <textarea
+                value={newReview.strengths}
+                onChange={(e) => setNewReview({ ...newReview, strengths: e.target.value })}
+                className="w-full px-8 py-5 border border-white/60 rounded-3xl text-sm font-black text-slate-900 bg-white/40 focus:outline-none focus:ring-4 focus:ring-slate-100 transition-all uppercase tracking-widest h-24 placeholder:text-slate-300 shadow-inner"
+                placeholder="Competencies..."
+              />
             </div>
             <div className="space-y-4">
-               <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Evolution Vectors</label>
-               <textarea
-                 value={newReview.improvements}
-                 onChange={(e) => setNewReview({ ...newReview, improvements: e.target.value })}
-                 className="w-full px-8 py-5 border border-white/60 rounded-3xl text-sm font-black text-slate-900 bg-white/40 focus:outline-none focus:ring-4 focus:ring-slate-100 transition-all uppercase tracking-widest h-24 placeholder:text-slate-300 shadow-inner"
-                 placeholder="Growth areas..."
-               />
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Evolution Vectors</label>
+              <textarea
+                value={newReview.improvements}
+                onChange={(e) => setNewReview({ ...newReview, improvements: e.target.value })}
+                className="w-full px-8 py-5 border border-white/60 rounded-3xl text-sm font-black text-slate-900 bg-white/40 focus:outline-none focus:ring-4 focus:ring-slate-100 transition-all uppercase tracking-widest h-24 placeholder:text-slate-300 shadow-inner"
+                placeholder="Growth areas..."
+              />
             </div>
           </div>
 

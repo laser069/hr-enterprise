@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { useQuery } from '@tanstack/react-query';
 import { payrollApi } from '../services/payroll.api';
 import { Card } from '../../../shared/components/ui/Card';
@@ -77,7 +77,7 @@ const MyPayslipsPage = () => {
         const status = entry.payrollRun?.status;
         return (
           <span className={`px-2 py-1 rounded-full text-xs font-medium capitalize 
-            ${status === 'processed' ? 'bg-green-100 text-green-700' : 
+            ${status === 'processed' ? 'bg-green-100 text-green-700' :
               status === 'approved' ? 'bg-blue-100 text-blue-700' : 'bg-yellow-100 text-yellow-700'}`}>
             {status || 'draft'}
           </span>
@@ -113,11 +113,11 @@ const MyPayslipsPage = () => {
           <p className="text-slate-500 dark:text-slate-400">View and download your salary slips</p>
         </div>
         <div className="bg-blue-50 text-blue-700 px-4 py-3 rounded-lg flex items-center">
-            <FileText className="w-5 h-5 mr-3" />
-            <div>
-                <div className="text-sm font-semibold">Total Payslips</div>
-                <div className="text-xl font-bold leading-none">{payslips?.length || 0}</div>
-            </div>
+          <FileText className="w-5 h-5 mr-3" />
+          <div>
+            <div className="text-sm font-semibold">Total Payslips</div>
+            <div className="text-xl font-bold leading-none">{payslips?.length || 0}</div>
+          </div>
         </div>
       </div>
 

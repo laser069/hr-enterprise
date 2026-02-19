@@ -3,7 +3,7 @@ import { env } from '../../config/env';
 
 const axiosInstance = axios.create({
   baseURL: env.apiBaseUrl,
-  timeout: 30000,
+  timeout: 60000,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -37,7 +37,7 @@ axiosInstance.interceptors.response.use(
   },
   async (error: AxiosError) => {
     const originalRequest = error.config;
-    
+
     if (error.response?.status === 401 && originalRequest) {
       // Try to refresh the token
       try {
@@ -47,14 +47,14 @@ axiosInstance.interceptors.response.use(
           const response = await axios.post(`${env.apiBaseUrl}/auth/refresh`, {
             refreshToken,
           });
-          
+
           // Backend wraps response: { data: { tokens: { accessToken, refreshToken, expiresIn } } }
           const tokens = response.data.data.tokens;
           const { accessToken, refreshToken: newRefreshToken } = tokens;
-          
+
           localStorage.setItem('accessToken', accessToken);
           localStorage.setItem('refreshToken', newRefreshToken);
-          
+
           // Retry the original request
           if (originalRequest.headers) {
             originalRequest.headers.Authorization = `Bearer ${accessToken}`;
@@ -70,7 +70,7 @@ axiosInstance.interceptors.response.use(
         return Promise.reject(refreshError);
       }
     }
-    
+
     console.error('[Axios] Request failed:', {
       url: error.config?.url,
       method: error.config?.method,
@@ -78,7 +78,7 @@ axiosInstance.interceptors.response.use(
       data: error.response?.data,
       message: error.message
     });
-    
+
     return Promise.reject(error);
   }
 );

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Card } from '../../../shared/components/ui/Card';
 import { Button } from '../../../shared/components/ui/Button';
 import { useTickets } from '../hooks/useHelpdesk';
@@ -13,13 +13,13 @@ const TicketListPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [page, setPage] = useState(0);
   const [filterStatus, setFilterStatus] = useState<string | undefined>(undefined);
-  
-  const { data: ticketsData, isLoading } = useTickets({ 
-    skip: page * 10, 
+
+  const { data: ticketsData, isLoading } = useTickets({
+    skip: page * 10,
     take: 10,
-    status: filterStatus 
+    status: filterStatus
   });
-  
+
   const navigate = useNavigate();
 
   const getStatusColor = (status: string) => {
@@ -45,71 +45,65 @@ const TicketListPage = () => {
   const columns = [
     {
       header: 'ID',
-      accessorKey: 'id',
-      cell: (info: any) => (
-        <div className="font-mono text-xs">{info.getValue().slice(0, 8)}</div>
+      accessor: (item: any) => (
+        <div className="font-mono text-xs">{item.id.slice(0, 8)}</div>
       ),
     },
     {
       header: 'Subject',
-      accessorKey: 'title',
-      cell: (info: any) => (
-        <div className="font-medium text-slate-900 dark:text-white">{info.getValue()}</div>
+      accessor: (item: any) => (
+        <div className="font-medium text-slate-900 dark:text-white">{item.title}</div>
       ),
     },
     {
       header: 'Requester',
-      accessorKey: 'requester',
-      cell: (info: any) => (
+      accessor: (item: any) => (
         <div className="flex flex-col">
           <span className="text-sm font-medium">
-            {info.getValue()?.employee?.firstName} {info.getValue()?.employee?.lastName}
+            {item.requester?.employee?.firstName} {item.requester?.employee?.lastName}
           </span>
-          <span className="text-xs text-slate-500">{info.getValue()?.email}</span>
+          <span className="text-xs text-slate-500">{item.requester?.email}</span>
         </div>
       ),
     },
     {
       header: 'Category',
-      accessorKey: 'category',
-      cell: (info: any) => (
-        <span className="capitalize">{info.getValue().replace('_', ' ')}</span>
+      accessor: (item: any) => (
+        <span className="capitalize">{item.category.replace('_', ' ')}</span>
       ),
     },
     {
       header: 'Status',
-      accessorKey: 'status',
-      cell: (info: any) => (
-        <Badge variant={getStatusColor(info.getValue()) as any}>
-          {info.getValue().replace('_', ' ')}
+      accessor: (item: any) => (
+        <Badge variant={getStatusColor(item.status) as any}>
+          {item.status.replace('_', ' ')}
         </Badge>
       ),
     },
     {
       header: 'Priority',
-      accessorKey: 'priority',
-      cell: (info: any) => (
-        <Badge variant={getPriorityColor(info.getValue()) as any}>
-          {info.getValue()}
+      accessor: (item: any) => (
+        <Badge variant={getPriorityColor(item.priority) as any}>
+          {item.priority}
         </Badge>
       ),
     },
     {
       header: 'Date',
-      accessorKey: 'createdAt',
-      cell: (info: any) => format(new Date(info.getValue()), 'MMM d, yyyy'),
+      accessor: (item: any) => format(new Date(item.createdAt), 'MMM d, yyyy'),
     },
     {
-      id: 'actions',
-      cell: (info: any) => (
+      header: '',
+      accessor: (item: any) => (
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => navigate(`/helpdesk/tickets/${info.row.original.id}`)}
+          onClick={() => navigate(`/helpdesk/tickets/${item.id}`)}
         >
           Details
         </Button>
       ),
+      align: 'right' as const,
     },
   ];
 
@@ -128,30 +122,30 @@ const TicketListPage = () => {
 
       <Card className="p-6">
         <div className="flex gap-2 mb-4">
-          <Button 
-            variant={!filterStatus ? 'primary' : 'outline'} 
-            size="sm" 
+          <Button
+            variant={!filterStatus ? 'primary' : 'outline'}
+            size="sm"
             onClick={() => setFilterStatus(undefined)}
           >
             All
           </Button>
-          <Button 
-            variant={filterStatus === 'open' ? 'primary' : 'outline'} 
-            size="sm" 
+          <Button
+            variant={filterStatus === 'open' ? 'primary' : 'outline'}
+            size="sm"
             onClick={() => setFilterStatus('open')}
           >
             Open
           </Button>
-          <Button 
-            variant={filterStatus === 'in_progress' ? 'primary' : 'outline'} 
-            size="sm" 
+          <Button
+            variant={filterStatus === 'in_progress' ? 'primary' : 'outline'}
+            size="sm"
             onClick={() => setFilterStatus('in_progress')}
           >
             In Progress
           </Button>
-          <Button 
-            variant={filterStatus === 'resolved' ? 'primary' : 'outline'} 
-            size="sm" 
+          <Button
+            variant={filterStatus === 'resolved' ? 'primary' : 'outline'}
+            size="sm"
             onClick={() => setFilterStatus('resolved')}
           >
             Resolved
@@ -166,26 +160,26 @@ const TicketListPage = () => {
             columns={columns}
           />
         )}
-        
+
         {/* Simple Pagination */}
         <div className="flex justify-between items-center mt-4">
-            <Button 
-                variant="outline" 
-                disabled={page === 0}
-                onClick={() => setPage(p => Math.max(0, p - 1))}
-            >
-                Previous
-            </Button>
-            <span className="text-sm text-slate-500">
-                Page {page + 1} of {ticketsData?.meta?.totalPages || 1}
-            </span>
-            <Button 
-                variant="outline" 
-                disabled={!ticketsData?.meta || page >= ticketsData.meta.totalPages - 1}
-                onClick={() => setPage(p => p + 1)}
-            >
-                Next
-            </Button>
+          <Button
+            variant="outline"
+            disabled={page === 0}
+            onClick={() => setPage(p => Math.max(0, p - 1))}
+          >
+            Previous
+          </Button>
+          <span className="text-sm text-slate-500">
+            Page {page + 1} of {ticketsData?.meta?.totalPages || 1}
+          </span>
+          <Button
+            variant="outline"
+            disabled={!ticketsData?.meta || page >= ticketsData.meta.totalPages - 1}
+            onClick={() => setPage(p => p + 1)}
+          >
+            Next
+          </Button>
         </div>
       </Card>
 

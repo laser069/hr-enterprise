@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { employeeApi } from '../services/employee.api';
 import { Card } from '../../../shared/components/ui/Card';
@@ -40,9 +40,9 @@ const OrgTreeNode = ({ node, level = 0 }: { node: OrgNode; level?: number }) => 
             )}
           </div>
         </div>
-        
+
         {hasChildren && (
-          <button 
+          <button
             onClick={() => setIsExpanded(!isExpanded)}
             className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 w-6 h-6 bg-white border border-slate-200 rounded-full flex items-center justify-center shadow-sm hover:bg-slate-50 transition-colors z-10"
           >
@@ -55,19 +55,19 @@ const OrgTreeNode = ({ node, level = 0 }: { node: OrgNode; level?: number }) => 
         <div className="flex flex-col items-center relative">
           <div className="w-px h-8 bg-slate-300"></div>
           <div className="flex gap-8 items-start relative pt-4">
-             {/* Horizontal connector line */}
+            {/* Horizontal connector line */}
             {node.subordinates!.length > 1 && (
-                <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-[calc(100%-16rem)] h-px bg-slate-300 hidden md:block"></div>
+              <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-[calc(100%-16rem)] h-px bg-slate-300 hidden md:block"></div>
             )}
-            
+
             <div className="flex flex-wrap justify-center gap-8">
-                {node.subordinates!.map((child) => (
-                    <div key={child.id} className="relative flex flex-col items-center">
-                         {/* Vertical connector for child */}
-                        <div className="w-px h-4 bg-slate-300 absolute -top-4"></div>
-                        <OrgTreeNode node={child} level={level + 1} />
-                    </div>
-                ))}
+              {node.subordinates!.map((child) => (
+                <div key={child.id} className="relative flex flex-col items-center">
+                  {/* Vertical connector for child */}
+                  <div className="w-px h-4 bg-slate-300 absolute -top-4"></div>
+                  <OrgTreeNode node={child} level={level + 1} />
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -93,21 +93,21 @@ const OrgChartPage = () => {
     <div className="p-6">
       <div className="mb-6 flex justify-between items-center">
         <div>
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Organization Chart</h1>
-            <p className="text-slate-500 dark:text-slate-400">Visual hierarchy of the organization</p>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Organization Chart</h1>
+          <p className="text-slate-500 dark:text-slate-400">Visual hierarchy of the organization</p>
         </div>
         <Button variant="outline" onClick={() => window.print()}>Export / Print</Button>
       </div>
 
       <div className="overflow-auto pb-20 bg-slate-50/50 dark:bg-slate-900/50 rounded-xl border border-slate-200 dark:border-slate-800 p-8 min-h-[600px] flex justify-center">
         {orgData?.length === 0 ? (
-            <div className="text-center text-slate-500 mt-20">No data available</div>
+          <div className="text-center text-slate-500 mt-20">No data available</div>
         ) : (
-             <div className="flex gap-16">
-                {orgData.map((node: OrgNode) => (
-                    <OrgTreeNode key={node.id} node={node} />
-                ))}
-            </div>
+          <div className="flex gap-16">
+            {orgData.map((node: OrgNode) => (
+              <OrgTreeNode key={node.id} node={node} />
+            ))}
+          </div>
         )}
       </div>
     </div>

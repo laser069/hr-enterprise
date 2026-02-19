@@ -21,7 +21,7 @@ export default function LeaveDashboard() {
   const currentYear = new Date().getFullYear();
   const [selectedYear, setSelectedYear] = useState(currentYear);
   const { user } = useAuthContext();
-  
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState({
     leaveTypeId: '',
@@ -32,10 +32,10 @@ export default function LeaveDashboard() {
 
   const { data: balanceData, isLoading: balanceLoading } = useLeaveBalance(selectedYear);
   const balance = balanceData?.balances || ([] as LeaveBalance[]);
-  
+
   const { data: rawSummary } = useLeaveSummary(selectedYear);
   const summary: LeaveSummary | undefined = rawSummary?.summary;
-  
+
   const { data: recentRequests, isLoading: requestsLoading } = useMyLeaveRequests();
   const { data: leaveTypes } = useLeaveTypes();
   const createRequest = useCreateLeaveRequest();
@@ -43,7 +43,7 @@ export default function LeaveDashboard() {
   const handleInitiateRequest = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user?.employeeId) return;
-    
+
     try {
       await createRequest.mutateAsync({
         ...formData,
@@ -63,18 +63,18 @@ export default function LeaveDashboard() {
       )
     },
     {
-       header: 'Temporal Window',
-       accessor: (request) => (
-         <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest">
-            {new Date(request.startDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} - {new Date(request.endDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
-         </span>
-       )
+      header: 'Temporal Window',
+      accessor: (request) => (
+        <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest">
+          {new Date(request.startDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} - {new Date(request.endDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+        </span>
+      )
     },
     {
-       header: 'Protocol Status',
-       accessor: (request) => (
-         <Badge variant={statusColors[request.status]} className="shadow-xl">{request.status}</Badge>
-       )
+      header: 'Protocol Status',
+      accessor: (request) => (
+        <Badge variant={statusColors[request.status]} className="shadow-xl">{request.status}</Badge>
+      )
     }
   ];
 
@@ -85,10 +85,10 @@ export default function LeaveDashboard() {
         <div>
           <h1 className="text-5xl font-black text-slate-900 tracking-tighter leading-none drop-shadow-sm">Absence Registry</h1>
           <p className="text-xs text-slate-400 font-black uppercase tracking-[0.3em] mt-6 opacity-70">
-             Strategic Reserve Management & Capacity Intelligence
+            Strategic Reserve Management & Capacity Intelligence
           </p>
         </div>
-        
+
         <div className="flex items-center gap-6">
           <div className="relative group">
             <select
@@ -105,9 +105,9 @@ export default function LeaveDashboard() {
               </svg>
             </div>
           </div>
-          <Button 
-            variant="primary" 
-            size="md" 
+          <Button
+            variant="primary"
+            size="md"
             onClick={() => setIsModalOpen(true)}
           >
             Initiate Protocol
@@ -122,7 +122,7 @@ export default function LeaveDashboard() {
           value={summary?.totalRequests || 0}
           icon={
             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
             </svg>
           }
         />
@@ -131,56 +131,56 @@ export default function LeaveDashboard() {
           value={summary?.totalDaysTaken || 0}
           trend={{ value: 5, isPositive: true }}
           icon={
-             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
           }
         />
         <StatCard
-           title="Telemetry Pending"
-           value={summary?.pendingRequests || 0}
-           icon={
-             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-             </svg>
-           }
+          title="Telemetry Pending"
+          value={summary?.pendingRequests || 0}
+          icon={
+            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          }
         />
         <StatCard
-           title="Protocol Yield"
-           value={summary?.totalRequests ? `${Math.round((summary.approvedRequests / summary.totalRequests) * 100)}%` : '0%'}
-           icon={
-             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-             </svg>
-           }
+          title="Protocol Yield"
+          value={summary?.totalRequests ? `${Math.round((summary.approvedRequests / summary.totalRequests) * 100)}%` : '0%'}
+          icon={
+            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          }
         />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
         {/* Balances */}
         <div className="lg:col-span-1 space-y-12">
-          <Card 
-            title="Resource Reserves" 
+          <Card
+            title="Resource Reserves"
             subtitle={`Capacity allocation for ${selectedYear}`}
           >
             <div className="space-y-12 py-8">
               {balanceLoading ? (
-                 Array.from({ length: 3 }).map((_, i) => (
+                Array.from({ length: 3 }).map((_, i) => (
                   <div key={i} className="animate-pulse flex items-center gap-8">
                     <div className="w-16 h-16 bg-slate-100 rounded-[1.5rem] border border-slate-200"></div>
                     <div className="flex-1 space-y-4">
-                       <div className="h-4 bg-slate-100 rounded w-1/2"></div>
-                       <div className="h-2 bg-slate-100 rounded w-3/4"></div>
+                      <div className="h-4 bg-slate-100 rounded w-1/2"></div>
+                      <div className="h-2 bg-slate-100 rounded w-3/4"></div>
                     </div>
                   </div>
                 ))
               ) : !balance || balance.length === 0 ? (
                 <div className="text-center py-16">
-                   <p className="text-[11px] font-black text-slate-300 uppercase tracking-[0.3em]">No Reserves Allocated</p>
+                  <p className="text-[11px] font-black text-slate-300 uppercase tracking-[0.3em]">No Reserves Allocated</p>
                 </div>
               ) : (
                 balance.map((item: LeaveBalance) => (
-                   <BalanceRecord key={item.id} balance={item} />
+                  <BalanceRecord key={item.id} balance={item} />
                 ))
               )}
             </div>
@@ -189,25 +189,25 @@ export default function LeaveDashboard() {
 
         {/* Recent Applications */}
         <div className="lg:col-span-2 space-y-12">
-           <Card title="Audit Dashboard" subtitle="Sequential telemetry history" noPadding>
-              <DataTable
-                 columns={columns}
-                 data={recentRequests || []}
-                 isLoading={requestsLoading}
-                 className="border-none bg-transparent"
-              />
-              <div className="p-10 bg-slate-50 border-t border-slate-200 flex justify-center backdrop-blur-md">
-                <a href="/leave/requests" className="text-[11px] font-black text-slate-400 hover:text-slate-900 uppercase tracking-[0.3em] transition-all hover:scale-105">
-                    Access Complete Audit Stream →
-                </a>
-              </div>
-           </Card>
+          <Card title="Audit Dashboard" subtitle="Sequential telemetry history" noPadding>
+            <DataTable
+              columns={columns}
+              data={recentRequests?.data || []}
+              isLoading={requestsLoading}
+              className="border-none bg-transparent"
+            />
+            <div className="p-10 bg-slate-50 border-t border-slate-200 flex justify-center backdrop-blur-md">
+              <a href="/leave/requests" className="text-[11px] font-black text-slate-400 hover:text-slate-900 uppercase tracking-[0.3em] transition-all hover:scale-105">
+                Access Complete Audit Stream →
+              </a>
+            </div>
+          </Card>
         </div>
       </div>
 
       {/* Initiate Request Modal */}
-      <Modal 
-        isOpen={isModalOpen} 
+      <Modal
+        isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         title="Protocol Initiation: Absence"
         size="lg"
@@ -216,7 +216,7 @@ export default function LeaveDashboard() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="space-y-3">
               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Reserve Category</label>
-              <select 
+              <select
                 required
                 value={formData.leaveTypeId}
                 onChange={(e) => setFormData({ ...formData, leaveTypeId: e.target.value })}
@@ -233,7 +233,7 @@ export default function LeaveDashboard() {
             </div>
             <div className="space-y-3">
               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Commencement Date</label>
-              <input 
+              <input
                 type="date"
                 required
                 value={formData.startDate}
@@ -243,18 +243,18 @@ export default function LeaveDashboard() {
             </div>
             <div className="space-y-3">
               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Termination Date</label>
-              <input 
+              <input
                 type="date"
                 required
                 value={formData.endDate}
-                 onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+                onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
                 className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 font-black text-slate-900 tracking-tighter focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500/30 outline-none transition-all"
               />
             </div>
           </div>
           <div className="space-y-3">
             <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Protocol Rationale (Reason)</label>
-            <textarea 
+            <textarea
               required
               rows={4}
               value={formData.reason}
@@ -263,7 +263,7 @@ export default function LeaveDashboard() {
               placeholder="Provide strategic rationale for leave allocation..."
             />
           </div>
-          
+
           <div className="flex justify-end gap-4 pt-4">
             <Button variant="ghost" type="button" onClick={() => setIsModalOpen(false)}>Abort</Button>
             <Button variant="primary" type="submit" isLoading={createRequest.isPending}>
@@ -278,7 +278,7 @@ export default function LeaveDashboard() {
 
 function BalanceRecord({ balance }: { balance: LeaveBalance }) {
   const percentage = (balance.usedDays / balance.totalDays) * 100;
-  
+
   return (
     <div className="group space-y-5">
       <div className="flex justify-between items-end">
@@ -292,8 +292,8 @@ function BalanceRecord({ balance }: { balance: LeaveBalance }) {
         </div>
       </div>
       <div className="h-3 bg-slate-50 rounded-full overflow-hidden border border-slate-200/60 p-0.5 shadow-inner backdrop-blur-sm">
-        <div 
-          className="h-full bg-slate-900 rounded-full transition-all duration-1000 group-hover:bg-indigo-600 shadow-[0_0_20px_rgba(15,23,42,0.3)] group-hover:shadow-[0_0_20px_rgba(79,70,229,0.4)]" 
+        <div
+          className="h-full bg-slate-900 rounded-full transition-all duration-1000 group-hover:bg-indigo-600 shadow-[0_0_20px_rgba(15,23,42,0.3)] group-hover:shadow-[0_0_20px_rgba(79,70,229,0.4)]"
           style={{ width: `${percentage}%` }}
         ></div>
       </div>
