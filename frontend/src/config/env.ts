@@ -4,7 +4,7 @@ const getApiBaseUrl = () => {
     const envUrl = import.meta.env.VITE_API_BASE_URL;
     // If the env var is missing OR it points to localhost (accidental local build leak), use prod URL
     if (!envUrl || envUrl.includes('localhost') || envUrl.includes('127.0.0.1')) {
-      return 'https://hr-enterprise-4.onrender.com';
+      return 'https://hr-enterprise-aif3.onrender.com';
     }
     return envUrl;
   }

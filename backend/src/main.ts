@@ -44,17 +44,36 @@ async function bootstrap(): Promise<void> {
   app.use(compression());
 
   // Enable CORS
+  // Enable CORS
   app.enableCors({
-    origin: [
-      'https://hr-enterprisee.netlify.app',
-      'http://localhost:3000',
-      'http://localhost:5173',
-      ...(process.env.CORS_ORIGIN ? [process.env.CORS_ORIGIN] : []),
-    ],
+    origin: (requestOrigin: string, callback: (err: Error | null, allow?: boolean) => void) => {
+      const allowedOrigins = [
+        'https://hr-enterprisee.netlify.app',
+        'http://localhost:3000',
+        'http://localhost:5173',
+        ...(process.env.CORS_ORIGIN ? [process.env.CORS_ORIGIN] : []),
+      ];
+
+      console.log(`[CORS] Checking origin: ${requestOrigin}`);
+
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!requestOrigin) {
+        return callback(null, true);
+      }
+
+      if (allowedOrigins.includes(requestOrigin)) {
+        return callback(null, true);
+      } else {
+        console.warn(`[CORS] Blocked request from origin: ${requestOrigin}. Allowed: ${allowedOrigins.join(', ')}`);
+        return callback(new Error('Not allowed by CORS'));
+      }
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'x-correlation-id'],
   });
+
+  console.log('CORS FIX V2 APPLIED - Dynamic Origin Check Active');
 
   // Request logging middleware
   app.use((req: any, res: any, next: any) => {
