@@ -5,6 +5,10 @@ import { Badge } from '../../../shared/components/ui/Badge';
 import { Button } from '../../../shared/components/ui/Button';
 import { Spinner } from '../../../shared/components/ui/Spinner';
 import { Card } from '../../../shared/components/ui/Card';
+import { DocumentTab } from '../components/DocumentTab';
+import { HistoryTab } from '../components/HistoryTab';
+import { PerformanceTab } from '../components/PerformanceTab';
+import { AttendanceTab } from '../components/AttendanceTab';
 
 const statusColors: Record<string, 'success' | 'warning' | 'danger' | 'default'> = {
   ACTIVE: 'success',
@@ -15,7 +19,7 @@ const statusColors: Record<string, 'success' | 'warning' | 'danger' | 'default'>
 
 export default function EmployeeDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const [activeTab, setActiveTab] = useState<'info' | 'team' | 'hierarchy'>('info');
+  const [activeTab, setActiveTab] = useState<'info' | 'team' | 'attendance' | 'performance' | 'documents' | 'history'>('info');
   const { data: employee, isLoading, error } = useEmployee(id!);
   const { data: subordinates, isLoading: isLoadingTeam } = useSubordinates(id!);
 
@@ -42,7 +46,7 @@ export default function EmployeeDetailPage() {
         <Link to="/employees" className="inline-flex items-center gap-2 text-gray-400 hover:text-gray-900 transition-all font-black text-[10px] uppercase tracking-[0.2em]">
           Resource Directory
         </Link>
-        
+
         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8">
           <div className="flex flex-col md:flex-row items-start md:items-center gap-8">
             <div className="h-32 w-32 flex-shrink-0 relative">
@@ -52,12 +56,12 @@ export default function EmployeeDetailPage() {
                 </span>
               </div>
               <div className="absolute -bottom-3 -right-3 z-20">
-                 <Badge variant={statusColors[employee.status]} className="h-10 px-4 border-4 border-white shadow-xl text-[10px] font-black uppercase tracking-widest rounded-2xl">
-                   {employee.status}
-                 </Badge>
+                <Badge variant={statusColors[employee.status]} className="h-10 px-4 border-4 border-white shadow-xl text-[10px] font-black uppercase tracking-widest rounded-2xl">
+                  {employee.status}
+                </Badge>
               </div>
             </div>
-            
+
             <div className="pt-2">
               <h1 className="text-5xl font-black text-gray-900 tracking-tighter leading-none">
                 {employee.firstName} <span className="text-gray-400">{employee.lastName}</span>
@@ -73,10 +77,13 @@ export default function EmployeeDetailPage() {
         </div>
       </div>
 
-      <div className="flex gap-4 border-b border-gray-100">
+      <div className="flex gap-4 border-b border-gray-100 overflow-x-auto custom-scrollbar no-scrollbar whitespace-nowrap">
         <TabButton active={activeTab === 'info'} onClick={() => setActiveTab('info')}>Information</TabButton>
         <TabButton active={activeTab === 'team'} onClick={() => setActiveTab('team')}>Direct Reports</TabButton>
-        <TabButton active={activeTab === 'hierarchy'} onClick={() => setActiveTab('hierarchy')}>Hierarchy</TabButton>
+        <TabButton active={activeTab === 'attendance'} onClick={() => setActiveTab('attendance')}>Attendance</TabButton>
+        <TabButton active={activeTab === 'performance'} onClick={() => setActiveTab('performance')}>Performance</TabButton>
+        <TabButton active={activeTab === 'documents'} onClick={() => setActiveTab('documents')}>Documents</TabButton>
+        <TabButton active={activeTab === 'history'} onClick={() => setActiveTab('history')}>History</TabButton>
       </div>
 
       {activeTab === 'info' && (
@@ -100,26 +107,24 @@ export default function EmployeeDetailPage() {
             <p className="col-span-full text-center py-12 text-slate-400 font-bold uppercase tracking-widest text-xs">No direct reports found</p>
           ) : subordinates?.map(sub => (
             <Card key={sub.id} className="p-6">
-               <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center font-black text-xs">
-                    {sub.firstName[0]}{sub.lastName[0]}
-                  </div>
-                  <div>
-                    <h4 className="font-black text-slate-900 tracking-tight">{sub.firstName} {sub.lastName}</h4>
-                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{sub.designation}</p>
-                  </div>
-               </div>
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center font-black text-xs">
+                  {sub.firstName[0]}{sub.lastName[0]}
+                </div>
+                <div>
+                  <h4 className="font-black text-slate-900 tracking-tight">{sub.firstName} {sub.lastName}</h4>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{sub.designation}</p>
+                </div>
+              </div>
             </Card>
           ))}
         </div>
       )}
 
-      {activeTab === 'hierarchy' && (
-        <Card className="p-12 text-center bg-slate-50 border-dashed border-2">
-          <p className="text-slate-400 font-black uppercase tracking-[0.2em] text-[10px]">Strategic Hierarchy View Processing...</p>
-          <p className="text-[9px] text-slate-400 mt-2">Visual organization map is being computed from central governance node.</p>
-        </Card>
-      )}
+      {activeTab === 'performance' && <PerformanceTab employeeId={id!} />}
+      {activeTab === 'attendance' && <AttendanceTab employeeId={id!} />}
+      {activeTab === 'documents' && <DocumentTab employeeId={id!} />}
+      {activeTab === 'history' && <HistoryTab employeeId={id!} />}
     </div>
   );
 }
@@ -128,9 +133,8 @@ function TabButton({ children, active, onClick }: { children: React.ReactNode; a
   return (
     <button
       onClick={onClick}
-      className={`pb-4 px-6 text-[10px] font-black uppercase tracking-widest transition-all relative ${
-        active ? 'text-slate-900' : 'text-slate-400 hover:text-slate-600'
-      }`}
+      className={`pb-4 px-6 text-[10px] font-black uppercase tracking-widest transition-all relative ${active ? 'text-slate-900' : 'text-slate-400 hover:text-slate-600'
+        }`}
     >
       {children}
       {active && <div className="absolute bottom-0 left-0 right-0 h-1 bg-slate-900 rounded-full" />}

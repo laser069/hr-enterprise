@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCreateEmployee } from '../hooks/useEmployee';
+import { useShifts } from '../../shifts/hooks/useShifts';
 import { Card } from '../../../shared/components/ui/Card';
 import { Button } from '../../../shared/components/ui/Button';
 import type { CreateEmployeeDto } from '../types';
@@ -8,12 +9,14 @@ import type { CreateEmployeeDto } from '../types';
 export default function NewEmployeePage() {
   const navigate = useNavigate();
   const createMutation = useCreateEmployee();
-  
+
   const [formData, setFormData] = useState<Partial<CreateEmployeeDto>>({
     firstName: '',
     lastName: '',
     email: '',
     phone: '',
+    designation: '',
+    shiftId: '',
     dateOfJoining: new Date().toISOString().split('T')[0],
   });
 
@@ -30,6 +33,8 @@ export default function NewEmployeePage() {
   const handleChange = (field: keyof CreateEmployeeDto, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
+
+  const { data: shifts } = useShifts();
 
   return (
     <div className="max-w-4xl mx-auto space-y-8 pb-12">
@@ -106,6 +111,37 @@ export default function NewEmployeePage() {
                 onChange={(e) => handleChange('dateOfJoining', e.target.value)}
                 className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900"
               />
+            </div>
+
+            <div>
+              <label className="block text-sm font-bold text-slate-700 mb-2">
+                Operational Designation
+              </label>
+              <input
+                type="text"
+                value={formData.designation || ''}
+                onChange={(e) => handleChange('designation', e.target.value)}
+                className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900"
+                placeholder="e.g. Software Engineer"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-bold text-slate-700 mb-2">
+                Assigned Shift
+              </label>
+              <select
+                value={formData.shiftId || ''}
+                onChange={(e) => handleChange('shiftId', e.target.value)}
+                className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900 appearance-none bg-white font-bold"
+              >
+                <option value="">Select Shift</option>
+                {shifts?.map(shift => (
+                  <option key={shift.id} value={shift.id}>
+                    {shift.name} ({shift.startTime} - {shift.endTime})
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
 

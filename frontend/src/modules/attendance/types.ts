@@ -40,6 +40,7 @@ export interface CheckInDto {
   employeeId: string;
   timestamp?: string; // ISO datetime
   notes?: string;
+  faceDescriptor?: number[];
 }
 
 export interface CheckOutDto {

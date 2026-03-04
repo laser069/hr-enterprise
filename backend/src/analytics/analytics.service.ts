@@ -89,6 +89,50 @@ export class AnalyticsService {
     };
   }
 
+  async getPerformanceMetrics(params: { departmentId?: string; year?: number }) {
+    const year = params.year || new Date().getFullYear();
+    const where: any = {};
+    if (params.departmentId) {
+      where.employee = { departmentId: params.departmentId };
+    }
+
+    const [reviews, goals] = await Promise.all([
+      this.prisma.performanceReview.findMany({
+        where: {
+          ...where,
+          createdAt: {
+            gte: new Date(year, 0, 1),
+            lte: new Date(year, 11, 31),
+          },
+        },
+        select: { rating: true, employee: { select: { departmentId: true } } },
+      }),
+      this.prisma.goal.findMany({
+        where: {
+          ...where,
+          startDate: { gte: new Date(year, 0, 1) },
+          endDate: { lte: new Date(year, 11, 31) },
+        },
+        select: { status: true, targetValue: true, achievedValue: true },
+      }),
+    ]);
+
+    const avgRating = reviews.length > 0
+      ? reviews.reduce((sum, r) => sum + Number(r.rating), 0) / reviews.length
+      : 0;
+
+    const completedGoals = goals.filter(g => g.status === 'completed').length;
+    const goalCompletionRate = goals.length > 0 ? (completedGoals / goals.length) * 100 : 0;
+
+    return {
+      year,
+      averageRating: avgRating.toFixed(2),
+      totalReviews: reviews.length,
+      goalCompletionRate: goalCompletionRate.toFixed(2),
+      totalGoals: goals.length,
+    };
+  }
+
   async getAttendanceMetrics(params: { startDate: Date; endDate: Date; departmentId?: string }) {
     const { startDate, endDate, departmentId } = params;
 
@@ -146,6 +190,45 @@ export class AnalyticsService {
       },
       attendanceRate: totalDays > 0 ? (((presentDays + lateDays) / totalDays) * 100).toFixed(2) : 0,
     };
+  }
+
+  async getDetailedAttendanceReport(params: { startDate: Date; endDate: Date; departmentId?: string }) {
+    const { startDate, endDate, departmentId } = params;
+
+    const where: any = {
+      date: { gte: startDate, lte: endDate },
+    };
+    if (departmentId) {
+      where.employee = { departmentId };
+    }
+
+    const records = await this.prisma.attendance.findMany({
+      where,
+      include: {
+        employee: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            employeeCode: true,
+            department: { select: { name: true } },
+          },
+        },
+      },
+      orderBy: { date: 'desc' },
+    });
+
+    return records.map(r => ({
+      date: r.date.toISOString().split('T')[0],
+      employeeName: `${r.employee.firstName} ${r.employee.lastName}`,
+      employeeCode: r.employee.employeeCode,
+      department: r.employee.department?.name || 'N/A',
+      checkIn: r.checkIn?.toISOString() || null,
+      checkOut: r.checkOut?.toISOString() || null,
+      status: r.status,
+      workMinutes: r.workMinutes || 0,
+      lateMinutes: r.lateMinutes || 0,
+    }));
   }
 
   // ============ Leave Analytics ============
@@ -260,6 +343,46 @@ export class AnalyticsService {
         netSalary: data.net.toFixed(2),
       })),
     };
+  }
+
+  async getDetailedPayrollReport(params: { year: number; month?: number }) {
+    const where: any = { year: params.year };
+    if (params.month) where.month = params.month;
+
+    const runs = await this.prisma.payrollRun.findMany({
+      where,
+      include: {
+        entries: {
+          include: {
+            employee: {
+              select: {
+                firstName: true,
+                lastName: true,
+                employeeCode: true,
+                department: { select: { name: true } },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const report = [];
+    for (const run of runs) {
+      for (const entry of run.entries) {
+        report.push({
+          period: `${run.year}-${String(run.month).padStart(2, '0')}`,
+          employeeName: `${entry.employee.firstName} ${entry.employee.lastName}`,
+          employeeCode: entry.employee.employeeCode,
+          department: entry.employee.department?.name || 'N/A',
+          grossSalary: Number(entry.grossSalary),
+          netSalary: Number(entry.netSalary),
+          deductions: Number(entry.totalDeductions),
+          status: run.status,
+        });
+      }
+    }
+    return report;
   }
 
   // ============ Attrition Analytics ============

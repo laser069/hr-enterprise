@@ -62,3 +62,27 @@ export const useTodayAttendance = () => {
     staleTime: 60 * 1000, // 1 minute
   });
 };
+
+export function usePerformanceMetrics(year?: number, departmentId?: string) {
+  return useQuery({
+    queryKey: [...analyticsKeys.all, 'performance-metrics', year, departmentId],
+    queryFn: () => analyticsApi.getPerformanceMetrics({ year, departmentId }),
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+export function useAttendanceReport(startDate: string, endDate: string, departmentId?: string) {
+  return useQuery({
+    queryKey: [...analyticsKeys.all, 'report-attendance', startDate, endDate, departmentId],
+    queryFn: () => analyticsApi.getAttendanceReport({ startDate, endDate, departmentId }),
+    enabled: !!startDate && !!endDate,
+  });
+}
+
+export function usePayrollReport(year: number, month?: number) {
+  return useQuery({
+    queryKey: [...analyticsKeys.all, 'report-payroll', year, month],
+    queryFn: () => analyticsApi.getPayrollReport({ year, month }),
+    enabled: !!year,
+  });
+}

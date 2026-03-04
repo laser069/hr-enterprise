@@ -8,11 +8,23 @@ export interface LeaveType {
   name: string;
   description?: string;
   annualLimit: number;
-  carryForwardAllowed?: boolean;
-  maxCarryForward?: number;
+  isPaid: boolean;
+  carryForwardMax: number;
+  isActive: boolean;
   createdAt: string;
   updatedAt: string;
 }
+
+export interface CreateLeaveTypeDto {
+  name: string;
+  description?: string;
+  annualLimit: number;
+  isPaid: boolean;
+  carryForwardMax: number;
+  isActive: boolean;
+}
+
+export interface UpdateLeaveTypeDto extends Partial<CreateLeaveTypeDto> { }
 
 export interface LeaveRequest {
   id: string;

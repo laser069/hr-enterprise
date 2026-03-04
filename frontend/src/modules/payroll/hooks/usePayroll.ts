@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { payrollApi } from '../services/payroll.api';
+import { bankingApi } from '../services/banking.api';
 import type { CreatePayrollRunDto, CreateSalaryStructureDto } from '../types';
 
 // Query keys
@@ -146,5 +147,30 @@ export function useDeletePayrollRun() {
 export function useDownloadBankExport() {
   return useMutation({
     mutationFn: (id: string) => payrollApi.downloadBankExport(id),
+  });
+}
+
+export function useInitiateTransfer() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (runId: string) => bankingApi.initiateTransfer(runId),
+    onSuccess: (_: unknown, runId: string) => {
+      queryClient.invalidateQueries({ queryKey: payrollKeys.run(runId) });
+      queryClient.invalidateQueries({ queryKey: payrollKeys.entries(runId) });
+    },
+  });
+}
+
+export function usePayoutStatus(entryId: string) {
+  return useQuery({
+    queryKey: ['payroll', 'payout-status', entryId],
+    queryFn: () => bankingApi.getPayoutStatus(entryId),
+    enabled: !!entryId,
+    refetchInterval: (query) => {
+      // Refetch every 10s if status is pending/processing/queued
+      const status = (query.state.data as any)?.status;
+      return ['pending', 'queued', 'processing'].includes(status) ? 10000 : false;
+    },
   });
 }

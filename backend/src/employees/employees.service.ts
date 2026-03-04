@@ -6,6 +6,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
+import { AuditService } from '../shared/audit/audit.service';
 import { CreateEmployeeDto } from './dto/create-employee.dto';
 import { UpdateEmployeeDto } from './dto/update-employee.dto';
 
@@ -13,7 +14,10 @@ import { UpdateEmployeeDto } from './dto/update-employee.dto';
 export class EmployeesService {
   private readonly logger = new Logger(EmployeesService.name);
 
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly auditService: AuditService,
+  ) { }
 
   async create(createEmployeeDto: CreateEmployeeDto) {
     const {
@@ -86,6 +90,13 @@ export class EmployeesService {
     });
 
     this.logger.log(`Employee created: ${employeeCode}`);
+
+    await this.auditService.log({
+      action: 'CREATE',
+      entity: 'Employee',
+      entityId: employee.id,
+      newValues: employee,
+    });
 
     return employee;
   }
@@ -236,6 +247,9 @@ export class EmployeesService {
             },
           },
         },
+        documents: {
+          orderBy: { createdAt: 'desc' },
+        },
       },
     });
 
@@ -339,6 +353,14 @@ export class EmployeesService {
 
     this.logger.log(`Employee updated: ${id}`);
 
+    await this.auditService.log({
+      action: 'UPDATE',
+      entity: 'Employee',
+      entityId: id,
+      oldValues: employee,
+      newValues: updatedEmployee,
+    });
+
     return updatedEmployee;
   }
 
@@ -383,6 +405,13 @@ export class EmployeesService {
     }
 
     this.logger.log(`Employee terminated: ${id}`);
+
+    await this.auditService.log({
+      action: 'DELETE',
+      entity: 'Employee',
+      entityId: id,
+      oldValues: employee,
+    });
 
     return { message: 'Employee terminated successfully' };
   }
@@ -542,5 +571,16 @@ export class EmployeesService {
       byDepartment,
       byStatus,
     };
+  }
+
+  async getHistory(id: string) {
+    return this.auditService.findByEntity('Employee', id);
+  }
+
+  async getDocuments(id: string) {
+    return (this.prisma as any).document.findMany({
+      where: { employeeId: id },
+      orderBy: { createdAt: 'desc' },
+    });
   }
 }

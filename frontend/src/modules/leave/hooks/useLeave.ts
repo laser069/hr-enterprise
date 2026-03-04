@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { leaveApi } from '../services/leave.api';
-import type { CreateLeaveRequestDto, LeaveListParams } from '../types';
+import type { CreateLeaveRequestDto, LeaveListParams, CreateLeaveTypeDto, UpdateLeaveTypeDto } from '../types';
 
 // Query keys
 export const leaveKeys = {
@@ -117,6 +117,40 @@ export function useCancelLeaveRequest() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: leaveKeys.requests() });
       queryClient.invalidateQueries({ queryKey: leaveKeys.myRequests() });
+    },
+  });
+}
+
+export function useCreateLeaveType() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: CreateLeaveTypeDto) => leaveApi.createLeaveType(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: leaveKeys.types() });
+    },
+  });
+}
+
+export function useUpdateLeaveType() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: UpdateLeaveTypeDto }) =>
+      leaveApi.updateLeaveType(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: leaveKeys.types() });
+    },
+  });
+}
+
+export function useDeleteLeaveType() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => leaveApi.deleteLeaveType(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: leaveKeys.types() });
     },
   });
 }

@@ -1,5 +1,4 @@
 import { StatCard } from '../../../shared/components/ui/Card';
-import { Button } from '../../../shared/components/ui/Button';
 import type { ExecutiveSummary } from '../types';
 import * as LucideIcons from 'lucide-react';
 
@@ -12,7 +11,7 @@ export function ExecutiveKpis({ data }: ExecutiveKpisProps) {
   const activeEmployees = data.activeEmployees ?? 0;
   const newJoinings = data.newJoinings ?? 0;
   const attritionCount = data.attritionCount ?? 0;
-  
+
   // Calculate rate if not provided in the data (assuming 0.0% if no employees)
   const attritionRate = totalEmployees > 0 ? (attritionCount / totalEmployees) * 100 : 0;
 
@@ -21,40 +20,22 @@ export function ExecutiveKpis({ data }: ExecutiveKpisProps) {
       <StatCard
         title="Total Talent"
         value={totalEmployees}
-        icon={<LucideIcons.Users className="w-6 h-6" />}
+        icon={<div className="p-4 bg-emerald-500/10 text-emerald-600 rounded-2xl group-hover:bg-emerald-500 group-hover:text-white transition-all duration-500"><LucideIcons.Users className="w-8 h-8" /></div>}
       />
       <StatCard
         title="Capacity Rate"
         value={activeEmployees}
-        trend={{ value: 4, isPositive: true, label: 'utilization' }}
-        icon={<LucideIcons.Zap className="w-6 h-6" />}
+        icon={<div className="p-4 bg-indigo-500/10 text-indigo-600 rounded-2xl group-hover:bg-indigo-500 group-hover:text-white transition-all duration-500"><LucideIcons.Zap className="w-8 h-8" /></div>}
       />
       <StatCard
-        title="New Hirings"
+        title="New Hirers"
         value={newJoinings}
-        icon={<LucideIcons.UserPlus className="w-6 h-6" />}
-        trend={{
-          value: 12,
-          isPositive: true,
-          label: 'MoM Growth'
-        }}
-        progress={78}
+        icon={<div className="p-4 bg-amber-500/10 text-amber-600 rounded-2xl group-hover:bg-amber-500 group-hover:text-white transition-all duration-500"><LucideIcons.UserPlus className="w-8 h-8" /></div>}
       />
       <StatCard
         title="Attrition Risk"
         value={`${attritionRate.toFixed(1)}%`}
-        trend={{
-          value: 2.1,
-          isPositive: false,
-          label: 'Above Target'
-        }}
-        icon={<LucideIcons.TrendingDown className="w-6 h-6" />}
-        progress={92}
-        action={
-          <Button variant="ghost" size="sm" className="rounded-full font-black text-[9px] uppercase tracking-widest px-8 hover:text-indigo-600 transition-all duration-500">
-            View Details
-          </Button>
-        }
+        icon={<div className="p-4 bg-rose-500/10 text-rose-600 rounded-2xl group-hover:bg-rose-500 group-hover:text-white transition-all duration-500"><LucideIcons.TrendingDown className="w-8 h-8" /></div>}
       />
     </div>
   );

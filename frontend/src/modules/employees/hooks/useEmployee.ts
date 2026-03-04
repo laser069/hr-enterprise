@@ -15,6 +15,7 @@ export const employeeKeys = {
   detail: (id: string) => [...employeeKeys.details(), id] as const,
   stats: () => [...employeeKeys.all, 'stats'] as const,
   subordinates: (id: string) => [...employeeKeys.all, 'subordinates', id] as const,
+  history: (id: string) => [...employeeKeys.all, 'history', id] as const,
 };
 
 // List employees hook
@@ -88,6 +89,15 @@ export function useDeleteEmployee() {
       queryClient.invalidateQueries({ queryKey: employeeKeys.lists() });
       queryClient.invalidateQueries({ queryKey: employeeKeys.stats() });
     },
+  });
+}
+
+// Get employee history hook
+export function useEmployeeHistory(id: string) {
+  return useQuery({
+    queryKey: employeeKeys.history(id),
+    queryFn: () => employeeApi.getHistory(id),
+    enabled: !!id,
   });
 }
 

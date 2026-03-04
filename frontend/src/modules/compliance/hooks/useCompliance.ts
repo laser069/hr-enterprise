@@ -26,7 +26,7 @@ export function useComplianceDashboard() {
 
 export function useComplianceStats() {
   const { data: dashboard, ...rest } = useComplianceDashboard();
-  
+
   // Map dashboard data to what useComplianceStats expects
   // The backend returns { filings: { pending, filedThisMonth, upcoming }, policies: [...] }
   const stats = dashboard ? {
@@ -69,6 +69,33 @@ export function useFileFiling() {
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: { referenceNumber: string } }) =>
       complianceApi.fileFiling(id, data.referenceNumber),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: complianceKeys.filings() });
+      queryClient.invalidateQueries({ queryKey: complianceKeys.dashboard() });
+    },
+  });
+}
+
+export function useStatutoryReport(year: number, month: number) {
+  return useQuery({
+    queryKey: [...complianceKeys.all, 'report-statutory', year, month],
+    queryFn: () => complianceApi.getStatutoryReport(year, month),
+    enabled: !!year && !!month,
+  });
+}
+
+export function useLaborLawReport(departmentId?: string) {
+  return useQuery({
+    queryKey: [...complianceKeys.all, 'report-labor-law', departmentId],
+    queryFn: () => complianceApi.getLaborLawReport(departmentId),
+  });
+}
+
+export function useGenerateFilings() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ year, month }: { year: number; month: number }) =>
+      complianceApi.generateFilings(year, month),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: complianceKeys.filings() });
       queryClient.invalidateQueries({ queryKey: complianceKeys.dashboard() });

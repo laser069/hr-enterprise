@@ -3,6 +3,7 @@ import { attendanceApi } from '../services/attendance.api';
 import type {
   Attendance,
   AttendanceListParams,
+  AttendanceListResponse,
   CheckInDto,
   CheckOutDto,
 } from '../types';
@@ -19,10 +20,11 @@ export const attendanceKeys = {
 };
 
 // List attendance hook
-export function useAttendance(params: AttendanceListParams = {}) {
-  return useQuery({
+export function useAttendance(params: AttendanceListParams = {}, options: any = {}) {
+  return useQuery<AttendanceListResponse>({
     queryKey: attendanceKeys.list(params),
     queryFn: () => attendanceApi.list(params),
+    ...options,
   });
 }
 

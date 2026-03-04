@@ -83,6 +83,18 @@ export class EmployeesController {
     return this.employeesService.getTeamMembers(id);
   }
 
+  @Get(':id/history')
+  @Permissions('employees:read')
+  getHistory(@Param('id') id: string) {
+    return this.employeesService.getHistory(id);
+  }
+
+  @Get(':id/documents')
+  @Permissions('employees:read')
+  getDocuments(@Param('id') id: string) {
+    return this.employeesService.getDocuments(id);
+  }
+
   @Patch(':id')
   @Permissions('employees:update')
   update(@Param('id') id: string, @Body() updateEmployeeDto: UpdateEmployeeDto) {

@@ -43,4 +43,16 @@ export const complianceApi = {
   getPolicyReport: (policyName: string): Promise<any> => {
     return apiClient.get(`/compliance/policies/${policyName}/report`);
   },
+
+  getStatutoryReport: (year: number, month: number): Promise<any> => {
+    return apiClient.get('/compliance/reports/statutory', { params: { year, month } });
+  },
+
+  getLaborLawReport: (departmentId?: string): Promise<any> => {
+    return apiClient.get('/compliance/reports/labor-law', { params: { departmentId } });
+  },
+
+  generateFilings: (year: number, month: number): Promise<any> => {
+    return apiClient.post('/compliance/filings/generate', null, { params: { year, month } });
+  },
 };

@@ -32,4 +32,16 @@ export const analyticsApi = {
   getTodayAttendance: (): Promise<TodayAttendanceSummary> => {
     return apiClient.get<TodayAttendanceSummary>('/analytics/attendance/today');
   },
+
+  getPerformanceMetrics: (params?: { year?: number; departmentId?: string }): Promise<any> => {
+    return apiClient.get('/analytics/performance/metrics', { params });
+  },
+
+  getAttendanceReport: (params: { startDate: string; endDate: string; departmentId?: string }): Promise<any[]> => {
+    return apiClient.get('/analytics/reports/attendance', { params });
+  },
+
+  getPayrollReport: (params: { year: number; month?: number }): Promise<any[]> => {
+    return apiClient.get('/analytics/reports/payroll', { params });
+  },
 };

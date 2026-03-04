@@ -99,8 +99,17 @@ export class AttendanceService {
     return 'present';
   }
 
+  private calculateFaceMatch(descriptor1: number[], descriptor2: number[]): number {
+    if (descriptor1.length !== descriptor2.length) return 1.0;
+    let sum = 0;
+    for (let i = 0; i < descriptor1.length; i++) {
+      sum += Math.pow(descriptor1[i] - descriptor2[i], 2);
+    }
+    return Math.sqrt(sum);
+  }
+
   async checkIn(checkInDto: CheckInDto) {
-    const { employeeId, timestamp, notes } = checkInDto;
+    const { employeeId, timestamp, notes, faceDescriptor } = checkInDto;
 
     // Validate employee
     const employee = await this.prisma.employee.findUnique({
@@ -134,6 +143,16 @@ export class AttendanceService {
     const lateMinutes = this.calculateLateMinutes(now, (employee as any).shift);
     const status = this.determineStatus(now, null, 0, (employee as any).shift);
 
+    // Face Verification Logic
+    let isFaceVerified = false;
+    let faceVerificationScore = null;
+
+    if (faceDescriptor && employee.faceDescriptor) {
+      const storedDescriptor = employee.faceDescriptor as number[];
+      faceVerificationScore = this.calculateFaceMatch(faceDescriptor, storedDescriptor);
+      isFaceVerified = faceVerificationScore < 0.6; // Threshold for face-api.js
+    }
+
     const attendance = await this.prisma.attendance.upsert({
       where: {
         employeeId_date: {
@@ -146,6 +165,8 @@ export class AttendanceService {
         lateMinutes,
         status,
         notes: notes || existingAttendance?.notes,
+        isFaceVerified,
+        faceVerificationScore,
       },
       create: {
         employeeId,
@@ -154,6 +175,8 @@ export class AttendanceService {
         lateMinutes,
         status,
         notes,
+        isFaceVerified,
+        faceVerificationScore,
       },
       include: {
         employee: {

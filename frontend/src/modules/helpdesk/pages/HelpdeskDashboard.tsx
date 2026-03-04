@@ -3,7 +3,7 @@ import { Card } from '../../../shared/components/ui/Card';
 import { Button } from '../../../shared/components/ui/Button';
 import { CreateTicketModal } from '../components/CreateTicketModal';
 import { useTickets, useHelpdeskStats } from '../hooks/useHelpdesk';
-import { Plus, Ticket as TicketIcon, CheckCircle, Clock, AlertCircle } from 'lucide-react';
+import { Plus, Ticket as TicketIcon, CheckCircle, Clock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { DataTable } from '../../../shared/components/ui/DataTable';
 import { Badge } from '../../../shared/components/ui/Badge';
@@ -135,18 +135,6 @@ const HelpdeskDashboard = () => {
             </div>
             <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-full text-green-600 dark:text-green-400">
               <CheckCircle className="w-6 h-6" />
-            </div>
-          </div>
-        </Card>
-        <Card className="p-4 border-l-4 border-l-red-500">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-slate-500">Critical Priority</p>
-              {/* Note: Backend stats usually return status breakdown, we might need a separate call or specific processing for critical count if needed. For now using placeholder or if standard stats extended */}
-              <h3 className="text-2xl font-bold text-slate-900 dark:text-white">-</h3>
-            </div>
-            <div className="p-3 bg-red-100 dark:bg-red-900/30 rounded-full text-red-600 dark:text-red-400">
-              <AlertCircle className="w-6 h-6" />
             </div>
           </div>
         </Card>

@@ -36,8 +36,8 @@ export const attendanceApi = {
 
   // Get employee attendance
   getEmployeeAttendance: async (employeeId: string, params?: AttendanceListParams): Promise<Attendance[]> => {
-    const response = await apiClient.getPaginated<Attendance>('/attendance', { 
-      params: { ...params, employeeId } 
+    const response = await apiClient.getPaginated<Attendance>('/attendance', {
+      params: { ...params, employeeId }
     });
     return response.data;
   },
@@ -64,5 +64,9 @@ export const attendanceApi = {
 
   update: (id: string, data: Partial<Attendance>): Promise<Attendance> => {
     return apiClient.patch<Attendance>(`/attendance/${id}`, data);
+  },
+
+  enrollFace: (employeeId: string, descriptor: number[]): Promise<{ message: string; employeeId: string }> => {
+    return apiClient.post('/biometric/enroll', { employeeId, faceDescriptor: descriptor });
   },
 };

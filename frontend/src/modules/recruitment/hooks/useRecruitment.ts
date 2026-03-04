@@ -103,3 +103,50 @@ export function useRecruitmentSummary() {
     queryFn: () => recruitmentApi.getSummary(),
   });
 }
+
+// Interview Hooks
+export function useInterviews(candidateId?: string) {
+  return useQuery({
+    queryKey: ['recruitment', 'interviews', candidateId],
+    queryFn: () => recruitmentApi.getInterviews(candidateId),
+  });
+}
+
+export function useScheduleInterview() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { candidateId: string; interviewerId: string; scheduledAt: string; type: any }) =>
+      recruitmentApi.scheduleInterview(data),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['recruitment', 'interviews', variables.candidateId] });
+      queryClient.invalidateQueries({ queryKey: recruitmentKeys.candidates() });
+    },
+  });
+}
+
+export function useUpdateInterview() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: any }) =>
+      recruitmentApi.updateInterview(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['recruitment', 'interviews'] });
+    },
+  });
+}
+
+// Offer Letter Hook
+export function useGenerateOfferLetter() {
+  return useMutation({
+    mutationFn: (candidateId: string) => recruitmentApi.generateOfferLetter(candidateId),
+    onSuccess: (blob, candidateId) => {
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `offer-letter-${candidateId}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    },
+  });
+}

@@ -53,4 +53,14 @@ export const employeeApi = {
   getHierarchy: async (): Promise<any> => {
     return apiClient.get('/employees/hierarchy');
   },
+
+  // Get employee audit log history
+  getHistory: async (id: string): Promise<any[]> => {
+    return apiClient.get<any[]>(`/employees/${id}/history`);
+  },
+
+  // Get employee documents
+  getDocuments: async (id: string): Promise<any[]> => {
+    return apiClient.get<any[]>(`/employees/${id}/documents`);
+  },
 };

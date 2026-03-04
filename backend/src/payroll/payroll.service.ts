@@ -11,6 +11,7 @@ import { CreateSalaryStructureDto } from './dto/create-salary-structure.dto';
 import { UpdateSalaryStructureDto } from './dto/update-salary-structure.dto';
 import { CreatePayrollRunDto } from './dto/create-payroll-run.dto';
 import { Decimal } from '@prisma/client-runtime-utils';
+import { AuditService } from '../shared/audit/audit.service';
 import * as puppeteer from 'puppeteer';
 import * as XLSX from 'xlsx';
 
@@ -18,7 +19,10 @@ import * as XLSX from 'xlsx';
 export class PayrollService {
   private readonly logger = new Logger(PayrollService.name);
 
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly auditService: AuditService,
+  ) { }
 
   // ============ Salary Structure Methods ============
 
@@ -52,6 +56,12 @@ export class PayrollService {
     });
 
     this.logger.log(`Salary structure created: ${name}`);
+    await this.auditService.log({
+      action: 'CREATE',
+      entity: 'SalaryStructure',
+      entityId: structure.id,
+      newValues: structure,
+    });
     return structure;
   }
 
@@ -128,6 +138,13 @@ export class PayrollService {
     });
 
     this.logger.log(`Salary structure updated: ${id}`);
+    await this.auditService.log({
+      action: 'UPDATE',
+      entity: 'SalaryStructure',
+      entityId: id,
+      oldValues: structure,
+      newValues: updated,
+    });
     return updated;
   }
 
@@ -415,7 +432,7 @@ export class PayrollService {
       const structure = employee.salaryStructure;
       const basic = Number(structure.basic);
       const da = Number(structure.da || 0);
-      
+
       // Base Gross (Fixed components)
       const baseGross = basic + da + Number(structure.hra) +
         Number(structure.conveyance) + Number(structure.medicalAllowance) +
@@ -510,6 +527,12 @@ export class PayrollService {
     });
 
     this.logger.log(`Payroll run approved: ${id}`);
+    await this.auditService.log({
+      action: 'APPROVE_PAYROLL',
+      entity: 'PayrollRun',
+      entityId: id,
+      newValues: { status: 'approved', approvedBy: userId },
+    });
     return updated;
   }
 
@@ -535,6 +558,12 @@ export class PayrollService {
     });
 
     this.logger.log(`Payroll run processed: ${id}`);
+    await this.auditService.log({
+      action: 'PROCESS_PAYROLL',
+      entity: 'PayrollRun',
+      entityId: id,
+      newValues: { status: 'processed' },
+    });
     return updated;
   }
 
@@ -727,7 +756,7 @@ export class PayrollService {
 
   async getEmployeePayslips(employeeId: string) {
     if (!employeeId) {
-        return [];
+      return [];
     }
     return this.prisma.payrollEntry.findMany({
       where: { employeeId },

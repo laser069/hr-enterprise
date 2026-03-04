@@ -19,7 +19,7 @@ import { CreatePerformanceReviewDto } from './dto/create-performance-review.dto'
 @Controller('performance')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class PerformanceController {
-  constructor(private readonly performanceService: PerformanceService) {}
+  constructor(private readonly performanceService: PerformanceService) { }
 
   // ============ Goal Endpoints ============
 
@@ -119,5 +119,38 @@ export class PerformanceController {
   @Get('summary/:employeeId')
   async getEmployeePerformanceSummary(@Param('employeeId') employeeId: string) {
     return this.performanceService.getEmployeePerformanceSummary(employeeId);
+  }
+
+  // ============ 360 Feedback Endpoints ============
+
+  @Post('feedback')
+  async createFeedbackRequest(@Body() createDto: any) {
+    return this.performanceService.createFeedbackRequest(createDto);
+  }
+
+  @Post('feedback/:id/submit')
+  async submitFeedback(@Param('id') id: string, @Body() submitDto: any) {
+    return this.performanceService.submitFeedback(id, submitDto);
+  }
+
+  @Get('feedback')
+  async findAllFeedback(
+    @Query('employeeId') employeeId?: string,
+    @Query('reviewerId') reviewerId?: string,
+  ) {
+    return this.performanceService.findAllFeedback({ employeeId, reviewerId });
+  }
+
+  // ============ Promotion & Increment Endpoints ============
+
+  @Post('promotions')
+  @Roles('admin', 'hr')
+  async createPromotion(@Body() createDto: any) {
+    return this.performanceService.createPromotion(createDto);
+  }
+
+  @Get('promotions/:employeeId')
+  async findAllPromotions(@Param('employeeId') employeeId: string) {
+    return this.performanceService.findAllPromotions(employeeId);
   }
 }

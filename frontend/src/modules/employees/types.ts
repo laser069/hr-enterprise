@@ -85,6 +85,7 @@ export interface CreateEmployeeDto {
   managerId?: string;
   dateOfJoining: string;
   employmentStatus?: string;
+  shiftId?: string;
 }
 
 export interface UpdateEmployeeDto {
@@ -101,6 +102,8 @@ export interface UpdateEmployeeDto {
   address?: string;
   emergencyContact?: string;
   bankDetails?: string;
+  shiftId?: string;
+  email?: string;
 }
 
 export interface EmployeeStats {
@@ -112,4 +115,35 @@ export interface EmployeeStats {
   byEmploymentType: { type: string; count: number }[];
   newJoiners: number;
   avgTenure: number;
+}
+
+export interface EmployeeDocument {
+  id: string;
+  employeeId: string;
+  uploadedBy: string;
+  name: string;
+  originalName: string;
+  mimeType: string;
+  size: number;
+  url: string;
+  key: string;
+  category: string;
+  description?: string;
+  createdAt: string;
+}
+
+export interface AuditLog {
+  id: string;
+  userId?: string;
+  action: string;
+  entity: string;
+  entityId?: string;
+  oldValues?: any;
+  newValues?: any;
+  ipAddress?: string;
+  userAgent?: string;
+  createdAt: string;
+  user?: {
+    email: string;
+  };
 }

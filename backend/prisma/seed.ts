@@ -173,6 +173,11 @@ async function main() {
     { name: 'Update Payroll', resource: 'payroll', action: 'update' },
     { name: 'Delete Payroll', resource: 'payroll', action: 'delete' },
     { name: 'Manage Payroll', resource: 'payroll', action: 'manage' },
+    // Recruitment permissions
+    { name: 'View Recruitment', resource: 'recruitment', action: 'read' },
+    { name: 'Create Recruitment', resource: 'recruitment', action: 'create' },
+    { name: 'Update Recruitment', resource: 'recruitment', action: 'update' },
+    { name: 'Delete Recruitment', resource: 'recruitment', action: 'delete' },
   ];
 
   // Create all permissions
@@ -251,7 +256,8 @@ async function main() {
       p.resource === 'leave' ||
       p.resource === 'departments' ||
       p.resource === 'users' ||
-      p.resource === 'analytics'
+      p.resource === 'analytics' ||
+      p.resource === 'recruitment'
   );
   await prisma.rolePermission.deleteMany({ where: { roleId: hrRole.id } });
   await prisma.rolePermission.createMany({
@@ -297,7 +303,54 @@ async function main() {
   console.log(`✅ Created ${allPermissions.length} permissions and 4 roles\n`);
 
   // ============================================
-  // 4. Create Admin Employee
+  // 4. Create Salary Structures
+  // ============================================
+  console.log('💰 Creating salary structures...');
+
+  const standardStructure = await prisma.salaryStructure.upsert({
+    where: { name: 'Standard Enterprise' },
+    update: {},
+    create: {
+      name: 'Standard Enterprise',
+      description: 'Default salary structure for professional staff',
+      basic: 25000,
+      da: 5000,
+      hra: 10000,
+      conveyance: 2000,
+      medicalAllowance: 1250,
+      specialAllowance: 5000,
+      professionalTax: 200,
+      pf: 1800,
+      esi: 500,
+      overtimeRate: 1.5,
+      isActive: true,
+    },
+  });
+
+  const leadershipStructure = await prisma.salaryStructure.upsert({
+    where: { name: 'Leadership tier' },
+    update: {},
+    create: {
+      name: 'Leadership tier',
+      description: 'Compensation model for managers and directors',
+      basic: 60000,
+      da: 10000,
+      hra: 25000,
+      conveyance: 5000,
+      medicalAllowance: 2500,
+      specialAllowance: 15000,
+      professionalTax: 500,
+      pf: 3600,
+      esi: 0, // Above limit
+      overtimeRate: 0, // Exempt
+      isActive: true,
+    },
+  });
+
+  console.log('✅ Created 2 salary structures\n');
+
+  // ============================================
+  // 5. Create Admin Employee
   // ============================================
   console.log('👤 Creating admin employee and user...');
 
@@ -314,6 +367,7 @@ async function main() {
       designation: 'System Administrator',
       dateOfJoining: new Date('2020-01-01'),
       employmentStatus: 'active',
+      salaryStructureId: leadershipStructure.id,
     },
   });
 
@@ -353,6 +407,7 @@ async function main() {
       designation: 'HR Manager',
       dateOfJoining: new Date('2020-03-15'),
       employmentStatus: 'active',
+      salaryStructureId: standardStructure.id,
     },
   });
 
@@ -397,6 +452,7 @@ async function main() {
       designation: 'Engineering Manager',
       dateOfJoining: new Date('2020-06-01'),
       employmentStatus: 'active',
+      salaryStructureId: leadershipStructure.id,
     },
   });
 

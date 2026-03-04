@@ -169,14 +169,6 @@ export default function ReviewsPage() {
                             Acknowledge
                           </Button>
                         )}
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-9 px-4 rounded-xl text-[9px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900"
-                          onClick={() => alert('Detail stream access coming soon')}
-                        >
-                          View
-                        </Button>
                       </div>
                     </td>
                   </tr>

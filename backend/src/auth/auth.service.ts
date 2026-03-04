@@ -38,13 +38,14 @@ export interface AuthResponse {
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
+  // Trigger rebuild to pick up database changes
 
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
     private readonly emailService: EmailService,
-  ) {}
+  ) { }
 
   async register(registerDto: RegisterDto): Promise<AuthResponse> {
     const { email, password } = registerDto;

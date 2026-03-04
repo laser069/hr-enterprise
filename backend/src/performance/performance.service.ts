@@ -14,7 +14,7 @@ import { Decimal } from '@prisma/client-runtime-utils';
 export class PerformanceService {
   private readonly logger = new Logger(PerformanceService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   // ============ Goal Methods ============
 
@@ -145,7 +145,7 @@ export class PerformanceService {
     // Determine status based on progress
     let status = goal.status;
     const progress = (achievedValue / Number(goal.targetValue)) * 100;
-    
+
     if (goal.status === 'pending' && achievedValue > 0) {
       status = 'in-progress';
     }
@@ -470,5 +470,83 @@ export class PerformanceService {
       goals: goalsSummary,
       reviews: reviewsSummary,
     };
+  }
+
+  // ============ 360 Feedback Methods ============
+
+  async createFeedbackRequest(createDto: any) {
+    const request = await this.prisma.feedbackRequest.create({
+      data: {
+        employeeId: createDto.employeeId,
+        requesterId: createDto.requesterId,
+        reviewerId: createDto.reviewerId,
+        message: createDto.message,
+        status: 'pending',
+      },
+      include: {
+        reviewer: {
+          select: { firstName: true, lastName: true, email: true },
+        },
+      },
+    });
+    return request;
+  }
+
+  async submitFeedback(id: string, submitDto: any) {
+    return this.prisma.feedbackRequest.update({
+      where: { id },
+      data: {
+        rating: submitDto.rating,
+        comments: submitDto.comments,
+        status: 'completed',
+      },
+    });
+  }
+
+  async findAllFeedback(params: { employeeId?: string; reviewerId?: string }) {
+    return this.prisma.feedbackRequest.findMany({
+      where: {
+        ...(params.employeeId && { employeeId: params.employeeId }),
+        ...(params.reviewerId && { reviewerId: params.reviewerId }),
+      },
+      include: {
+        employee: { select: { firstName: true, lastName: true } },
+        reviewer: { select: { firstName: true, lastName: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  // ============ Promotion & Increment Methods ============
+
+  async createPromotion(createDto: any) {
+    const promotion = await this.prisma.promotionHistory.create({
+      data: {
+        employeeId: createDto.employeeId,
+        oldDesignation: createDto.oldDesignation,
+        newDesignation: createDto.newDesignation,
+        oldSalary: createDto.oldSalary,
+        newSalary: createDto.newSalary,
+        effectiveDate: new Date(createDto.effectiveDate),
+        notes: createDto.notes,
+      },
+    });
+
+    // Update employee designation and salary structure if provided
+    await this.prisma.employee.update({
+      where: { id: createDto.employeeId },
+      data: {
+        designation: createDto.newDesignation,
+      },
+    });
+
+    return promotion;
+  }
+
+  async findAllPromotions(employeeId: string) {
+    return this.prisma.promotionHistory.findMany({
+      where: { employeeId },
+      orderBy: { effectiveDate: 'desc' },
+    });
   }
 }

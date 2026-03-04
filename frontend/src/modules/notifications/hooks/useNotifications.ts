@@ -11,8 +11,16 @@ export const notificationKeys = {
 export function useNotifications() {
   return useQuery<Notification[]>({
     queryKey: notificationKeys.lists(),
-    queryFn: () => notificationsApi.getNotifications().then(res => res.data),
-    refetchInterval: 30000, // Poll every 30 seconds
+    queryFn: () =>
+      notificationsApi.getNotifications().then(res => {
+        // Backend returns: { notifications: [...], unreadCount: N, total: N }
+        const result = res as any;
+        if (Array.isArray(result?.notifications)) return result.notifications;
+        if (Array.isArray(result?.data)) return result.data;
+        if (Array.isArray(result)) return result;
+        return [];
+      }),
+    refetchInterval: 30000,
   });
 }
 

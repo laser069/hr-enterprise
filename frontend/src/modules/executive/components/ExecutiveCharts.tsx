@@ -14,7 +14,7 @@ interface ExecutiveChartsProps {
   data: ExecutiveSummary;
 }
 
-const COLORS = ['#0f172a', '#334155', '#475569', '#64748b', '#94a3b8', '#cbd5e1'];
+const COLORS = ['#6366f1', '#10b981', '#0ea5e9', '#8b5cf6', '#f43f5e', '#f59e0b'];
 
 interface ChartDataItem {
   name: string;
@@ -85,8 +85,8 @@ export function ExecutiveCharts({ data }: ExecutiveChartsProps) {
                 ))}
               </Pie>
               <Tooltip contentStyle={tooltipStyle} />
-              <Legend 
-                verticalAlign="bottom" 
+              <Legend
+                verticalAlign="bottom"
                 height={60}
                 iconType="circle"
                 iconSize={10}
@@ -120,8 +120,8 @@ export function ExecutiveCharts({ data }: ExecutiveChartsProps) {
                 <Cell fill="#3b82f6" stroke="none" className="hover:opacity-80 transition-opacity cursor-pointer focus:outline-none" />
               </Pie>
               <Tooltip contentStyle={tooltipStyle} />
-              <Legend 
-                verticalAlign="bottom" 
+              <Legend
+                verticalAlign="bottom"
                 height={60}
                 iconType="circle"
                 iconSize={10}

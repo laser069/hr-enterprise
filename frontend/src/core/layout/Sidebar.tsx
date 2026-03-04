@@ -132,9 +132,9 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
               )}
             >
               <div className="flex items-center gap-4">
-                <IconComponent 
-                  name={item.icon} 
-                  className={cn("transition-colors", (isActive || isChildActive) ? "text-indigo-600" : "text-slate-400")} 
+                <IconComponent
+                  name={item.icon}
+                  className={cn("transition-colors", (isActive || isChildActive) ? "text-indigo-600" : "text-slate-400")}
                 />
                 {!collapsed && <span className="opacity-90">{item.name}</span>}
               </div>
@@ -158,8 +158,8 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
                       to={child.path}
                       className={cn(
                         'block px-6 py-2.5 text-[9px] font-black uppercase tracking-widest rounded-xl transition-all relative group',
-                        isSubActive 
-                          ? 'text-indigo-600 bg-white/40' 
+                        isSubActive
+                          ? 'text-indigo-600 bg-white/40'
                           : 'text-slate-400 hover:text-slate-900 hover:bg-white/20'
                       )}
                     >
@@ -180,9 +180,9 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
                 isActive ? activeClasses : inactiveClasses
               )}
           >
-            <IconComponent 
-              name={item.icon} 
-              className={cn("transition-colors", location.pathname === item.path ? "text-indigo-600" : "text-slate-400")} 
+            <IconComponent
+              name={item.icon}
+              className={cn("transition-colors", location.pathname === item.path ? "text-indigo-600" : "text-slate-400")}
             />
             {!collapsed && <span className="opacity-90">{item.name}</span>}
           </NavLink>
@@ -207,12 +207,11 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
         {!collapsed && (
           <div className="flex items-center gap-4 animate-in fade-in zoom-in duration-700">
             <div className="w-12 h-12 bg-slate-900 rounded-2xl flex items-center justify-center text-white font-black text-xl shadow-2xl relative overflow-hidden group">
-               <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-               <span className="relative z-10">H</span>
+              <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+              <span className="relative z-10">H</span>
             </div>
             <div>
-              <span className="text-xl font-black text-slate-900 tracking-tighter block leading-none">Enterprise</span>
-              <span className="text-[8px] font-black text-slate-400 uppercase tracking-[0.3em] mt-1 block">Management Node</span>
+              <span className="text-xl font-black text-slate-900 tracking-tighter block leading-none">HR Enterprise</span>
             </div>
           </div>
         )}
@@ -232,25 +231,11 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
       </nav>
 
       <div className="mt-auto px-4 pb-8 space-y-4">
-        {!collapsed && (
-          <div className="animate-in slide-in-from-bottom-4 duration-700">
-            <div className="bg-white/40 border border-white rounded-[2rem] p-5 shadow-sm ring-1 ring-black/[0.02] backdrop-blur-xl">
-              <div className="flex justify-between items-center mb-3">
-                <p className="text-[9px] text-slate-400 font-black uppercase tracking-widest">System Integrity</p>
-                <span className="text-[10px] font-black text-slate-900">98.2%</span>
-              </div>
-              <div className="h-1.5 w-full bg-slate-100/50 rounded-full overflow-hidden p-[1px] border border-white">
-                <div className="h-full bg-indigo-500 rounded-full transition-all duration-1000 shadow-[0_0_10px_rgba(79,70,229,0.4)]" style={{ width: '98.2%' }}></div>
-              </div>
-            </div>
-          </div>
-        )}
-
         <div className={cn(
           "bg-white/60 backdrop-blur-xl border border-white rounded-[2.5rem] p-2 transition-all duration-500 shadow-xl shadow-indigo-500/[0.05]",
           collapsed ? "mx-auto w-14" : "flex items-center gap-3 w-full"
         )}>
-          <button 
+          <button
             onClick={() => navigate('/settings/profile')}
             className={cn(
               "bg-slate-900 text-white rounded-[1.75rem] flex items-center justify-center font-black text-[10px] shadow-2xl hover:scale-105 active:scale-95 transition-all relative overflow-hidden group shrink-0",

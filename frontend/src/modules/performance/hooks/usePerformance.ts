@@ -7,6 +7,8 @@ export const performanceKeys = {
   goals: () => [...performanceKeys.all, 'goals'] as const,
   reviews: () => [...performanceKeys.all, 'reviews'] as const,
   pendingReviews: () => [...performanceKeys.all, 'pending-reviews'] as const,
+  feedback: () => [...performanceKeys.all, 'feedback'] as const,
+  promotions: (employeeId: string) => [...performanceKeys.all, 'promotions', employeeId] as const,
 };
 
 export function useGoals() {
@@ -95,13 +97,59 @@ export function usePerformanceStats() {
   return useQuery({
     queryKey: [...performanceKeys.all, 'stats'],
     queryFn: async () => {
-      // Mock stats for now as the global endpoint is missing (only per-employee exists)
+      // Mock stats for now
       return {
         totalGoals: 0,
         averageRating: 0,
         pendingReviews: 0,
         completedGoals: 0,
       };
+    },
+  });
+}
+
+export function useFeedback(params: { employeeId?: string; reviewerId?: string }) {
+  return useQuery({
+    queryKey: [...performanceKeys.feedback(), params],
+    queryFn: () => performanceApi.getFeedback(params),
+  });
+}
+
+export function useRequestFeedback() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: any) => performanceApi.requestFeedback(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: performanceKeys.feedback() });
+    },
+  });
+}
+
+export function useSubmitFeedback() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, ...data }: { id: string } & any) =>
+      performanceApi.submitFeedback(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: performanceKeys.feedback() });
+    },
+  });
+}
+
+export function usePromotions(employeeId: string) {
+  return useQuery({
+    queryKey: performanceKeys.promotions(employeeId),
+    queryFn: () => performanceApi.getPromotions(employeeId),
+    enabled: !!employeeId,
+  });
+}
+
+export function useCreatePromotion() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: any) => performanceApi.createPromotion(data),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: performanceKeys.promotions(variables.employeeId) });
     },
   });
 }

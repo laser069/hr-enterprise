@@ -64,6 +64,8 @@ export interface PayrollEntry {
   netSalary: number;
   additions?: Record<string, number>;
   deductions?: Record<string, number>;
+  razorpayPayoutId?: string;
+  payoutStatus?: string;
   employee?: {
     id: string;
     firstName: string;

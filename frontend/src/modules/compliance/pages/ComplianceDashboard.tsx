@@ -48,46 +48,77 @@ export default function ComplianceDashboard() {
         ) : (
           <>
             <StatCard
-               title="Global Filings"
-               value={stats?.totalFilings || 0}
-               icon={
-                 <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                 </svg>
-               }
+              title="Global Filings"
+              value={stats?.totalFilings || 0}
+              icon={
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+              }
             />
 
             <StatCard
-               title="Pending Protocol"
-               value={stats?.pendingFilings || 0}
-               icon={
-                 <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                 </svg>
-               }
+              title="Pending Protocol"
+              value={stats?.pendingFilings || 0}
+              icon={
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              }
             />
 
             <StatCard
-               title="Certified Nodes"
-               value={stats?.filedFilings || 0}
-               icon={
-                 <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                 </svg>
-               }
+              title="Certified Nodes"
+              value={stats?.filedFilings || 0}
+              icon={
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              }
             />
 
             <StatCard
-               title="Overdue Risk"
-               value={stats?.overdueCount || 0}
-               icon={
-                 <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                 </svg>
-               }
+              title="Overdue Risk"
+              value={stats?.overdueCount || 0}
+              icon={
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              }
             />
           </>
         )}
+      </div>
+
+      {/* Quick Access Modules */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+        <Link to="/compliance/statutory-registry" className="group">
+          <Card title="Statutory Registry" subtitle="EPF, ESI & TDS Monitoring" className="h-full group-hover:bg-white/5 transition-all">
+            <div className="py-2">
+              <p className="text-[10px] text-white/30 font-black uppercase tracking-widest leading-relaxed">
+                Access statutory filing telemetry and organizational tax sync status.
+              </p>
+            </div>
+          </Card>
+        </Link>
+        <Link to="/compliance/labor-protocol" className="group">
+          <Card title="Labor Registry" subtitle="Law & Rest Compliance" className="h-full group-hover:bg-white/5 transition-all">
+            <div className="py-2">
+              <p className="text-[10px] text-white/30 font-black uppercase tracking-widest leading-relaxed">
+                Monitor labor law adherence, overtime limits, and rest protocols.
+              </p>
+            </div>
+          </Card>
+        </Link>
+        <Link to="/compliance/audit-logs" className="group">
+          <Card title="Audit Matrix" subtitle="Data Integrity & Security" className="h-full group-hover:bg-white/5 transition-all">
+            <div className="py-2">
+              <p className="text-[10px] text-white/30 font-black uppercase tracking-widest leading-relaxed">
+                Review system-wide action telemetry and historical mutation logs.
+              </p>
+            </div>
+          </Card>
+        </Link>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
@@ -110,7 +141,7 @@ export default function ComplianceDashboard() {
                         <p className="text-base font-black text-white tracking-tight leading-none mb-3 drop-shadow-md">{filing.period}</p>
                         {filing.dueDate && (
                           <p className={`text-[10px] font-black uppercase tracking-[0.2em] ${isOverdue(filing.dueDate) ? 'text-rose-500' : 'text-white/30 opacity-70'}`}>
-                            {isOverdue(filing.dueDate) ? 'Critical Overdue: ' : 'Deadline: '} 
+                            {isOverdue(filing.dueDate) ? 'Critical Overdue: ' : 'Deadline: '}
                             {new Date(filing.dueDate).toLocaleDateString()}
                           </p>
                         )}
@@ -122,8 +153,8 @@ export default function ComplianceDashboard() {
                   </div>
                   {filing.amount && (
                     <div className="mt-6 flex items-center gap-3">
-                       <span className="text-[9px] font-black text-white/20 uppercase tracking-widest">Allocation:</span>
-                       <span className="text-sm font-black text-white font-mono tracking-tighter">${filing.amount.toLocaleString()}</span>
+                      <span className="text-[9px] font-black text-white/20 uppercase tracking-widest">Allocation:</span>
+                      <span className="text-sm font-black text-white font-mono tracking-tighter">${filing.amount.toLocaleString()}</span>
                     </div>
                   )}
                 </div>
@@ -131,9 +162,9 @@ export default function ComplianceDashboard() {
             )}
           </div>
           <div className="p-10 bg-white/2 backdrop-blur-md border-t border-white/5 flex justify-center">
-             <Link to="/compliance/filings" className="text-[10px] font-black text-white/30 hover:text-white uppercase tracking-[0.4em] transition-all">
-                Access Comprehensive Audit Pipeline
-             </Link>
+            <Link to="/compliance/filings" className="text-[10px] font-black text-white/30 hover:text-white uppercase tracking-[0.4em] transition-all">
+              Access Comprehensive Audit Pipeline
+            </Link>
           </div>
         </Card>
 
@@ -142,10 +173,10 @@ export default function ComplianceDashboard() {
           <div className="divide-y divide-white/5">
             {dashboardLoading ? (
               <div className="px-10 py-24 text-center">
-                 <div className="flex flex-col items-center gap-6">
-                    <div className="w-12 h-12 border-[3px] border-white/5 border-t-white/40 rounded-full animate-spin"></div>
-                    <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em]">Synchronizing Nodes...</p>
-                 </div>
+                <div className="flex flex-col items-center gap-6">
+                  <div className="w-12 h-12 border-[3px] border-white/5 border-t-white/40 rounded-full animate-spin"></div>
+                  <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em]">Synchronizing Nodes...</p>
+                </div>
               </div>
             ) : !dashboard?.recentAcknowledgements || dashboard.recentAcknowledgements.length === 0 ? (
               <div className="px-10 py-24 text-center">
@@ -163,14 +194,14 @@ export default function ComplianceDashboard() {
                     <div>
                       <p className="text-base font-black text-white tracking-tight leading-none mb-3 drop-shadow-md">{ack.policyName}</p>
                       <div className="flex items-center gap-3">
-                         <span className="text-[9px] font-black text-white/20 uppercase tracking-widest opacity-70">Node:</span>
-                         <span className="text-[10px] font-black text-white uppercase tracking-[0.2em]">
-                           {ack.employee?.firstName} {ack.employee?.lastName}
-                         </span>
-                         <span className="w-1 h-1 bg-white/10 rounded-full mx-1"></span>
-                         <span className="text-[9px] font-black text-white/30 uppercase tracking-[0.2em]">
-                           {new Date(ack.acknowledgedAt).toLocaleDateString()}
-                         </span>
+                        <span className="text-[9px] font-black text-white/20 uppercase tracking-widest opacity-70">Node:</span>
+                        <span className="text-[10px] font-black text-white uppercase tracking-[0.2em]">
+                          {ack.employee?.firstName} {ack.employee?.lastName}
+                        </span>
+                        <span className="w-1 h-1 bg-white/10 rounded-full mx-1"></span>
+                        <span className="text-[9px] font-black text-white/30 uppercase tracking-[0.2em]">
+                          {new Date(ack.acknowledgedAt).toLocaleDateString()}
+                        </span>
                       </div>
                     </div>
                   </div>

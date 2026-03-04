@@ -12,7 +12,7 @@ import { Permissions } from '../common/decorators/permissions.decorator';
 @Controller('analytics')
 @UseGuards(JwtAuthGuard, PermissionsGuard)
 export class AnalyticsController {
-  constructor(private readonly analyticsService: AnalyticsService) {}
+  constructor(private readonly analyticsService: AnalyticsService) { }
 
   @Get('executive-summary')
   @Permissions('analytics:read')
@@ -63,6 +63,44 @@ export class AnalyticsController {
   async getPayrollMetrics(@Query('year') year?: string) {
     return this.analyticsService.getPayrollMetrics({
       year: year ? parseInt(year, 10) : undefined,
+    });
+  }
+
+  @Get('performance/metrics')
+  @Permissions('analytics:read')
+  async getPerformanceMetrics(
+    @Query('year') year?: string,
+    @Query('departmentId') departmentId?: string,
+  ) {
+    return this.analyticsService.getPerformanceMetrics({
+      year: year ? parseInt(year, 10) : undefined,
+      departmentId,
+    });
+  }
+
+  @Get('reports/attendance')
+  @Permissions('analytics:read')
+  async getAttendanceReport(
+    @Query('startDate') startDate: string,
+    @Query('endDate') endDate: string,
+    @Query('departmentId') departmentId?: string,
+  ) {
+    return this.analyticsService.getDetailedAttendanceReport({
+      startDate: new Date(startDate),
+      endDate: new Date(endDate),
+      departmentId,
+    });
+  }
+
+  @Get('reports/payroll')
+  @Permissions('analytics:read')
+  async getPayrollReport(
+    @Query('year') year: string,
+    @Query('month') month?: string,
+  ) {
+    return this.analyticsService.getDetailedPayrollReport({
+      year: parseInt(year, 10),
+      month: month ? parseInt(month, 10) : undefined,
     });
   }
 

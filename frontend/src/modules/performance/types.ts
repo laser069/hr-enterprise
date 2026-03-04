@@ -76,3 +76,51 @@ export interface CreateReviewDto {
   feedback?: string;
   goals?: string;
 }
+
+export interface FeedbackRequest {
+  id: string;
+  employeeId: string;
+  requesterId: string;
+  reviewerId: string;
+  status: 'pending' | 'completed';
+  message?: string;
+  rating?: number;
+  comments?: string;
+  createdAt: string;
+  employee?: { firstName: string; lastName: string };
+  reviewer?: { firstName: string; lastName: string };
+}
+
+export interface PromotionHistory {
+  id: string;
+  employeeId: string;
+  oldDesignation?: string;
+  newDesignation: string;
+  oldSalary?: number;
+  newSalary: number;
+  effectiveDate: string;
+  notes?: string;
+  createdAt: string;
+}
+
+export interface CreateFeedbackDto {
+  employeeId: string;
+  requesterId: string;
+  reviewerId: string;
+  message?: string;
+}
+
+export interface SubmitFeedbackDto {
+  rating: number;
+  comments: string;
+}
+
+export interface CreatePromotionDto {
+  employeeId: string;
+  oldDesignation?: string;
+  newDesignation: string;
+  oldSalary?: number;
+  newSalary: number;
+  effectiveDate: string;
+  notes?: string;
+}

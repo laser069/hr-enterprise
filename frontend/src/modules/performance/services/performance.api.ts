@@ -1,5 +1,16 @@
 import { apiClient } from '../../../core/api/api-client';
-import type { Goal, PerformanceReview, CreateGoalDto, CreateReviewDto, UpdateGoalProgressDto } from '../types';
+import type {
+  Goal,
+  PerformanceReview,
+  CreateGoalDto,
+  CreateReviewDto,
+  UpdateGoalProgressDto,
+  FeedbackRequest,
+  PromotionHistory,
+  CreateFeedbackDto,
+  SubmitFeedbackDto,
+  CreatePromotionDto
+} from '../types';
 
 export const performanceApi = {
   // Goals
@@ -42,5 +53,27 @@ export const performanceApi = {
 
   deleteGoal: (id: string): Promise<void> => {
     return apiClient.delete(`/performance/goals/${id}`);
+  },
+
+  // 360 Feedback
+  getFeedback: (params: { employeeId?: string; reviewerId?: string }): Promise<FeedbackRequest[]> => {
+    return apiClient.get<FeedbackRequest[]>('/performance/feedback', { params });
+  },
+
+  requestFeedback: (data: CreateFeedbackDto): Promise<FeedbackRequest> => {
+    return apiClient.post<FeedbackRequest>('/performance/feedback', data);
+  },
+
+  submitFeedback: (id: string, data: SubmitFeedbackDto): Promise<FeedbackRequest> => {
+    return apiClient.post<FeedbackRequest>(`/performance/feedback/${id}/submit`, data);
+  },
+
+  // Promotions
+  getPromotions: (employeeId: string): Promise<PromotionHistory[]> => {
+    return apiClient.get<PromotionHistory[]>(`/performance/promotions/${employeeId}`);
+  },
+
+  createPromotion: (data: CreatePromotionDto): Promise<PromotionHistory> => {
+    return apiClient.post<PromotionHistory>('/performance/promotions', data);
   },
 };

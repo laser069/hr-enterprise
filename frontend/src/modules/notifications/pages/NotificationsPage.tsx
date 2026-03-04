@@ -2,7 +2,6 @@ import { useNotifications, useMarkAsRead, useMarkAllAsRead, useDeleteNotificatio
 import { Badge } from '../../../shared/components/ui/Badge';
 import { Card } from '../../../shared/components/ui/Card';
 import { Button } from '../../../shared/components/ui/Button';
-import type { Notification } from '../types';
 
 export default function NotificationsPage() {
   const { data: notifications, isLoading } = useNotifications();
@@ -11,15 +10,17 @@ export default function NotificationsPage() {
   const markAllRead = useMarkAllAsRead();
   const deleteNotification = useDeleteNotification();
 
-  const getCategoryColor = (category: string) => {
+  const getTypeColor = (type: string) => {
     const colors: Record<string, string> = {
-      LEAVE: 'text-amber-500 bg-amber-500/10',
-      PAYROLL: 'text-emerald-500 bg-emerald-500/10',
-      PERFORMANCE: 'text-indigo-500 bg-indigo-500/10',
+      LEAVE_APPROVED: 'text-amber-500 bg-amber-500/10',
+      LEAVE_REJECTED: 'text-rose-500 bg-rose-500/10',
+      PAYROLL_PROCESSED: 'text-emerald-500 bg-emerald-500/10',
+      PERFORMANCE_REVIEW: 'text-indigo-500 bg-indigo-500/10',
+      DOCUMENT_UPLOADED: 'text-blue-500 bg-blue-500/10',
       SYSTEM: 'text-slate-400 bg-slate-400/10',
-      RECRUITMENT: 'text-purple-500 bg-purple-500/10',
+      ANNOUNCEMENT: 'text-purple-500 bg-purple-500/10',
     };
-    return colors[category] || 'text-slate-400 bg-slate-400/10';
+    return colors[type] || 'text-slate-400 bg-slate-400/10';
   };
 
   return (
@@ -38,7 +39,7 @@ export default function NotificationsPage() {
             disabled={!(unreadData?.count && unreadData.count > 0)}
             className="rounded-2xl h-14 px-8"
           >
-            Acknowledge All
+            Acknowledge All ({unreadData?.count || 0})
           </Button>
         </div>
       </div>
@@ -54,24 +55,23 @@ export default function NotificationsPage() {
               No enterprise telemetry detected
             </div>
           ) : (
-            notifications.map((notification: Notification) => (
+            notifications.map((notification: any) => (
               <div
                 key={notification.id}
-                className={`px-10 py-8 flex items-start justify-between gap-8 transition-all hover:bg-slate-50 group border-l-4 ${
-                  !notification.isRead ? 'border-indigo-500 bg-indigo-50/30' : 'border-transparent'
-                }`}
+                className={`px-10 py-8 flex items-start justify-between gap-8 transition-all hover:bg-slate-50 group border-l-4 ${!notification.read ? 'border-indigo-500 bg-indigo-50/30' : 'border-transparent'
+                  }`}
               >
                 <div className="flex gap-8">
-                  <div className={`mt-1 h-12 w-12 rounded-2xl flex items-center justify-center shrink-0 shadow-sm border border-slate-100 transition-all group-hover:bg-white ${getCategoryColor(notification.category)}`}>
-                    <span className="font-black text-xs">{notification.category[0]}</span>
+                  <div className={`mt-1 h-12 w-12 rounded-2xl flex items-center justify-center shrink-0 shadow-sm border border-slate-100 transition-all group-hover:bg-white ${getTypeColor(notification.type)}`}>
+                    <span className="font-black text-xs">{(notification.type || 'N')[0]}</span>
                   </div>
                   <div className="space-y-2">
                     <div className="flex items-center gap-4">
-                      <h3 className={`text-lg font-black tracking-tighter leading-none ${!notification.isRead ? 'text-slate-900' : 'text-slate-600'}`}>
+                      <h3 className={`text-lg font-black tracking-tighter leading-none ${!notification.read ? 'text-slate-900' : 'text-slate-600'}`}>
                         {notification.title}
                       </h3>
                       <Badge variant="default" className="text-[8px] font-black uppercase tracking-widest opacity-60">
-                        {notification.category}
+                        {notification.type?.replace(/_/g, ' ')}
                       </Badge>
                     </div>
                     <p className="text-slate-500 text-sm font-medium leading-relaxed max-w-2xl">
@@ -84,7 +84,7 @@ export default function NotificationsPage() {
                 </div>
 
                 <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-all">
-                  {!notification.isRead && (
+                  {!notification.read && (
                     <button
                       onClick={() => markAsRead.mutate(notification.id)}
                       className="p-3 bg-white text-indigo-500 rounded-2xl border border-slate-100 shadow-xl hover:scale-110 active:scale-95 transition-all"

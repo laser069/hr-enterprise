@@ -13,6 +13,7 @@ import {
 } from '@nestjs/common';
 import { Response } from 'express';
 import { PayrollService } from './payroll.service';
+import { BankingService } from './banking.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
@@ -23,7 +24,10 @@ import { CreatePayrollRunDto } from './dto/create-payroll-run.dto';
 @Controller('payroll')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class PayrollController {
-  constructor(private readonly payrollService: PayrollService) { }
+  constructor(
+    private readonly payrollService: PayrollService,
+    private readonly bankingService: BankingService,
+  ) { }
 
   // ============ Salary Structure Endpoints ============
 
@@ -161,5 +165,37 @@ export class PayrollController {
       'Content-Length': buffer.length,
     });
     res.end(buffer);
+  }
+
+  @Post('runs/:id/initiate-transfer')
+  @Roles('admin', 'hr')
+  async initiateBankTransfer(@Param('id') id: string) {
+    const run = await this.payrollService.findPayrollRunById(id);
+    const results = [];
+
+    for (const entry of run.entries) {
+      if (Number(entry.netSalary) > 0) {
+        try {
+          const result: any = await this.bankingService.createPayout(entry.id);
+          results.push({ entryId: entry.id, status: result.payoutStatus, payoutId: result.razorpayPayoutId });
+        } catch (error: any) {
+          results.push({ entryId: entry.id, status: 'failed', error: error.message });
+        }
+      }
+    }
+
+    return {
+      message: 'Transfer initiation sequence completed',
+      results,
+    };
+  }
+
+  @Get('entries/:id/payout-status')
+  async getPayoutStatus(@Param('id') id: string) {
+    const entry: any = await this.payrollService.findPayrollEntryById(id);
+    if (!entry.razorpayPayoutId) return { status: 'pending' };
+
+    const status = await this.bankingService.verifyPayoutStatus(entry.razorpayPayoutId);
+    return { status };
   }
 }

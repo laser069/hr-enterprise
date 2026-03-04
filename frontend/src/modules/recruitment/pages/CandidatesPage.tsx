@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useCandidates, useJobs, useMoveCandidateStage, useConvertToEmployee, useDeleteCandidate } from '../hooks/useRecruitment';
+import { CandidateDetailModal } from '../components/CandidateDetailModal';
+import { CreateCandidateModal } from '../components/CreateCandidateModal';
+import { Button } from '../../../shared/components/ui/Button';
 import type { CandidateStage, Candidate } from '../types';
 
 const stages: CandidateStage[] = ['applied', 'screening', 'interview', 'offer', 'hired', 'rejected'];
@@ -17,17 +20,20 @@ const stageColors: Record<CandidateStage, string> = {
 export default function CandidatesPage() {
   const [searchParams] = useSearchParams();
   const initialJobId = searchParams.get('jobId') || '';
-  
+
   const [selectedJob, setSelectedJob] = useState(initialJobId);
   const [selectedStage, setSelectedStage] = useState<CandidateStage | ''>('');
-  
+  const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
   const { data: candidatesResponse, isLoading } = useCandidates({
     jobId: selectedJob || undefined,
     stage: selectedStage || undefined,
   });
   const candidates = candidatesResponse?.data || [];
   const { data: jobs } = useJobs();
-  
+
   const moveStageMutation = useMoveCandidateStage();
   const convertMutation = useConvertToEmployee();
   const deleteMutation = useDeleteCandidate();
@@ -48,6 +54,11 @@ export default function CandidatesPage() {
     }
   };
 
+  const handleOpenDetail = (candidate: Candidate) => {
+    setSelectedCandidate(candidate);
+    setIsDetailModalOpen(true);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -58,6 +69,9 @@ export default function CandidatesPage() {
           </p>
         </div>
         <div className="flex gap-2">
+          <Button variant="primary" onClick={() => setIsCreateModalOpen(true)}>
+            Add Candidate
+          </Button>
           <select
             value={selectedJob}
             onChange={(e) => setSelectedJob(e.target.value)}
@@ -94,11 +108,10 @@ export default function CandidatesPage() {
               <button
                 key={stage}
                 onClick={() => setSelectedStage(selectedStage === stage ? '' : stage)}
-                className={`p-3 rounded-lg text-center transition-all ${
-                  selectedStage === stage
-                    ? 'ring-2 ring-slate-200 ring-offset-2 ring-offset-white'
-                    : ''
-                } ${stageColors[stage]}`}
+                className={`p-3 rounded-lg text-center transition-all ${selectedStage === stage
+                  ? 'ring-2 ring-slate-200 ring-offset-2 ring-offset-white'
+                  : ''
+                  } ${stageColors[stage]}`}
               >
                 <p className="text-2xl font-black">{count}</p>
                 <p className="text-xs capitalize font-bold opacity-80">{stage}</p>
@@ -197,6 +210,12 @@ export default function CandidatesPage() {
                       {new Date(candidate.appliedAt).toLocaleDateString()}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <button
+                        onClick={() => handleOpenDetail(candidate)}
+                        className="text-indigo-600 hover:text-indigo-900 mr-3 transition-colors"
+                      >
+                        Manage
+                      </button>
                       {candidate.stage === 'hired' && (
                         <button
                           onClick={() => handleConvert(candidate.id)}
@@ -230,6 +249,18 @@ export default function CandidatesPage() {
           </table>
         </div>
       </div>
+
+      <CandidateDetailModal
+        isOpen={isDetailModalOpen}
+        onClose={() => setIsDetailModalOpen(false)}
+        candidate={selectedCandidate}
+      />
+
+      <CreateCandidateModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        defaultJobId={selectedJob}
+      />
     </div>
   );
 }

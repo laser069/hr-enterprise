@@ -11,4 +11,7 @@ export class CheckInDto {
   @IsString()
   @IsOptional()
   notes?: string;
+
+  @IsOptional()
+  faceDescriptor?: number[];
 }

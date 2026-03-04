@@ -1,6 +1,4 @@
-import * as LucideIcons from 'lucide-react';
 import NotificationCenter from '../../modules/notifications/components/NotificationCenter';
-import { Link } from 'react-router-dom';
 
 export function Header() {
   return (
@@ -12,14 +10,6 @@ export function Header() {
       </div>
 
       <div className="flex items-center gap-4 md:gap-8">
-        {/* Approvals */}
-        <Link to="/approvals">
-          <button className="p-3 rounded-2xl text-slate-400 hover:bg-white hover:text-indigo-600 transition-all relative group border border-transparent hover:border-white hover:shadow-xl active:scale-95" title="Pending Approvals">
-            <LucideIcons.ClipboardCheck className="w-5 h-5" />
-            <span className="absolute top-3 right-3 w-2 h-2 bg-amber-500 rounded-full ring-2 ring-white shadow-sm animate-pulse"></span>
-          </button>
-        </Link>
-
         {/* Notifications */}
         <NotificationCenter />
       </div>

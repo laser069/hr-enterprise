@@ -21,6 +21,8 @@ export const navigation: NavItem[] = [
       { name: 'All Employees', path: '/employees', icon: '' },
       { name: 'Add Employee', path: '/employees/new', requiredPermissions: ['employees:create'], icon: '' },
       { name: 'Departments', path: '/departments', requiredPermissions: ['departments:read'], icon: '' },
+      { name: 'Org Chart', path: '/employees/org-chart', icon: '' },
+      { name: 'Face Enrollment', path: '/employees/enroll-face', icon: '' },
     ],
   },
   {
@@ -63,17 +65,27 @@ export const navigation: NavItem[] = [
       { name: 'Dashboard', path: '/performance', icon: '' },
       { name: 'Goals', path: '/performance/goals', icon: '' },
       { name: 'Reviews', path: '/performance/reviews', icon: '' },
+      { name: '360° Feedback', path: '/performance/feedback', icon: '' },
+      { name: 'Career Progress', path: '/performance/promotions', icon: '' },
     ],
   },
   {
     name: 'Recruitment',
     path: '/recruitment-root',
     icon: 'UserPlus',
-    requiredPermissions: ['recruitment:read'],
     children: [
       { name: 'Dashboard', path: '/recruitment', icon: '' },
       { name: 'Jobs', path: '/recruitment/jobs', icon: '' },
       { name: 'Candidates', path: '/recruitment/candidates', icon: '' },
+    ],
+  },
+  {
+    name: 'Helpdesk',
+    path: '/helpdesk-root',
+    icon: 'LifeBuoy',
+    children: [
+      { name: 'Dashboard', path: '/helpdesk/dashboard', icon: '' },
+      { name: 'Tickets', path: '/helpdesk/tickets', icon: '' },
     ],
   },
   {
@@ -90,6 +102,11 @@ export const navigation: NavItem[] = [
     name: 'Approvals',
     path: '/approvals',
     icon: 'CheckCircle',
+  },
+  {
+    name: 'Notifications',
+    path: '/notifications',
+    icon: 'Bell',
   },
   {
     name: 'Analytics',
@@ -113,6 +130,7 @@ export const navigation: NavItem[] = [
       { name: 'Users', icon: 'UserPlus', path: '/settings/users', requiredPermissions: ['users:read'] },
       { name: 'Shifts', icon: 'Clock', path: '/settings/shifts', requiredPermissions: ['shifts:read'] },
       { name: 'Holidays', icon: 'Calendar', path: '/settings/holidays', requiredPermissions: ['holidays:read'] },
+      { name: 'Leave Types', icon: 'FileText', path: '/settings/leave-types', requiredPermissions: ['leave-types:read'] },
       { name: 'System Settings', icon: 'Settings', path: '/settings/system', requiredPermissions: ['settings:read'] },
     ],
   },

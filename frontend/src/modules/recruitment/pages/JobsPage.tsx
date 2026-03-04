@@ -14,7 +14,7 @@ export default function JobsPage() {
   const [status, setStatus] = useState<JobStatus | ''>('');
   const { data: jobs, isLoading } = useJobs();
   const { data: departments } = useDepartments();
-  
+
   const createMutation = useCreateJob();
   const closeMutation = useCloseJob();
 
@@ -24,6 +24,11 @@ export default function JobsPage() {
     description: '',
     departmentId: '',
     openings: 1,
+    location: '',
+    employmentType: 'Full-time',
+    minSalary: 0,
+    maxSalary: 0,
+    requirements: '',
   });
 
   const handleCreate = async () => {
@@ -34,6 +39,11 @@ export default function JobsPage() {
       description: '',
       departmentId: '',
       openings: 1,
+      location: '',
+      employmentType: 'Full-time',
+      minSalary: 0,
+      maxSalary: 0,
+      requirements: '',
     });
   };
 
@@ -51,7 +61,7 @@ export default function JobsPage() {
   };
 
   // Filter jobs locally since the hook doesn't support params yet
-  const filteredJobs = jobs?.filter(j => 
+  const filteredJobs = jobs?.filter(j =>
     (!status || j.status === status)
   );
 
@@ -64,7 +74,7 @@ export default function JobsPage() {
             Enterprise Talent Acquisition & Strategic Placement Oversight
           </p>
         </div>
-        
+
         <div className="flex items-center gap-4">
           <div className="flex items-center p-2 bg-white/40 backdrop-blur-xl border border-white/60 rounded-[2.5rem] shadow-xl ring-1 ring-white/10">
             <select
@@ -132,8 +142,8 @@ export default function JobsPage() {
                     </td>
                     <td className="px-10 py-8">
                       <div className="flex items-center gap-3">
-                         <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest opacity-60">ALLOCATED NODES:</span>
-                         <span className="text-sm font-black text-slate-900 tracking-tighter">{job.openings}</span>
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest opacity-60">ALLOCATED NODES:</span>
+                        <span className="text-sm font-black text-slate-900 tracking-tighter">{job.openings}</span>
                       </div>
                     </td>
                     <td className="px-10 py-8 whitespace-nowrap text-right">
@@ -145,8 +155,8 @@ export default function JobsPage() {
                             title="Terminate Lifecycle"
                             disabled={closeMutation.isPending}
                           >
-                             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
                           </button>
                         )}
@@ -156,7 +166,7 @@ export default function JobsPage() {
                           title="Candidate Hub"
                         >
                           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                           </svg>
                         </Link>
                       </div>
@@ -174,56 +184,113 @@ export default function JobsPage() {
         isOpen={showCreateModal}
         onClose={() => setShowCreateModal(false)}
         title="Initialize Requisition"
-        size="lg"
+        size="xl"
       >
-        <div className="space-y-10">
-          <div className="space-y-4">
-            <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Functional Title *</label>
-            <input
-              type="text"
-              value={newJob.title}
-              onChange={(e) => setNewJob({ ...newJob, title: e.target.value })}
-              className="w-full px-8 py-5 border border-white/60 rounded-3xl text-sm font-black text-slate-900 bg-white/40 focus:outline-none focus:ring-4 focus:ring-slate-100 transition-all uppercase tracking-widest placeholder:text-slate-300 shadow-inner"
-              placeholder="e.g., SENIOR SYSTEMS ARCHITECT"
-            />
-          </div>
-          
+        <div className="space-y-10 pb-10">
           <div className="grid grid-cols-2 gap-10">
             <div className="space-y-4">
-               <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Allocated Division</label>
-               <select
-                 value={newJob.departmentId}
-                 onChange={(e) => setNewJob({ ...newJob, departmentId: e.target.value })}
-                 className="w-full px-8 py-5 border border-white/60 rounded-3xl text-sm font-black text-slate-900 bg-white/40 focus:outline-none focus:ring-4 focus:ring-slate-100 transition-all cursor-pointer uppercase tracking-widest shadow-inner appearance-none"
-               >
-                 <option value="" className="bg-white">Global Department</option>
-                 {departments?.map((dept) => (
-                   <option key={dept.id} value={dept.id} className="bg-white">
-                     {dept.name}
-                   </option>
-                 ))}
-               </select>
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Functional Title *</label>
+              <input
+                type="text"
+                value={newJob.title}
+                onChange={(e) => setNewJob({ ...newJob, title: e.target.value })}
+                className="w-full px-8 py-5 border border-white/60 rounded-3xl text-sm font-black text-slate-900 bg-white/40 focus:outline-none focus:ring-4 focus:ring-slate-100 transition-all uppercase tracking-widest placeholder:text-slate-300 shadow-inner"
+                placeholder="e.g., SENIOR SYSTEMS ARCHITECT"
+              />
             </div>
             <div className="space-y-4">
-               <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Node Count</label>
-               <input
-                 type="number"
-                 value={newJob.openings}
-                 onChange={(e) => setNewJob({ ...newJob, openings: Number(e.target.value) })}
-                 className="w-full px-8 py-5 border border-white/60 rounded-3xl text-sm font-black text-slate-900 bg-white/40 focus:outline-none focus:ring-4 focus:ring-slate-100 transition-all uppercase tracking-widest shadow-inner"
-                 min={1}
-               />
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Employment Protocol</label>
+              <select
+                value={newJob.employmentType}
+                onChange={(e) => setNewJob({ ...newJob, employmentType: e.target.value })}
+                className="w-full px-8 py-5 border border-white/60 rounded-3xl text-sm font-black text-slate-900 bg-white/40 focus:outline-none focus:ring-4 focus:ring-slate-100 transition-all uppercase tracking-widest appearance-none"
+              >
+                <option value="Full-time">Full-time</option>
+                <option value="Part-time">Part-time</option>
+                <option value="Contract">Contract</option>
+                <option value="Internship">Internship</option>
+              </select>
             </div>
           </div>
 
-          <div className="space-y-4">
-            <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Objective Summary</label>
-            <textarea
-              value={newJob.description}
-              onChange={(e) => setNewJob({ ...newJob, description: e.target.value })}
-              className="w-full px-8 py-5 border border-white/60 rounded-3xl text-sm font-black text-slate-900 bg-white/40 focus:outline-none focus:ring-4 focus:ring-slate-100 transition-all uppercase tracking-widest h-48 placeholder:text-slate-300 shadow-inner"
-              placeholder="Protocol narrative..."
-            />
+          <div className="grid grid-cols-3 gap-10">
+            <div className="space-y-4">
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Allocated Division</label>
+              <select
+                value={newJob.departmentId}
+                onChange={(e) => setNewJob({ ...newJob, departmentId: e.target.value })}
+                className="w-full px-8 py-5 border border-white/60 rounded-3xl text-sm font-black text-slate-900 bg-white/40 focus:outline-none focus:ring-4 focus:ring-slate-100 transition-all cursor-pointer uppercase tracking-widest shadow-inner appearance-none"
+              >
+                <option value="" className="bg-white">Global Department</option>
+                {departments?.map((dept) => (
+                  <option key={dept.id} value={dept.id} className="bg-white">
+                    {dept.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-4">
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Location Vector</label>
+              <input
+                type="text"
+                value={newJob.location}
+                onChange={(e) => setNewJob({ ...newJob, location: e.target.value })}
+                className="w-full px-8 py-5 border border-white/60 rounded-3xl text-sm font-black text-slate-900 bg-white/40 focus:outline-none focus:ring-4 focus:ring-slate-100 transition-all uppercase tracking-widest shadow-inner"
+                placeholder="e.g., REMOTE / HYBRID"
+              />
+            </div>
+            <div className="space-y-4">
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Node Count</label>
+              <input
+                type="number"
+                value={newJob.openings}
+                onChange={(e) => setNewJob({ ...newJob, openings: Number(e.target.value) })}
+                className="w-full px-8 py-5 border border-white/60 rounded-3xl text-sm font-black text-slate-900 bg-white/40 focus:outline-none focus:ring-4 focus:ring-slate-100 transition-all uppercase tracking-widest shadow-inner"
+                min={1}
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-10">
+            <div className="space-y-4">
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Min Salary Quantum</label>
+              <input
+                type="number"
+                value={newJob.minSalary}
+                onChange={(e) => setNewJob({ ...newJob, minSalary: Number(e.target.value) })}
+                className="w-full px-8 py-5 border border-white/60 rounded-3xl text-sm font-black text-slate-900 bg-white/40 focus:outline-none focus:ring-4 focus:ring-slate-100 transition-all shadow-inner"
+              />
+            </div>
+            <div className="space-y-4">
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Max Salary Quantum</label>
+              <input
+                type="number"
+                value={newJob.maxSalary}
+                onChange={(e) => setNewJob({ ...newJob, maxSalary: Number(e.target.value) })}
+                className="w-full px-8 py-5 border border-white/60 rounded-3xl text-sm font-black text-slate-900 bg-white/40 focus:outline-none focus:ring-4 focus:ring-slate-100 transition-all shadow-inner"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-10">
+            <div className="space-y-4">
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Objective Summary</label>
+              <textarea
+                value={newJob.description}
+                onChange={(e) => setNewJob({ ...newJob, description: e.target.value })}
+                className="w-full px-8 py-5 border border-white/60 rounded-3xl text-sm font-black text-slate-900 bg-white/40 focus:outline-none focus:ring-4 focus:ring-slate-100 transition-all uppercase tracking-widest h-48 placeholder:text-slate-300 shadow-inner"
+                placeholder="Detailed protocols..."
+              />
+            </div>
+            <div className="space-y-4">
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Requirement Matrix</label>
+              <textarea
+                value={newJob.requirements}
+                onChange={(e) => setNewJob({ ...newJob, requirements: e.target.value })}
+                className="w-full px-8 py-5 border border-white/60 rounded-3xl text-sm font-black text-slate-900 bg-white/40 focus:outline-none focus:ring-4 focus:ring-slate-100 transition-all uppercase tracking-widest h-48 placeholder:text-slate-300 shadow-inner"
+                placeholder="Skills, experience, etc..."
+              />
+            </div>
           </div>
 
           <div className="flex justify-end gap-6 mt-16 pt-10 border-t border-slate-100/50">

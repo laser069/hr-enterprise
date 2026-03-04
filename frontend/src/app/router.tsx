@@ -16,6 +16,9 @@ const ExecutiveDashboard = lazy(() => import('../modules/executive/pages/Executi
 const EmployeeListPage = lazy(() => import('../modules/employees/pages/EmployeeListPage'));
 const NewEmployeePage = lazy(() => import('../modules/employees/pages/NewEmployeePage'));
 const EmployeeDetailPage = lazy(() => import('../modules/employees/pages/EmployeeDetailPage'));
+const EditEmployeePage = lazy(() => import('../modules/employees/pages/EditEmployeePage'));
+const FaceEnrollmentPage = lazy(() => import('../modules/employees/pages/FaceEnrollmentPage'));
+
 const DepartmentListPage = lazy(() => import('../modules/departments/pages/DepartmentListPage'));
 const DepartmentDetailPage = lazy(() => import('../modules/departments/pages/DepartmentDetailPage'));
 const AttendanceDashboard = lazy(() => import('../modules/attendance/pages/AttendanceDashboard'));
@@ -29,11 +32,16 @@ const SalaryStructuresPage = lazy(() => import('../modules/payroll/pages/SalaryS
 const PerformanceDashboard = lazy(() => import('../modules/performance/pages/PerformanceDashboard'));
 const GoalsPage = lazy(() => import('../modules/performance/pages/GoalsPage'));
 const ReviewsPage = lazy(() => import('../modules/performance/pages/ReviewsPage'));
+const FeedbackPage = lazy(() => import('../modules/performance/pages/FeedbackPage'));
+const PromotionsPage = lazy(() => import('../modules/performance/pages/PromotionsPage'));
 const RecruitmentDashboard = lazy(() => import('../modules/recruitment/pages/RecruitmentDashboard'));
 const JobsPage = lazy(() => import('../modules/recruitment/pages/JobsPage'));
 const CandidatesPage = lazy(() => import('../modules/recruitment/pages/CandidatesPage'));
 const ComplianceDashboard = lazy(() => import('../modules/compliance/pages/ComplianceDashboard'));
 const FilingsPage = lazy(() => import('../modules/compliance/pages/FilingsPage'));
+const AuditLogPage = lazy(() => import('../modules/compliance/pages/AuditLogPage'));
+const StatutoryCompliancePage = lazy(() => import('../modules/compliance/pages/StatutoryCompliancePage'));
+const LaborLawPage = lazy(() => import('../modules/compliance/pages/LaborLawPage'));
 const AttritionAnalytics = lazy(() => import('../modules/analytics/pages/AttritionAnalytics'));
 const DepartmentAnalytics = lazy(() => import('../modules/analytics/pages/DepartmentAnalytics'));
 const AnalyticsDashboard = lazy(() => import('../modules/analytics/pages/AnalyticsDashboard'));
@@ -46,11 +54,17 @@ const UsersPage = lazy(() => import('../modules/users/pages/UsersPage'));
 const NotificationsPage = lazy(() => import('../modules/notifications/pages/NotificationsPage'));
 const ShiftsPage = lazy(() => import('../modules/shifts/pages/ShiftsPage'));
 const HolidaysPage = lazy(() => import('../modules/holidays/pages/HolidaysPage'));
+const LeaveTypesPage = lazy(() => import('../modules/leave/pages/LeaveTypesPage'));
 const HelpdeskDashboard = lazy(() => import('../modules/helpdesk/pages/HelpdeskDashboard'));
 const TicketListPage = lazy(() => import('../modules/helpdesk/pages/TicketListPage'));
 const TicketDetailPage = lazy(() => import('../modules/helpdesk/pages/TicketDetailPage'));
 const OrgChartPage = lazy(() => import('../modules/employees/pages/OrgChartPage'));
 const MyPayslipsPage = lazy(() => import('../modules/payroll/pages/MyPayslipsPage'));
+
+const AttendanceReportPage = lazy(() => import('../modules/analytics/pages/AttendanceReportPage'));
+const PayrollReportPage = lazy(() => import('../modules/analytics/pages/PayrollReportPage'));
+const PerformanceReportPage = lazy(() => import('../modules/analytics/pages/PerformanceReportPage'));
+const CustomReportPage = lazy(() => import('../modules/analytics/pages/CustomReportPage'));
 
 export const router = createBrowserRouter([
   {
@@ -153,10 +167,26 @@ export const router = createBrowserRouter([
             ),
           },
           {
+            path: ':id/edit',
+            element: (
+              <SuspenseWrapper>
+                <EditEmployeePage />
+              </SuspenseWrapper>
+            ),
+          },
+          {
             path: 'org-chart',
             element: (
               <SuspenseWrapper>
                 <OrgChartPage />
+              </SuspenseWrapper>
+            ),
+          },
+          {
+            path: 'enroll-face',
+            element: (
+              <SuspenseWrapper>
+                <FaceEnrollmentPage />
               </SuspenseWrapper>
             ),
           },
@@ -297,6 +327,22 @@ export const router = createBrowserRouter([
               </SuspenseWrapper>
             ),
           },
+          {
+            path: 'feedback',
+            element: (
+              <SuspenseWrapper>
+                <FeedbackPage />
+              </SuspenseWrapper>
+            ),
+          },
+          {
+            path: 'promotions',
+            element: (
+              <SuspenseWrapper>
+                <PromotionsPage />
+              </SuspenseWrapper>
+            ),
+          },
         ],
       },
       {
@@ -347,6 +393,30 @@ export const router = createBrowserRouter([
               </SuspenseWrapper>
             ),
           },
+          {
+            path: 'audit-logs',
+            element: (
+              <SuspenseWrapper>
+                <AuditLogPage />
+              </SuspenseWrapper>
+            ),
+          },
+          {
+            path: 'statutory-registry',
+            element: (
+              <SuspenseWrapper>
+                <StatutoryCompliancePage />
+              </SuspenseWrapper>
+            ),
+          },
+          {
+            path: 'labor-protocol',
+            element: (
+              <SuspenseWrapper>
+                <LaborLawPage />
+              </SuspenseWrapper>
+            ),
+          },
         ],
       },
       {
@@ -373,6 +443,38 @@ export const router = createBrowserRouter([
             element: (
               <SuspenseWrapper>
                 <DepartmentAnalytics />
+              </SuspenseWrapper>
+            ),
+          },
+          {
+            path: 'reports-attendance',
+            element: (
+              <SuspenseWrapper>
+                <AttendanceReportPage />
+              </SuspenseWrapper>
+            ),
+          },
+          {
+            path: 'reports-payroll',
+            element: (
+              <SuspenseWrapper>
+                <PayrollReportPage />
+              </SuspenseWrapper>
+            ),
+          },
+          {
+            path: 'reports-performance',
+            element: (
+              <SuspenseWrapper>
+                <PerformanceReportPage />
+              </SuspenseWrapper>
+            ),
+          },
+          {
+            path: 'custom-builder',
+            element: (
+              <SuspenseWrapper>
+                <CustomReportPage />
               </SuspenseWrapper>
             ),
           },
@@ -496,6 +598,14 @@ export const router = createBrowserRouter([
             element: (
               <SuspenseWrapper>
                 <HolidaysPage />
+              </SuspenseWrapper>
+            ),
+          },
+          {
+            path: 'leave-types',
+            element: (
+              <SuspenseWrapper>
+                <LeaveTypesPage />
               </SuspenseWrapper>
             ),
           },

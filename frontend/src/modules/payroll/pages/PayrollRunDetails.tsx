@@ -1,5 +1,5 @@
 import { useParams } from 'react-router-dom';
-import { usePayrollRun, usePayrollSummary, useCalculatePayroll, useApprovePayroll, useProcessPayroll, useDownloadBankExport } from '../hooks/usePayroll';
+import { usePayrollRun, usePayrollSummary, useCalculatePayroll, useApprovePayroll, useProcessPayroll, useDownloadBankExport, useInitiateTransfer } from '../hooks/usePayroll';
 import { useAuthContext } from '../../../core/auth/use-auth-context';
 import type { PayrollEntry } from '../types';
 import { Badge } from '../../../shared/components/ui/Badge';
@@ -20,15 +20,16 @@ interface PayrollSummary {
 export default function PayrollRunDetails() {
   const { id } = useParams<{ id: string }>();
   const { hasPermission } = useAuthContext();
-  
+
   const { data: run, isLoading: runLoading } = usePayrollRun(id || '');
   const { data: summaryData, isLoading: summaryLoading } = usePayrollSummary(id || '');
   const summary = (summaryData as { summary?: PayrollSummary })?.summary;
-  
+
   const calculateMutation = useCalculatePayroll();
   const approveMutation = useApprovePayroll();
   const processMutation = useProcessPayroll();
   const downloadBankExportMutation = useDownloadBankExport();
+  const initiateTransferMutation = useInitiateTransfer();
 
   const canManage = hasPermission('payroll:manage');
 
@@ -67,6 +68,16 @@ export default function PayrollRunDetails() {
 
   const handleDownloadBankExport = async () => {
     if (id) await downloadBankExportMutation.mutateAsync(id);
+  };
+
+  const handleInitiateTransfer = async () => {
+    if (!id || !window.confirm('Are you sure you want to initiate direct bank transfers for all employees in this run?')) return;
+    try {
+      await initiateTransferMutation.mutateAsync(id);
+      alert('Bank transfer sequence initiated! Statuses will update shortly.');
+    } catch (error: any) {
+      alert(`Transfer initiation failed: ${error.response?.data?.message || error.message}`);
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -181,17 +192,30 @@ export default function PayrollRunDetails() {
             </Button>
           )}
           {run.status.toLowerCase() === 'processed' && (
-            <Button
-              variant="outline"
-              onClick={handleDownloadBankExport}
-              disabled={downloadBankExportMutation.isPending}
-              className="flex items-center gap-2"
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor font-bold">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-              </svg>
-              Download Bank Export (XLSX)
-            </Button>
+            <>
+              <Button
+                variant="outline"
+                onClick={handleDownloadBankExport}
+                disabled={downloadBankExportMutation.isPending}
+                className="flex items-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                Download Bank Export (XLSX)
+              </Button>
+              <Button
+                variant="primary"
+                onClick={handleInitiateTransfer}
+                disabled={initiateTransferMutation.isPending}
+                className="flex items-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                Initiate Direct Bank Transfer
+              </Button>
+            </>
           )}
         </div>
       )}
@@ -243,6 +267,9 @@ export default function PayrollRunDetails() {
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Net Salary
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Transfer Status
                 </th>
               </tr>
             </thead>
@@ -307,6 +334,21 @@ export default function PayrollRunDetails() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600">
                       ${Number(entry.netSalary || 0).toLocaleString()}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {entry.razorpayPayoutId ? (
+                        <div className="flex flex-col">
+                          <Badge
+                            variant={entry.payoutStatus === 'processed' ? 'success' : (['failed', 'rejected', 'reversed'].includes(entry.payoutStatus || '') ? 'danger' : 'warning')}
+                            className="text-[10px] uppercase"
+                          >
+                            {entry.payoutStatus}
+                          </Badge>
+                          <span className="text-[9px] text-gray-400 font-mono mt-1">{entry.razorpayPayoutId}</span>
+                        </div>
+                      ) : (
+                        <span className="text-gray-400 text-xs italic">Not Initiated</span>
+                      )}
                     </td>
                   </tr>
                 ))

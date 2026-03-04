@@ -185,6 +185,10 @@ model Employee {
   goals            Goal[]
   performanceReviews      PerformanceReview[]  @relation("ReviewEmployee")
   reviewsGiven            PerformanceReview[]  @relation("ReviewReviewer")
+  feedbackReceived        FeedbackRequest[]    @relation("FeedbackTarget")
+  feedbackRequested       FeedbackRequest[]    @relation("FeedbackRequester")
+  feedbackGiven           FeedbackRequest[]    @relation("FeedbackReviewer")
+  promotions              PromotionHistory[]
   policyAcknowledgements  PolicyAcknowledgement[]
   approvalRequests        Approval[]           @relation("ApprovalRequester")
   approvalDecisions       Approval[]           @relation("ApprovalApprover")
@@ -195,9 +199,14 @@ model Employee {
   bankAccountNumber String?   @map("bank_account_number")
   ifscCode          String?   @map("ifsc_code")
   bankName          String?   @map("bank_name")
+  
+  razorpayContactId String?   @map("razorpay_contact_id")
+  razorpayFundAccountId String? @map("razorpay_fund_account_id")
 
   shiftId          String?   @map("shift_id")
   shift            Shift?    @relation(fields: [shiftId], references: [id])
+
+  faceDescriptor   Json?     @map("face_descriptor") // Stores 128-float face vector
 
   @@map("employees")
 }
@@ -284,6 +293,10 @@ model Attendance {
   workMinutes     Int?      @map("work_minutes")
   isManualEntry   Boolean   @default(false) @map("is_manual_entry")
   notes           String?
+  
+  isFaceVerified  Boolean   @default(false) @map("is_face_verified")
+  faceVerificationScore Float? @map("face_verification_score")
+
   createdAt       DateTime  @default(now()) @map("created_at")
   updatedAt       DateTime  @updatedAt @map("updated_at")
 
@@ -446,6 +459,9 @@ model PayrollEntry {
   
   additions       Json?    // { bonus: 5000, incentives: 2000 }
   deductions      Json?    // { pf: 1800, esi: 500, tds: 1200 }
+
+  razorpayPayoutId String?   @map("razorpay_payout_id")
+  payoutStatus    String    @default("pending") @map("payout_status") // pending, queued, processing, processed, reversed, cancelled, rejected, failed
 
   createdAt       DateTime @default(now()) @map("created_at")
   updatedAt       DateTime @updatedAt @map("updated_at")
@@ -777,6 +793,41 @@ model Document {
   @@index([category])
   @@index([uploadedBy])
   @@map("documents")
+}
+
+model FeedbackRequest {
+  id              String   @id @default(uuid())
+  employeeId      String   @map("employee_id")
+  requesterId     String   @map("requester_id")
+  reviewerId      String   @map("reviewer_id")
+  status          String   @default("pending") // pending, completed
+  message         String?
+  rating          Int?
+  comments        String?
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  employee        Employee @relation("FeedbackTarget", fields: [employeeId], references: [id])
+  requester       Employee @relation("FeedbackRequester", fields: [requesterId], references: [id])
+  reviewer        Employee @relation("FeedbackReviewer", fields: [reviewerId], references: [id])
+
+  @@map("feedback_requests")
+}
+
+model PromotionHistory {
+  id              String   @id @default(uuid())
+  employeeId      String   @map("employee_id")
+  oldDesignation  String?  @map("old_designation")
+  newDesignation  String   @map("new_designation")
+  oldSalary       Decimal? @map("old_salary") @db.Decimal(12, 2)
+  newSalary       Decimal  @map("new_salary") @db.Decimal(12, 2)
+  effectiveDate   DateTime @map("effective_date")
+  notes           String?
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  employee        Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@map("promotion_history")
 }
 
 enum DocumentCategory {
