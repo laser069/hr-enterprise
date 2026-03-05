@@ -40,10 +40,10 @@ const DataTableInner = <T extends { id: string | number }>({
 }: DataTableProps<T>) => {
   return (
     <div className={cn('flex flex-col gap-6', className)}>
-      <div className="glass overflow-hidden shadow-[0_30px_60px_-15px_rgba(0,0,0,0.1)] border-white/40 ring-1 ring-white/10">
-        <div className="overflow-x-auto custom-scrollbar">
-          <table className="min-w-full divide-y divide-slate-200/40">
-            <thead className="bg-white/60 backdrop-blur-xl border-b border-white/20">
+      <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-slate-100">
+            <thead className="bg-slate-50 border-b border-slate-200">
               <tr>
                 {columns.map((column, index) => (
                   <th
@@ -73,7 +73,7 @@ const DataTableInner = <T extends { id: string | number }>({
                 <tr>
                   <td colSpan={columns.length} className="px-8 py-16 text-center">
                     <div className="flex flex-col items-center gap-4">
-                       <svg className="w-12 h-12 text-slate-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg className="w-12 h-12 text-slate-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                       </svg>
                       <span className="text-[10px] text-slate-400 font-black uppercase tracking-[0.3em]">{emptyMessage}</span>
@@ -130,35 +130,35 @@ const DataTableInner = <T extends { id: string | number }>({
               <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
               PREV
             </Button>
-            
+
             {/* Page Numbers */}
             <div className="flex items-center gap-2">
-               {[...Array(Math.min(5, pagination.totalPages))].map((_, i) => {
-                 let pageNum = pagination.currentPage - 2 + i;
-                 if (pagination.currentPage <= 2) pageNum = i + 1;
-                 if (pagination.currentPage >= pagination.totalPages - 1) pageNum = pagination.totalPages - 4 + i;
-                 
-                 if (pageNum > 0 && pageNum <= pagination.totalPages) {
-                    const isActive = pagination.currentPage === pageNum;
-                    return (
-                     <button
-                       key={pageNum}
-                       onClick={() => pagination.onPageChange(pageNum)}
-                       className={cn(
-                         "w-11 h-11 rounded-[1.25rem] text-[10px] font-black transition-all duration-300 border",
-                         isActive 
-                           ? "bg-white/20 text-white shadow-2xl shadow-indigo-500/20 border-white/30 scale-110 z-10" 
-                           : "text-white/30 border-transparent hover:bg-white/10 hover:text-white"
-                       )}
-                     >
-                       {pageNum}
-                     </button>
-                    );
-                 }
-                 return null;
-               })}
+              {[...Array(Math.min(5, pagination.totalPages))].map((_, i) => {
+                let pageNum = pagination.currentPage - 2 + i;
+                if (pagination.currentPage <= 2) pageNum = i + 1;
+                if (pagination.currentPage >= pagination.totalPages - 1) pageNum = pagination.totalPages - 4 + i;
+
+                if (pageNum > 0 && pageNum <= pagination.totalPages) {
+                  const isActive = pagination.currentPage === pageNum;
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => pagination.onPageChange(pageNum)}
+                      className={cn(
+                        "w-11 h-11 rounded-[1.25rem] text-[10px] font-black transition-all duration-300 border",
+                        isActive
+                          ? "bg-white/20 text-white shadow-2xl shadow-indigo-500/20 border-white/30 scale-110 z-10"
+                          : "text-white/30 border-transparent hover:bg-white/10 hover:text-white"
+                      )}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                }
+                return null;
+              })}
             </div>
- 
+
             <Button
               variant="outline"
               size="sm"

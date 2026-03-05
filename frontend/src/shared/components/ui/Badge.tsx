@@ -16,18 +16,18 @@ export function Badge({
   return (
     <span
       className={cn(
-        'inline-flex items-center font-black uppercase tracking-[0.2em] rounded-2xl backdrop-blur-xl border shadow-[0_10px_20px_-5px_rgba(0,0,0,0.05)] ring-1 ring-white/20',
+        'inline-flex items-center font-semibold uppercase tracking-wide rounded-lg border',
         {
-          'bg-slate-100/80 text-slate-700 border-slate-200/60 shadow-inner': variant === 'default',
-          'bg-indigo-600 text-white border-indigo-500 shadow-[0_10px_20px_-5px_rgba(79,70,229,0.3)]': variant === 'primary',
-          'bg-emerald-500 text-white border-emerald-400 shadow-[0_10px_20px_-5px_rgba(16,185,129,0.3)]': variant === 'success',
-          'bg-amber-500 text-white border-amber-400 shadow-[0_10px_20px_-5px_rgba(245,158,11,0.3)]': variant === 'warning',
-          'bg-rose-500 text-white border-rose-400 shadow-[0_10px_20px_-5px_rgba(244,63,94,0.3)]': variant === 'danger',
-          'bg-indigo-500 text-white border-indigo-400 shadow-[0_10px_20px_-5px_rgba(99,102,241,0.3)]': variant === 'info',
+          'bg-slate-100 text-slate-700 border-slate-200': variant === 'default',
+          'bg-indigo-100 text-indigo-700 border-indigo-200': variant === 'primary',
+          'bg-emerald-100 text-emerald-700 border-emerald-200': variant === 'success',
+          'bg-amber-100 text-amber-700 border-amber-200': variant === 'warning',
+          'bg-rose-100 text-rose-700 border-rose-200': variant === 'danger',
+          'bg-blue-100 text-blue-700 border-blue-200': variant === 'info',
         },
         {
-          'px-3 py-1 text-[8px]': size === 'sm',
-          'px-4 py-1.5 text-[9px]': size === 'md',
+          'px-2 py-0.5 text-[9px]': size === 'sm',
+          'px-2.5 py-1 text-[10px]': size === 'md',
         },
         className
       )}

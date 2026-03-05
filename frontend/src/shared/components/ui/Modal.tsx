@@ -39,13 +39,13 @@ export function Modal({
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
+        className="fixed inset-0 bg-black/40 transition-opacity"
         onClick={onClose}
       />
       <div className="flex min-h-full items-center justify-center p-6 text-center">
         <div
           className={cn(
-            'glass-strong relative transform overflow-hidden rounded-[3rem] p-16 text-left shadow-[0_50px_100px_-20px_rgba(0,0,0,0.15)] transition-all border-white/80 ring-1 ring-white/20 backdrop-blur-2xl ring-inset w-full',
+            'bg-white relative transform overflow-hidden rounded-2xl p-8 text-left shadow-xl transition-all w-full border border-slate-200',
             {
               'max-w-md': size === 'sm',
               'max-w-2xl': size === 'md',
